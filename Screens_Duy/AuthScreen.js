@@ -225,6 +225,7 @@ export default function AuthScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        paddingTop:40,
     },
     scrollContent: {
         flexGrow: 1,
@@ -249,8 +250,8 @@ const styles = StyleSheet.create({
     // Role Styles
     roleWrapper: {
         position: 'absolute',
-        top: 15,
-        left: 15,
+        top: -60,
+        left: 0,
         zIndex: 100,
     },
     roleSelected: {
