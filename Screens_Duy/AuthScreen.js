@@ -11,31 +11,57 @@ import {
     Check,
     Briefcase,
     LogIn,
-    UserPlus
+    UserPlus,
+    Eye,
+    EyeOff
 } from 'lucide-react-native';
 const { width } = Dimensions.get('window');
-// 1. Component Input có Icon
-const CustomInput = ({ label, icon: Icon, placeholder, secureTextEntry }) => {
+// 1. Component Input có Icon, thay đổi Icon và tính năng ẩn/ hiện mật khẩu, báo lỗi đăng nhập
+const CustomInput = ({ label, icon: Icon, placeholder, secureTextEntry, value, onChangeText, error }) => {
     const [isFocused, setIsFocused] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     return (
         <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{label}</Text>
-            <View style={[styles.inputWrapper, isFocused && styles.inputWrapperFocused]}>
+            <View style={[
+                styles.inputWrapper,
+                isFocused && styles.inputWrapperFocused,
+                error && styles.inputWrapperError // <-- Thêm viền đỏ nếu có lỗi xác thực đăng nhập
+            ]}>
                 <Icon
-                    color={isFocused ? "#6366f1" : "#9ca3af"}
+                    color={error ? "#ef4444" : (isFocused ? "#6366f1" : "#9ca3af")}
                     size={18}
                     style={styles.inputIcon}
                 />
                 <TextInput
-                    style={styles.formInput}
+                    style={[styles.formInput, secureTextEntry && { paddingRight: 40 }]}
                     placeholder={placeholder}
                     placeholderTextColor="#9ca3af"
-                    secureTextEntry={secureTextEntry}
+                    secureTextEntry={secureTextEntry && !isPasswordVisible}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    value={value} // <-- Nhận giá trị từ cha
+                    onChangeText={onChangeText} // <-- Gửi giá trị người dùng gõ về cha
                 />
+                {secureTextEntry && (
+                    <TouchableOpacity
+                        style={styles.eyeIcon}
+                        onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                    >
+                        {isPasswordVisible ? (
+                            <Eye color="#6366f1" size={18} />
+                        ) : (
+                            <EyeOff color="#9ca3af" size={18} />
+                        )}
+                    </TouchableOpacity>
+                )}
             </View>
+            {/* Hiển thị dòng chữ lỗi màu đỏ ở dưới cùng
+      1. Nếu error = true -> hiện màu chữ đỏ báo lỗi
+      2. Nếu error = false -> không hiện gì cả - NULL
+      */}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </View>
     );
 };
@@ -72,7 +98,93 @@ export default function AuthScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('login');//login hoac sign-up
     const [showRoleDropdown, setShowRoleDropdown] = useState(false);
     const [selectedRole, setSelectedRole] = useState('student');//student // giang vien
+    const [errors, setErrors] = useState({}); // Lưu các lỗi như { email: "Thiếu email", password: "Quá ngắn" }
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const rotateAnim = useRef(new Animated.Value(0)).current;
+    // Hàm kiểm tra định dạng email hợp lệ
+    const validateEmail = (email) => {
+        //1. ký hiệu ^ : bắt đầu là string
+        //2. [^\s@]+ : ít nhất 1 ký tự ko phải khoảng trắng // @
+        //3. ký hiệu @ : phải có ký hiệu @
+        //4.[^\s@]+ : đây là phần domain 
+        //5. \. : phải có dấu chấm (VD: Duy@gmail.com)
+        //6. [^\s@]+ : phần đuôi domain
+        //7. $ : kết thúc chuỗi, không lấy khoảng trắng nào nữa
+
+        //kết quả đúng khi: abc@gmail.com || abc@yahoo.com...
+        //kết quả sai khi: abc@ || abc@.com || abcgmail.com
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    };
+
+    // Logic xử lý khi bấm Đăng nhập
+    const handleLogin = () => {
+        let newErrors = {};
+
+        if (!email) {
+            newErrors.email = 'Vui lòng nhập tài khoản hoặc email.';
+        } else if (!validateEmail(email)) {
+            newErrors.email = 'Email không đúng định dạng.';
+        }
+
+        if (!password) {
+            newErrors.password = 'Vui lòng nhập mật khẩu.';
+        }
+        else if(password.length <6){
+            newErrors.password='Mật khẩu phải có ít nhất 6 ký tự';
+        }
+
+        setErrors(newErrors); // Cập nhật danh sách lỗi ra màn hình
+
+        // Nếu không có lỗi nào (object rỗng) -> Đăng nhập thành công!
+        if (Object.keys(newErrors).length === 0) {
+            console.log('Call API Đăng nhập với:', { email, password, role: selectedRole });
+            navigation.navigate('Home'); // Chuyển trang (Có thể chuyển trang chủ Sinh Viên || Giảng Viên nếu muốn)
+        }
+    };
+
+    // Logic xử lý khi bấm Đăng ký
+    const handleRegister = () => {
+        let newErrors = {};
+
+        if (!fullName) newErrors.fullName = 'Vui lòng nhập họ và tên.';
+
+        if (!email) {
+            newErrors.email = 'Vui lòng nhập email.';
+        } else if (!validateEmail(email)) {
+            newErrors.email = 'Email không đúng định dạng.';
+        }
+
+        if (!password) {
+            newErrors.password = 'Vui lòng nhập mật khẩu.';
+        } else if (password.length < 6) {
+            newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự.';
+        }
+
+        if (confirmPassword !== password) {
+            newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp.';
+        }
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length === 0) {
+            console.log('Call API Đăng ký thành công!');
+            // Có thể chuyển qua tab login hoặc báo thành công ở đây
+        }
+    };
+
+    // Mẹo: Xóa hết lỗi và form khi chuyển đổi giữa Tab Đăng nhập / Đăng ký
+    const switchTab = (tab) => {
+        setActiveTab(tab);
+        setErrors({});
+        setEmail('');
+        setPassword('');
+        setFullName('');
+        setConfirmPassword('');
+    };
 
     // Dùng useEffect để lắng nghe khi biến showRoleDropdown thay đổi
     //nếu "showRoleDropdown" thay đổi "State" --> useEffect của hàm "rotateAnim" bắt đầu Animation của nó
@@ -187,15 +299,30 @@ export default function AuthScreen({ navigation }) {
                     </View>
 
                     {/* Nội dung Tab Đăng Nhập */}
+                    {/* Nội dung Tab Đăng Nhập */}
                     {activeTab === 'login' && (
                         <View style={styles.formContent}>
-                            <CustomInput label="Tài khoản / Email" icon={User} placeholder="Nhập email..." />
-                            <CustomInput label="Mật khẩu" icon={Lock} placeholder="Nhập mật khẩu..." secureTextEntry={true} />
+                            <CustomInput
+                                label="Tài khoản / Email"
+                                icon={User}
+                                placeholder="Nhập email..."
+                                value={email}
+                                onChangeText={setEmail}
+                                error={errors.email}
+                            />
+                            <CustomInput
+                                label="Mật khẩu"
+                                icon={Lock}
+                                placeholder="Nhập mật khẩu..."
+                                secureTextEntry={true}
+                                value={password}
+                                onChangeText={setPassword}
+                                error={errors.password}
+                            />
 
                             <TouchableOpacity
                                 style={styles.btnSubmit}
-                                // Tạm thời set nút này chuyển sang trang Home (Bạn đổi tên màn hình tùy theo file AppNavigator.js của bạn)
-                                onPress={() => navigation.navigate('Home')}
+                                onPress={handleLogin} // <-- Gọi hàm validate thay vì chuyển trang ngay
                             >
                                 <Text style={styles.btnSubmitText}>Đăng nhập ngay</Text>
                             </TouchableOpacity>
@@ -205,12 +332,45 @@ export default function AuthScreen({ navigation }) {
                     {/* Nội dung Tab Đăng Ký */}
                     {activeTab === 'register' && (
                         <View style={styles.formContent}>
-                            <CustomInput label="Họ và tên" icon={User} placeholder="Nguyễn Văn A" />
-                            <CustomInput label="Email" icon={Mail} placeholder="email@example.com" />
-                            <CustomInput label="Mật khẩu" icon={Lock} placeholder="Nhập mật khẩu..." secureTextEntry={true} />
-                            <CustomInput label="Xác nhận mật khẩu" icon={ShieldCheck} placeholder="Nhập lại mật khẩu..." secureTextEntry={true} />
+                            <CustomInput
+                                label="Họ và tên"
+                                icon={User}
+                                placeholder="Nguyễn Văn A"
+                                value={fullName}
+                                onChangeText={setFullName}
+                                error={errors.fullName}
+                            />
+                            <CustomInput
+                                label="Email"
+                                icon={Mail}
+                                placeholder="email@example.com"
+                                value={email}
+                                onChangeText={setEmail}
+                                error={errors.email}
+                            />
+                            <CustomInput
+                                label="Mật khẩu"
+                                icon={Lock}
+                                placeholder="Nhập mật khẩu..."
+                                secureTextEntry={true}
+                                value={password}
+                                onChangeText={setPassword}
+                                error={errors.password}
+                            />
+                            <CustomInput
+                                label="Xác nhận mật khẩu"
+                                icon={ShieldCheck}
+                                placeholder="Nhập lại mật khẩu..."
+                                secureTextEntry={true}
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                error={errors.confirmPassword}
+                            />
 
-                            <TouchableOpacity style={styles.btnSubmit}>
+                            <TouchableOpacity
+                                style={styles.btnSubmit}
+                                onPress={handleRegister} // <-- Gọi hàm validate đăng ký
+                            >
                                 <Text style={styles.btnSubmitText}>Tạo tài khoản</Text>
                             </TouchableOpacity>
                         </View>
@@ -225,7 +385,8 @@ export default function AuthScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop:40,
+        paddingTop: 40,
+        paddingBottom: 50,
     },
     scrollContent: {
         flexGrow: 1,
@@ -251,7 +412,7 @@ const styles = StyleSheet.create({
     roleWrapper: {
         position: 'absolute',
         top: -60,
-        left: 0,
+        left: '1%',
         zIndex: 100,
     },
     roleSelected: {
@@ -280,12 +441,13 @@ const styles = StyleSheet.create({
         color: '#374151',
         fontWeight: '600',
     },
+    //vị trí của Tab lựa chọn ROLE
     roleOptions: {
         position: 'absolute',
-        top: 45,
-        left: 0,
+        top: '110%',
+        left: '0%',
         backgroundColor: '#fff',
-        width: 160,
+        width: 185,
         borderRadius: 12,
         padding: 5,
         borderWidth: 1,
@@ -357,7 +519,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     tabBtnText: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
         color: '#6b7280',
     },
@@ -390,11 +552,28 @@ const styles = StyleSheet.create({
     inputIcon: {
         marginRight: 10,
     },
+    //icon ẩn/hiện mật khẩu
+    eyeIcon: {
+        position: 'absolute',
+        right: 12, // Ép nó dính vào lề phải
+        top: '50%',
+        transform: [{ translateY: -9 }], // Căn giữa theo chiều dọc
+    },
     formInput: {
         flex: 1,
         paddingVertical: 12,
         fontSize: 14,
         color: '#1f2937',
+    },
+    inputWrapperError: {
+        borderColor: '#ef4444', // Viền đỏ
+        backgroundColor: '#fef2f2', // Nền hơi hồng nhẹ
+    },
+    errorText: {
+        color: '#ef4444',
+        fontSize: 12,
+        marginTop: 4,
+        marginLeft: 4,
     },
     // Button Styles
     btnSubmit: {
