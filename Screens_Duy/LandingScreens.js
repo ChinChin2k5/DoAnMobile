@@ -1,8 +1,9 @@
 import React, { Children, useEffect, useRef } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity,
-  SafeAreaView, Dimensions, Animated, Easing
+  Dimensions, Animated, Easing
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 // Yêu cầu cài đặt: npm install lucide-react-native
 import {
   GraduationCap, ArrowRight, Award, CheckCircle2, BookOpen,
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingTop: 30,
+    paddingTop: 20,
   },
 
   // Header

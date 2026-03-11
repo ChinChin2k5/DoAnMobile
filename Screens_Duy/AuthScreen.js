@@ -114,8 +114,8 @@ export default function AuthScreen({ navigation }) {
         //6. [^\s@]+ : phần đuôi domain
         //7. $ : kết thúc chuỗi, không lấy khoảng trắng nào nữa
 
-        //kết quả đúng khi: abc@gmail.com || abc@yahoo.com...
-        //kết quả sai khi: abc@ || abc@.com || abcgmail.com
+        //kết quả đúng khi: Abc@gmail.com || Abc@yahoo.com...
+        //kết quả sai khi: Abc@. || Abc@.com || Abcgmail.com
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     };
