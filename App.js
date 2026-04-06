@@ -12,7 +12,7 @@ export default function App() {
   return (
     <NavigationContainer>
       {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
-      <Stack.Navigator initialRouteName='ChartAdmin'>
+      <Stack.Navigator initialRouteName='ConfigAdmin'>
         {/*Khai bao tung man hinh mot*/}
         <Stack.Screen
           name = "DashboardAdmin"
