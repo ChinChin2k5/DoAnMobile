@@ -1,32 +1,40 @@
-import * as React from 'react';
-import { NavigationContainer} from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+//Thư viện tránh tai thỏ
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import AdminChartScreen from './src/screens/AdminChartScreen';
-import AdminConfigScreen from './src/screens/AdminConfigScreen';
-import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
+import AdminChartScreen from "./src/screens/AdminChartScreen";
+import AdminConfigScreen from "./src/screens/AdminConfigScreen";
+import AdminDashboardScreen from "./src/screens/AdminDashboardScreen";
 
 //Khoi tao Stack Navigator
 const Stack = createNativeStackNavigator();
 export default function App() {
   return (
-    <NavigationContainer>
-      {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
-      <Stack.Navigator initialRouteName='ConfigAdmin'>
-        {/*Khai bao tung man hinh mot*/}
-        <Stack.Screen
-          name = "DashboardAdmin"
-          component={AdminDashboardScreen}
-        />
-        <Stack.Screen
-          name = "ChartAdmin"
-          component={AdminChartScreen}
-        />
-        <Stack.Screen
-          name = "ConfigAdmin"
-          component={AdminConfigScreen}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  )
+    <SafeAreaProvider>
+      <NavigationContainer>
+        {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
+        <Stack.Navigator initialRouteName="DashboardAdmin">
+          {/*Khai bao tung man hinh mot*/}
+          <Stack.Screen
+            name="DashboardAdmin"
+            component={AdminDashboardScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ChartAdmin"
+            component={AdminChartScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ConfigAdmin"
+            component={AdminConfigScreen}
+            //Tắt header mặc định của react đi
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
 }
