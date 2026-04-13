@@ -1,11 +1,29 @@
 import * as React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { List, TextInput, Switch, Text } from "react-native-paper";
 import { Feather } from "@expo/vector-icons";
 import ScreenWrapper from "../components/ScreenWrapper";
 import Header from "../components/Header";
+import Dropdown from "../components/Dropdown";
 
 const ChungForm = () => {
+  //Khai báo các giá trị để cho vào dropdown
+  const languageData = [
+    { label: "Tiếng Việt", value: "vi" },
+    { label: "Tiếng Anh", value: "en" },
+  ];
+  const timezoneData = [
+    { label: "Asia/Hồ Chí Minh (GMT+7)", value: "asia_hcm" },
+    { label: "US/New York (GMT-5)", value: "us_ny" },
+  ];
+  //Set giá trị mặc định
+  const [lang, setLang] = React.useState("vi");
+  const [tz, setTz] = React.useState("asia_hcm");
+  //Khởi tạo useState cho việc làm nút bấm
+  //false là màu trắng, true là màu xanh
+  const [isEnableEmail, setIsEmailEnabled] = React.useState(false);
+  const [isEnableSMS, setIsSMSEnabled] = React.useState(false);
+  const [isEnablePush, setIsPushEnabled] = React.useState(false);
   return (
     <View>
       <TextInput label="Tên Hệ Thống" value="EduTest Pro" mode="outlined" />
@@ -14,16 +32,65 @@ const ChungForm = () => {
         value="https://edutest.pro"
         mode="outlined"
       />
-      <TextInput
+      <Dropdown
         label="Ngôn ngữ mặc định"
-        value="Tiếng Việt"
-        mode="outlined"
+        data={languageData}
+        value={lang}
+        onChange={(item) => setLang(item.value)}
       />
-      <TextInput
+      <Dropdown
         label="Múi giờ"
-        value="Asia/Hồ Chí Minh GMT +7"
-        mode="outlined"
+        data={timezoneData}
+        value={tz}
+        onChange={(item) => setTz(item.setTz)}
       />
+      <View style={styles.superbg}>
+        <View style={styles.superPadding}>
+          <View>
+            <Text style={styles.notifycation}>Thông Báo Email</Text>
+            <Text>Gửi Thông Báo Qua Email</Text>
+          </View>
+          <View>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                isEnableEmail ? styles.buttonSelected : styles.buttonDefault,
+              ]}
+              onPress={() => setIsEmailEnabled(!isEnableEmail)}
+            />
+          </View>
+        </View>
+        <View style={styles.superPadding}>
+          <View>
+            <Text style={styles.notifycation}>Thông Báo SMS</Text>
+            <Text>Gửi Thông Báo Qua SMS</Text>
+          </View>
+          <View>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                isEnableSMS ? styles.buttonSelected : styles.buttonDefault,
+              ]}
+              onPress={() => setIsSMSEnabled(!isEnableSMS)}
+            />
+          </View>
+        </View>
+        <View style={styles.superPadding}>
+          <View>
+            <Text style={styles.notifycation}>Thông Báo Push</Text>
+            <Text>Gửi Thông Báo Đẩy</Text>
+          </View>
+          <View>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                isEnablePush ? styles.buttonSelected : styles.buttonDefault,
+              ]}
+              onPress={() => setIsPushEnabled(!isEnablePush)}
+            />
+          </View>
+        </View>
+      </View>
     </View>
   );
 };
@@ -53,6 +120,9 @@ const EmailForm = () => {
   );
 };
 const SecurityForm = () => {
+  const [isEnableEmail, setIsEmailEnabled] = React.useState(false);
+  const [isEnableSMS, setIsSMSEnabled] = React.useState(false);
+  const [isEnablePush, setIsPushEnabled] = React.useState(false);
   return (
     <View>
       <TextInput label="Thời gian timeout (phút)" value="30" mode="outlined" />
@@ -62,6 +132,20 @@ const SecurityForm = () => {
         value="5"
         mode="outlined"
       />
+      <View style={[styles.superbg]}>
+        <View>
+        <Text>Cài đặt bảo mật nâng cao</Text>
+        </View>
+        <View>
+        <Text>Bắt buộc đổi mật khẩu sau 90 ngày</Text>
+        </View>
+        <View>
+        <Text>Chặn truy cập từ IP lạ</Text>
+        </View>
+        <View>
+        <Text>Ghi log tất cả các hoạt động</Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -139,6 +223,29 @@ const styles = StyleSheet.create({
   bigHeader: {
     fontWeight: "bold",
     fontSize: 20,
+  },
+  notifycation: {
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  superPadding: {
+    paddingHorizontal: 15,
+    padding: 5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  superbg: {
+    backgroundColor: "#ADD8E6",
+  },
+  button: {
+    width: 20,
+    height: 20,
+  },
+  buttonDefault: {
+    backgroundColor: "white",
+  },
+  buttonSelected: {
+    backgroundColor: "blue",
   },
 });
 
