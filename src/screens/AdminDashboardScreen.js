@@ -8,8 +8,8 @@ import {
 } from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { Users, FileText, Activity, Shield } from "lucide-react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Header from "../components/Header";
 
 export default function AdminDashboardScreen() {
   // Data nên được tách ra ngoài hàm return
@@ -51,20 +51,7 @@ export default function AdminDashboardScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
-        <View
-          style={[styles.header, styles.globalPadding, styles.globalBetween]}
-        >
-          <View style={[styles.comeback, styles.globalBetween]}>
-            <MaterialIcons name="arrow-back" size={20} color="black" />
-            <Text style={styles.boldText}>Quay Lại</Text>
-          </View>
-          <View style={[styles.hello, styles.globalBetween]}>
-            <Text>Xin Chào</Text>
-            <Text style={styles.boldText}>Admin System</Text>
-          </View>
-        </View>
-
+        <Header backgroundColor="white"></Header>
         {/* Body */}
         <View style={[styles.body, styles.globalPadding]}>
           <View>
@@ -77,17 +64,19 @@ export default function AdminDashboardScreen() {
           </View>
 
           <View style={styles.navButtonsContainer}>
-            <TouchableOpacity style={styles.buttonStyle}
-             onPress = {() => navigation.navigate('ConfigAdmin')}>
+            <TouchableOpacity
+              style={styles.buttonStyle}
+              onPress={() => navigation.navigate("ConfigAdmin")}
+            >
               <Text style={styles.button}>⚙️ Cài Đặt Hệ Thống</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity 
-              style={styles.buttonStyle} // Đổi màu xanh lá cho khác biệt
-              onPress={() => navigation.navigate('ChartAdmin')}
-            >
-              <Text style={styles.button}>📊 Xem Thống Kê</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonStyle} // Đổi màu xanh lá cho khác biệt
+            onPress={() => navigation.navigate("ChartAdmin")}
+          >
+            <Text style={styles.button}>📊 Xem Thống Kê</Text>
+          </TouchableOpacity>
 
           {/* Render Stats Cards */}
           {stats.map((item) => (
@@ -106,14 +95,8 @@ export default function AdminDashboardScreen() {
 
 // Giữ nguyên đống Styles của em
 const styles = StyleSheet.create({
-  globalPadding: { paddingHorizontal: 15 },
-  globalBetween: { flexDirection: "row", justifyContent: "space-between" },
   container: { flex: 1, backgroundColor: "#fff" },
-  header: { marginTop: 10 },
-  body: { marginTop: 30, backgroundColor: "#E0E0E0", padding: 20 },
-  comeback: { gap: 8 },
-  hello: { gap: 8 },
-  boldText: { fontWeight: "bold" },
+  body: { marginTop: 20, backgroundColor: "#E0E0E0", padding: 20 },
   dashBoard: { fontSize: 24 },
   miniDashBoard: { fontSize: 12 },
   button: { fontSize: 18, color: "white" },

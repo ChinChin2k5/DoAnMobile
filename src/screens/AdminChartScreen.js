@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Dimensions, StyleSheet, ScrollView } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 import ScreenWrapper from "../components/ScreenWrapper";
-
+import Header from "../components/Header";
 // Lấy chiều rộng màn hình thiết bị
 const screenWidth = Dimensions.get("window").width;
 
@@ -27,10 +27,10 @@ export default function AdminChartScreen() {
     barPercentage: 0.6, // Cho cột béo lên một chút nhìn cho cân đối
     fillShadowGradientOpacity: 1, // Màu cột đậm đà 100%
   };
-
   return (
     <ScreenWrapper backgroundColor="ffffff">
       <ScrollView>
+        <Header backgroundColor="ffffff"></Header>
         <View style={styles.container}>
           {/* Tiêu đề của Biểu đồ */}
           <Text style={styles.title}>Thống Kê Đơn Hàng Trong Tuần</Text>
@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    marginTop: 20,
   },
   title: {
     fontSize: 18,

@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { List, TextInput, Switch, Text } from "react-native-paper";
 import { Feather } from "@expo/vector-icons";
 import ScreenWrapper from "../components/ScreenWrapper";
+import Header from "../components/Header";
 
 const ChungForm = () => {
   return (
@@ -11,6 +12,16 @@ const ChungForm = () => {
       <TextInput
         label="URL Hệ Thống"
         value="https://edutest.pro"
+        mode="outlined"
+      />
+      <TextInput
+        label="Ngôn ngữ mặc định"
+        value="Tiếng Việt"
+        mode="outlined"
+      />
+      <TextInput
+        label="Múi giờ"
+        value="Asia/Hồ Chí Minh GMT +7"
         mode="outlined"
       />
     </View>
@@ -58,7 +69,8 @@ const AdminConfigScreen = () => {
   return (
     <ScreenWrapper backgroundColor="ffffff">
       <ScrollView>
-        <View>
+        <Header backgroundColor="white"></Header>
+        <View style={styles.body}>
           <View style={styles.headerRow}>
             <View style={styles.iconBackground}>
               <Feather name="settings" size={28} color="white" />
@@ -113,6 +125,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+  },
+  body: {
+    marginTop: 20,
   },
   headerRow: {
     flexDirection: "row",
