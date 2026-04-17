@@ -7,6 +7,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import AdminChartScreen from "./src/screens/AdminChartScreen";
 import AdminConfigScreen from "./src/screens/AdminConfigScreen";
 import AdminDashboardScreen from "./src/screens/AdminDashboardScreen";
+import LoadingScreen from "./src/screens/LoadingScreen";
+import SandboxScreen from "./src/screens/SandboxScreen";
 
 //Khoi tao Stack Navigator
 const Stack = createNativeStackNavigator();
@@ -15,8 +17,18 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
-        <Stack.Navigator initialRouteName="DashboardAdmin">
+        <Stack.Navigator initialRouteName="Sandbox">
           {/*Khai bao tung man hinh mot*/}
+          <Stack.Screen
+            name="Loading"
+            component={LoadingScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="Sandbox"
+            component={SandboxScreen}
+            options={{headerShown: false}}
+          />
           <Stack.Screen
             name="DashboardAdmin"
             component={AdminDashboardScreen}
