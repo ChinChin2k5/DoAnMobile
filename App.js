@@ -9,6 +9,7 @@ import AdminConfigScreen from "./src/screens/AdminConfigScreen";
 import AdminDashboardScreen from "./src/screens/AdminDashboardScreen";
 import LoadingScreen from "./src/screens/LoadingScreen";
 import SandboxScreen from "./src/screens/SandboxScreen";
+import Onboarding1 from "./src/screens/Onboarding1";
 
 //Khoi tao Stack Navigator
 const Stack = createNativeStackNavigator();
@@ -17,7 +18,7 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
-        <Stack.Navigator initialRouteName="Sandbox">
+        <Stack.Navigator initialRouteName="FirstOnboarding">
           {/*Khai bao tung man hinh mot*/}
           <Stack.Screen
             name="Loading"
@@ -42,6 +43,12 @@ export default function App() {
           <Stack.Screen
             name="ConfigAdmin"
             component={AdminConfigScreen}
+            //Tắt header mặc định của react đi
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FirstOnboarding"
+            component={Onboarding1}
             //Tắt header mặc định của react đi
             options={{ headerShown: false }}
           />
