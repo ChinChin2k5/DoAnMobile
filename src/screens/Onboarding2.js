@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import ButtonNice from "../components/Button";
 import Container from "../components/Container";
-export default function Onboarding2() {
+export default function Onboarding2({ navigation }) {
   return (
     <View style={styles.background}>
       <Image
@@ -17,7 +17,8 @@ export default function Onboarding2() {
         </Text>
       </Container>
       <View style={styles.superCenter}>
-        <ButtonNice text="Bắt Đầu Ngay" />
+        <ButtonNice text="Tiếp Tục" 
+        onPress={() => navigation.navigate("ThirdOnboarding")}/>
       </View>
       <View style={styles.mrInvisible}>
         <TouchableOpacity>
@@ -37,11 +38,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 35,
   },
+  smallText: {
+    fontSize: 15,
+    marginTop: 15,
+  },
   mrInvisible: {
     alignItems: "center",
+    marginTop: 20,
   },
   textInvisible: {
     fontSize: 20,
     marginBottom: 50,
   },
+  superCenter: {
+    alignItems: "center",
+    marginTop: 20,
+  }
 });

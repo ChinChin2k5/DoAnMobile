@@ -19,7 +19,7 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
-        <Stack.Navigator initialRouteName="ThirdOnboarding">
+        <Stack.Navigator initialRouteName="Loading">
           {/*Khai bao tung man hinh mot*/}
           <Stack.Screen
             name="Loading"
