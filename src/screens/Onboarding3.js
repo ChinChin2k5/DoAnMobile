@@ -2,27 +2,22 @@ import React from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import ButtonNice from "../components/Button";
 import Container from "../components/Container";
-export default function Onboarding2() {
+export default function Onboarding3() {
   return (
-    <View style={styles.background}>
+    <View>
       <Image
-        source={require("../assets/Onboarding2.png")}
+        source={require("../assets/Onboarding3.png")}
         style={{ width: "100%", marginTop: 75 }}
       />
       <Container>
-        <Text style={styles.bigText}>AI hỗ trợ gợi ý câu hỏi thông mình</Text>
+        <Text style={styles.bigText}>Quản lý học sinh và theo dõi tiến độ</Text>
         <Text style={styles.smallText}>
-          Hệ thống tự động phân tích và tạo ra bộ câu hỏi sát thực tế giúp bạn
-          ôn luyện hiệu quả hơn bao giờ hết
+          Hệ thống lưu trữ thông minh giúp bạn nắm bắt lộ trình học tập của từng
+          cá nhân một cách trực quan và dễ dàng
         </Text>
       </Container>
       <View style={styles.superCenter}>
         <ButtonNice text="Bắt Đầu Ngay" />
-      </View>
-      <View style={styles.mrInvisible}>
-        <TouchableOpacity>
-          <Text style={styles.textInvisible}>Bỏ Qua</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -37,11 +32,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 35,
   },
-  mrInvisible: {
-    alignItems: "center",
+  smallText: {
+    textAlign: "center",
+    fontSize: 15,
+    marginTop: 16
   },
-  textInvisible: {
-    fontSize: 20,
-    marginBottom: 50,
+  superCenter: {
+    alignItems: "center",
+    marginTop: 40,
   },
 });

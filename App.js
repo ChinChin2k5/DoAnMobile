@@ -11,7 +11,7 @@ import LoadingScreen from "./src/screens/LoadingScreen";
 import SandboxScreen from "./src/screens/SandboxScreen";
 import Onboarding1 from "./src/screens/Onboarding1";
 import Onboarding2 from "./src/screens/Onboarding2";
-
+import Onboarding3 from "./src/screens/Onboarding3";
 //Khoi tao Stack Navigator
 const Stack = createNativeStackNavigator();
 export default function App() {
@@ -19,7 +19,7 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
-        <Stack.Navigator initialRouteName="SecondOnboarding">
+        <Stack.Navigator initialRouteName="ThirdOnboarding">
           {/*Khai bao tung man hinh mot*/}
           <Stack.Screen
             name="Loading"
@@ -55,6 +55,11 @@ export default function App() {
           <Stack.Screen
             name="SecondOnboarding"
             component={Onboarding2}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ThirdOnboarding"
+            component={Onboarding3}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
