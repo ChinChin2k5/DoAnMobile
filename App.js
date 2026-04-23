@@ -10,6 +10,7 @@ import AdminDashboardScreen from "./src/screens/AdminDashboardScreen";
 import LoadingScreen from "./src/screens/LoadingScreen";
 import SandboxScreen from "./src/screens/SandboxScreen";
 import Onboarding1 from "./src/screens/Onboarding1";
+import Onboarding2 from "./src/screens/Onboarding2";
 
 //Khoi tao Stack Navigator
 const Stack = createNativeStackNavigator();
@@ -18,7 +19,7 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
-        <Stack.Navigator initialRouteName="FirstOnboarding">
+        <Stack.Navigator initialRouteName="SecondOnboarding">
           {/*Khai bao tung man hinh mot*/}
           <Stack.Screen
             name="Loading"
@@ -49,7 +50,11 @@ export default function App() {
           <Stack.Screen
             name="FirstOnboarding"
             component={Onboarding1}
-            //Tắt header mặc định của react đi
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SecondOnboarding"
+            component={Onboarding2}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

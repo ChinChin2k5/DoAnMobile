@@ -1,14 +1,15 @@
 import React from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import ButtonNice from "../components/Button";
+import Container from "../components/Container";
 export default function Onboarding1() {
   return (
     <View style={styles.background}>
       <Image
         source={require("../assets/Onboarding1.png")}
-        style={{ width: "100%", resizeMode: "contain" }}
+        style={{ width: "100%" }}
       />
-      <View style={styles.globalPadding}>
+      <Container>
         <Image
           source={require("../assets/logo.png")}
           style={{
@@ -33,7 +34,7 @@ export default function Onboarding1() {
                 <Text style={styles.textInvisible}>Bỏ Qua</Text>
             </TouchableOpacity>
         </View>
-      </View>
+      </Container>
     </View>
   );
 }
@@ -47,9 +48,6 @@ const styles = StyleSheet.create({
   },
   smallText: {
     fontSize: 19,
-  },
-  globalPadding: {
-    paddingHorizontal: 20,
   },
   background: {
     flex: 1,
