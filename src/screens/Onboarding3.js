@@ -1,14 +1,21 @@
 import React from "react";
-import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, Image, ImageBackground } from "react-native";
 import ButtonNice from "../components/Button";
 import Container from "../components/Container";
-export default function Onboarding3() {
+export default function Onboarding3({navigation}) {
   return (
     <View>
-      <Image
+      <ImageBackground
         source={require("../assets/Onboarding3.png")}
-        style={{ width: "100%", marginTop: 75 }}
-      />
+        style={{ width: "100%", height: 420, marginTop: 75 }}
+      >
+        <View style={styles.imageCenter}>
+        <Image
+          source={require("../assets/Progress3.png")}
+          />
+        </View>
+      </ImageBackground>
+      
       <Container>
         <Text style={styles.bigText}>Quản lý học sinh và theo dõi tiến độ</Text>
         <Text style={styles.smallText}>
@@ -17,7 +24,8 @@ export default function Onboarding3() {
         </Text>
       </Container>
       <View style={styles.superCenter}>
-        <ButtonNice text="Bắt Đầu Ngay" />
+        <ButtonNice text="Bắt Đầu Ngay"
+         onPress={() => navigation.navigate("DashboardAdmin")} />
       </View>
     </View>
   );
@@ -29,7 +37,7 @@ const styles = StyleSheet.create({
   },
   bigText: {
     textAlign: "center",
-    fontWeight: "bold",
+    fontFamily: 'Inter-ExtraBold',
     fontSize: 35,
   },
   smallText: {
@@ -41,4 +49,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 40,
   },
+  imageCenter: {
+    alignItems: 'center',
+  }
 });

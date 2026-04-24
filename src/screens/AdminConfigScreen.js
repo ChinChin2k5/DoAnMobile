@@ -156,9 +156,6 @@ const AdminConfigScreen = () => {
         <Header backgroundColor="white"></Header>
         <View style={styles.body}>
           <View style={styles.headerRow}>
-            <View style={styles.iconBackground}>
-              <Feather name="settings" size={28} color="white" />
-            </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.bigHeader}>Cấu Hình Hệ Thống</Text>
               <Text>Quản Lý Các Thiết Lập Hệ Thống</Text>
@@ -202,14 +199,6 @@ const AdminConfigScreen = () => {
   );
 };
 const styles = StyleSheet.create({
-  iconBackground: {
-    backgroundColor: "#9333EA",
-    width: 45,
-    height: 45,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   body: {
     marginTop: 20,
   },
@@ -221,8 +210,8 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   bigHeader: {
-    fontWeight: "bold",
-    fontSize: 20,
+    fontFamily: 'Inter-ExtraBold',
+    fontSize: 35,
   },
   notifycation: {
     fontWeight: "bold",

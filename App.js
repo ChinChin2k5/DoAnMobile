@@ -1,8 +1,7 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-//Thư viện tránh tai thỏ
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useFonts } from 'expo-font';
 
 import AdminChartScreen from "./src/screens/AdminChartScreen";
 import AdminConfigScreen from "./src/screens/AdminConfigScreen";
@@ -15,8 +14,13 @@ import Onboarding3 from "./src/screens/Onboarding3";
 //Khoi tao Stack Navigator
 const Stack = createNativeStackNavigator();
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'Inter-Regular': require('./src/assets/fonts/Inter_18pt-Regular.ttf'),
+    'Inter-Medium': require('./src/assets/fonts/Inter_18pt-Medium.ttf'), 
+    'Inter-ExtraBold': require('./src/assets/fonts/Inter_18pt-ExtraBold.ttf'), // Dùng ExtraBold làm chữ bự
+    'Inter-Italic': require('./src/assets/fonts/Inter_18pt-Italic.ttf'),
+  });
   return (
-    <SafeAreaProvider>
       <NavigationContainer>
         {/*Quy dinh man hinh nao se duoc bat len dau tien*/}
         <Stack.Navigator initialRouteName="Loading">
@@ -64,6 +68,5 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaProvider>
   );
 }

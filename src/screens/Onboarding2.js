@@ -10,11 +10,18 @@ export default function Onboarding2({ navigation }) {
         style={{ width: "100%", marginTop: 75 }}
       />
       <Container>
-        <Text style={styles.bigText}>AI hỗ trợ gợi ý câu hỏi thông mình</Text>
+        <Text style={styles.bigText}>AI hỗ trợ gợi ý{"\n"} 
+        <Text style={styles.blueBigText}>câu hỏi thông mình</Text></Text>
         <Text style={styles.smallText}>
           Hệ thống tự động phân tích và tạo ra bộ câu hỏi sát thực tế giúp bạn
           ôn luyện hiệu quả hơn bao giờ hết
         </Text>
+        <View style={styles.imageCenter}>
+        <Image
+          source={require("../assets/Progress2.png")}
+          style={{marginTop: 10}}
+        />
+        </View>
       </Container>
       <View style={styles.superCenter}>
         <ButtonNice text="Tiếp Tục" 
@@ -35,10 +42,11 @@ const styles = StyleSheet.create({
   },
   bigText: {
     textAlign: "center",
-    fontWeight: "bold",
+    fontFamily: 'Inter-ExtraBold',
     fontSize: 35,
   },
   smallText: {
+    fontFamily: 'Inter-Regular',
     fontSize: 15,
     marginTop: 15,
   },
@@ -53,5 +61,11 @@ const styles = StyleSheet.create({
   superCenter: {
     alignItems: "center",
     marginTop: 20,
+  },
+  imageCenter: {
+    alignItems: 'center',
+  },
+  blueBigText: {
+    color: '#0050CB',
   }
 });

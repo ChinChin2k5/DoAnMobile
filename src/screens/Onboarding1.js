@@ -26,6 +26,9 @@ export default function Onboarding1({ navigation }) {
           Tạo đề thi dễ dàng hơn bao giờ hết với công cụ thông minh dành cho
           giáo viên hiện đại
         </Text>
+        <Image 
+          source={require("../assets/Progress1.png")}
+          style={{marginTop: 5}}/>
         <View style={styles.mrButton}>
           <ButtonNice 
             text="Tiếp Tục"
@@ -42,14 +45,15 @@ export default function Onboarding1({ navigation }) {
 }
 const styles = StyleSheet.create({
   bigText: {
-    fontWeight: "bold",
+    fontFamily: "Inter-ExtraBold",
     fontSize: 35,
   },
   colorText: {
     color: "#0050CB",
   },
   smallText: {
-    fontSize: 19,
+    fontFamily: "Inter-Regular",
+    fontSize: 18,
   },
   background: {
     flex: 1,
