@@ -13,11 +13,25 @@ import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './navigation/AppNavigator';
 import { StatusBar } from 'expo-status-bar';
 
+// ==========================================
+// 1. IMPORT USERPROVIDER TỪ FILE VỪA TẠO
+// LƯU Ý: Cần chỉnh sửa lại đường dẫn './context/UserContext' 
+// cho khớp với vị trí lưu file thực tế trong dự án
+// ==========================================
+import {UserProvider} from './context/UserContext';
+
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar style="auto" />
-      <AppNavigator />
-    </NavigationContainer>
+    // ==========================================
+    // 2. BỌC TOÀN BỘ ỨNG DỤNG BẰNG TỪ KHÓA <UserProvider>
+    // Toàn bộ các Component nằm bên trong (bao gồm cả Navigation) 
+    // đều sẽ nhận được dữ liệu từ Context này
+    // ==========================================
+    <UserProvider>
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <AppNavigator />
+      </NavigationContainer>
+    </UserProvider>
   );
 }

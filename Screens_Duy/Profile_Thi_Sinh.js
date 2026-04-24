@@ -1,5 +1,6 @@
 // Screens_Duy/Profile_Thi_Sinh.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { UserContext } from '../context/UserContext';
 import { 
   View, Text, StyleSheet, SafeAreaView, ScrollView, 
   TouchableOpacity, Image, Animated 
@@ -36,7 +37,10 @@ const SkeletonItem = ({ width, height, borderRadius = 4, style }) => {
 // ==========================================
 // 2. COMPONENT CHÍNH
 // ==========================================
-export default function Profile_Thi_Sinh({ navigation }) {
+export default function Profile_Thi_Sinh({ navigation, route }) {
+  // const {userName ='Người dùng'} = route?.params || {};
+  // Lấy thẳng tên từ kho chứa chung Context API , nếu kho chưa có sẽ lấy giá trị mặc định là 'Người dùng'
+  const { userName } = useContext(UserContext) || { userName: 'Người dùng' };
   // Cụm Logic Load dữ liệu 0.75s dùng chung
   const [isLoading, setIsLoading] = useState(true);
 
@@ -135,7 +139,7 @@ export default function Profile_Thi_Sinh({ navigation }) {
             </View>
           </View>
           
-          <Text style={styles.userName}>Nguyễn Văn A</Text>
+          <Text style={styles.userName}>{userName}</Text>
           <View style={styles.roleBadge}>
             <Text style={styles.roleText}>HỌC SINH</Text>
           </View>

@@ -1,5 +1,5 @@
 // Screens_Duy/Man_Hinh_Lam_Bai.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import { 
   View, Text, StyleSheet, SafeAreaView, TouchableOpacity, 
   ScrollView, Animated, Dimensions, Image, Alert
@@ -7,14 +7,18 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// --- IMPORT FIREBASE VÀ CONTEXT ---
+import { db } from '../firebaseConfig';
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { UserContext } from '../context/UserContext';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // ==========================================
-// 1. COMPONENT SKELETON CHỚP TẮT
+// 1. COMPONENT SKELETON CHỚP TẮT (Giữ nguyên)
 // ==========================================
 const SkeletonItem = ({ width, height, borderRadius = 4, style }) => {
   const opacity = useRef(new Animated.Value(0.4)).current;
-
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -23,50 +27,63 @@ const SkeletonItem = ({ width, height, borderRadius = 4, style }) => {
       ])
     ).start();
   }, [opacity]);
-
   return (
     <Animated.View style={[{ width, height, borderRadius, backgroundColor: '#cbd5e1', opacity }, style]} />
   );
 };
 
-// --- MOCK DATA ---
-const mockQuestions = Array.from({ length: 15 }).map((_, i) => ({
-  id: `q${i + 1}`,
-  content: i === 0 
-    ? 'How does the concept of "Cognitive Load" specifically impact the retrieval of long-term memories during high-stress problem-solving tasks?'
-    : `Nội dung câu hỏi số ${i + 1} của bài thi trắc nghiệm...`,
-  options: [
-    { id: 'A', text: 'Đáp án A cho câu ' + (i + 1) },
-    { id: 'B', text: 'Đáp án B cho câu ' + (i + 1) },
-    { id: 'C', text: 'Đáp án C cho câu ' + (i + 1) },
-    { id: 'D', text: 'Đáp án D cho câu ' + (i + 1) }
-  ]
-}));
-
 export default function Man_Hinh_Lam_Bai({ navigation, route }) {
-  const { examId = 'e1' } = route?.params || {};
+  const { userName } = useContext(UserContext); // Lấy tên user để lưu lịch sử
+  
+  // --- NHẬN DỮ LIỆU TỪ ROUTE PARAMS (TỪ DASHBOARD TRUYỀN SANG) ---
+  const { 
+    examId = 'e1', 
+    title = 'Đang tải bài thi...',
+    duration = 15, // Thời gian thi (phút) nhận từ Part 2
+    questions = [] // Mảng câu hỏi thực tế tạo từ Part 1
+  } = route?.params || {};
 
-  // --- STATE TẢI TRANG 0.75S ---
+  // --- CHUYỂN ĐỔI DATA CÂU HỎI TỪ Tao_De_Thi_PART 1 SANG FORMAT CỦA MÀN LÀM BÀI ---
+  // hàm 'useMemo' để dịch mảng questions (được gửi sang từ firebase qua Dashboard thành)
+  const questionsList = useMemo(() => {
+    if (questions.length === 0) return []; // Tránh lỗi nếu không có câu hỏi
+    return questions.map((q, i) => ({
+        id: `q${i}`,
+        content: q.text || 'Câu hỏi trống',
+        correctIndex: q.correctIndex, // Lưu lại đáp án đúng (0,1,2 tương ứng A,B,C)
+        options: q.options.map((optText, optIdx) => ({
+            id: String(optIdx), // '0', '1', '2'
+            text: optText
+        }))
+    }));
+  }, [questions]);
+
+  // --- STATES ---
   const [isLoading, setIsLoading] = useState(true);
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [flagged, setFlagged] = useState([]);
   
-  const [timeLeft, setTimeLeft] = useState(40 * 60);
+  // Tính tổng số giây dựa trên 'duration' thay vì fix cứng 40 phút
+  const initialSeconds = duration * 60;
+  const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const [targetEndTime, setTargetEndTime] = useState(null); 
   const [isReady, setIsReady] = useState(false); 
-
   const [isSheetVisible, setIsSheetVisible] = useState(false);
-  const currentQuestion = mockQuestions[currentIndex];
 
+  const currentQuestion = questionsList[currentIndex] || { content: '', options: [] };
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // =========================================================
-  // 1. TẢI HOẶC KHỞI TẠO DỮ LIỆU BÀI THI KÈM ĐỘ TRỄ 0.75S
+  // 2. KHỞI TẠO BÀI THI & ĐỒNG BỘ THỜI GIAN
   // =========================================================
   useEffect(() => {
+    if (questionsList.length === 0) {
+        Alert.alert("Lỗi", "Bài thi này không có câu hỏi nào!", [{ text: "Trở về", onPress: () => navigation.goBack() }]);
+        return;
+    }
+
     const initExam = async () => {
       try {
         const savedData = await AsyncStorage.getItem(`exam_progress_${examId}`);
@@ -87,10 +104,9 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
             }
           }
         } else {
-          const newEndTime = Date.now() + 40 * 60 * 1000; 
+          const newEndTime = Date.now() + initialSeconds * 1000; 
           setTargetEndTime(newEndTime);
-          setTimeLeft(40 * 60);
-          
+          setTimeLeft(initialSeconds);
           await AsyncStorage.setItem(`exam_progress_${examId}`, JSON.stringify({
             savedAnswers: {}, savedFlagged: [], endTime: newEndTime
           }));
@@ -99,30 +115,24 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       } catch (e) { console.error("Lỗi khởi tạo bài thi", e); }
     };
     
-    // Thêm setTimeout 0.75s để hiển thị Skeleton rõ ràng
     const timer = setTimeout(() => {
       initExam().finally(() => setIsLoading(false));
     }, 750);
-
     return () => clearTimeout(timer);
-  }, [examId]);
+  }, [examId, questionsList]);
 
   useEffect(() => {
     if (isReady && targetEndTime) {
       AsyncStorage.setItem(`exam_progress_${examId}`, JSON.stringify({
-        savedAnswers: answers, 
-        savedFlagged: flagged, 
-        endTime: targetEndTime
+        savedAnswers: answers, savedFlagged: flagged, endTime: targetEndTime
       })).catch(e => console.error("Lỗi đồng bộ", e));
     }
   }, [answers, flagged, targetEndTime, isReady]);
 
   useEffect(() => {
     if (!targetEndTime || timeLeft <= 0) return;
-
     const timer = setInterval(() => {
       const remaining = Math.round((targetEndTime - Date.now()) / 1000);
-      
       if (remaining <= 0) {
         clearInterval(timer);
         setTimeLeft(0);
@@ -133,10 +143,12 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
         setTimeLeft(remaining);
       }
     }, 1000);
-
     return () => clearInterval(timer);
   }, [targetEndTime]);
 
+  // =========================================================
+  // 3. LOGIC LÀM BÀI VÀ NỘP BÀI
+  // =========================================================
   const handleSelectOption = (optionId) => {
     setAnswers(prev => ({ ...prev, [currentQuestion.id]: optionId }));
   };
@@ -161,14 +173,54 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
     ]);
   };
 
+  // HÀM CHÍNH: XỬ LÝ CHẤM ĐIỂM & ĐẨY LÊN FIREBASE
   const handleForceSubmit = async () => {
     await AsyncStorage.removeItem(`exam_progress_${examId}`);
-    navigation.replace('Ket_Qua_Va_Phan_Tich');
-    // navigation.replace('MainTabs', { screen: 'Ket_Qua_Va_Phan_Tich' })
+    
+    let correctCount = 0;
+    questionsList.forEach(q => {
+        if (answers[q.id] === String(q.correctIndex)) {
+            correctCount++;
+        }
+    });
+    const score = ((correctCount / questionsList.length) * 10).toFixed(2);
+    const timeTaken = initialSeconds - timeLeft;
+
+    // GÓI DỮ LIỆU CHUẨN ĐỂ TRUYỀN SANG MÀN HÌNH KẾT QUẢ
+    const resultData = {
+        examId: examId,
+        examTitle: title,
+        studentName: userName, // Bổ sung tên thí sinh
+        score: Number(score),
+        correctCount: correctCount,
+        totalQuestions: questionsList.length,
+        timeTaken: timeTaken,
+        answersMap: answers,
+        questionsList: questionsList
+    };
+
+    try {
+        await addDoc(collection(db, "History"), {
+            ...resultData,
+            completedAt: serverTimestamp(),
+        });
+    } catch (e) {
+        console.error("Lỗi khi lưu lịch sử: ", e);
+    }
+
+    const allowRetake = route?.params?.rawConfig?.rules?.allowRetake || false;
+
+    if (allowRetake) {
+      //Nếu cho phép thi lại nhiều lần, Screen này sẽ hiện ra
+        navigation.replace('Ket_Qua_Dummy', { resultData });
+    } else {
+        // TRUYỀN DỮ LIỆU ĐI: Đảm bảo nhận các dữ liệu của bài thi này { resultData }
+        navigation.replace('Ket_Qua_Va_Phan_Tich', { resultData });
+    }
   };
 
-  const progressPercent = mockQuestions.length > 0 
-    ? Math.round((Object.keys(answers).length / mockQuestions.length) * 100) 
+  const progressPercent = questionsList.length > 0 
+    ? Math.round((Object.keys(answers).length / questionsList.length) * 100) 
     : 0;
 
   const formatTime = (seconds) => {
@@ -193,54 +245,67 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
     ]).start(() => setIsSheetVisible(false));
   };
 
-  // ==========================================
-  // RENDER SKELETON (HIỂN THỊ TRONG 0.75s ĐẦU)
-  // ==========================================
+  // ... (PHẦN RENDER SKELETON)
+  // if (isLoading || !isReady) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //         {/* Bạn có thể paste lại toàn bộ giao diện Skeleton cũ vào đây cho gọn */}
+  //         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}><Text>Đang tải bài thi...</Text></View>
+  //     </SafeAreaView>
+  //   );
+  // }
   if (isLoading || !isReady) {
     return (
       <SafeAreaView style={styles.container}>
+        {/* Skeleton Header: Nút back, Tiêu đề bài thi và Avatar */}
         <View style={styles.header}>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Ionicons name="arrow-back" size={20} color="#94a3b8" />
-            <SkeletonItem width={60} height={18} style={{ marginLeft: 8 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <SkeletonItem width={24} height={24} borderRadius={12} />
+            <SkeletonItem width="60%" height={20} style={{ marginLeft: 15 }} />
           </View>
           <SkeletonItem width={36} height={36} borderRadius={18} />
         </View>
 
+        {/* Skeleton Progress Bar: Thanh tiến độ và phần trăm */}
         <View style={styles.progressSection}>
-          <SkeletonItem width="80%" height={6} borderRadius={3} style={{ marginRight: 12 }} />
-          <SkeletonItem width={30} height={16} />
+          <SkeletonItem width="85%" height={6} borderRadius={3} style={{ marginRight: 12 }} />
+          <SkeletonItem width={30} height={14} />
         </View>
 
+        {/* Skeleton Timer: Khối thời gian đếm ngược */}
         <View style={styles.timerContainer}>
-          <SkeletonItem width={80} height={20} borderRadius={10} />
+          <SkeletonItem width={60} height={20} />
         </View>
 
+        {/* Skeleton Question Header: Số thứ tự câu và các nút công cụ */}
         <View style={styles.questionHeader}>
           <SkeletonItem width={100} height={24} />
           <View style={styles.actionIcons}>
-            <SkeletonItem width={36} height={36} borderRadius={8} style={{ marginLeft: 10 }} />
+            <SkeletonItem width={36} height={36} borderRadius={8} />
             <SkeletonItem width={36} height={36} borderRadius={8} style={{ marginLeft: 10 }} />
           </View>
         </View>
 
+        {/* Skeleton Content: Nội dung câu hỏi và các đáp án */}
         <ScrollView style={styles.contentArea} showsVerticalScrollIndicator={false}>
           <View style={styles.questionCard}>
-            <SkeletonItem width="100%" height={20} style={{ marginBottom: 10 }} />
-            <SkeletonItem width="90%" height={20} style={{ marginBottom: 10 }} />
+            <SkeletonItem width="100%" height={20} style={{ marginBottom: 8 }} />
+            <SkeletonItem width="90%" height={20} style={{ marginBottom: 8 }} />
             <SkeletonItem width="60%" height={20} />
           </View>
 
           <View style={styles.optionsContainer}>
-            {[1, 2, 3, 4].map(i => (
-              <View key={i} style={styles.optionItem}>
+            {/* Tạo giả 4 đáp án A, B, C, D */}
+            {[1, 2, 3, 4].map((item) => (
+              <View key={item} style={styles.optionItem}>
                 <SkeletonItem width={22} height={22} borderRadius={11} style={{ marginRight: 15 }} />
-                <SkeletonItem width="70%" height={20} />
+                <SkeletonItem width="80%" height={20} />
               </View>
             ))}
           </View>
         </ScrollView>
 
+        {/* Skeleton Footer: 2 nút điều hướng Trái/Phải */}
         <View style={styles.footer}>
           <SkeletonItem width="48%" height={50} borderRadius={8} />
           <SkeletonItem width="48%" height={50} borderRadius={8} />
@@ -257,7 +322,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={20} color="#1e293b" />
-          <Text style={styles.backText}>Trở về</Text>
+          <Text style={styles.backText} numberOfLines={1}>{title}</Text>
         </TouchableOpacity>
         <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png' }} style={styles.avatar} />
       </View>
@@ -275,17 +340,13 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       </View>
 
       <View style={styles.questionHeader}>
-        <Text style={styles.questionNumber}>Câu {currentIndex + 1}/{mockQuestions.length}</Text>
+        <Text style={styles.questionNumber}>Câu {currentIndex + 1}/{questionsList.length}</Text>
         <View style={styles.actionIcons}>
           <TouchableOpacity 
             style={[styles.iconBtn, flagged.includes(currentQuestion.id) && { backgroundColor: '#fef08a' }]} 
             onPress={toggleFlag}
           >
-            <Ionicons 
-              name={flagged.includes(currentQuestion.id) ? "flag" : "flag-outline"} 
-              size={20} 
-              color={flagged.includes(currentQuestion.id) ? "#ca8a04" : "#475569"} 
-            />
+            <Ionicons name={flagged.includes(currentQuestion.id) ? "flag" : "flag-outline"} size={20} color={flagged.includes(currentQuestion.id) ? "#ca8a04" : "#475569"} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} onPress={openBottomSheet}>
             <Ionicons name="grid-outline" size={20} color="#475569" />
@@ -327,7 +388,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           <Text style={styles.footerBtnOutlineText}>Câu trước</Text>
         </TouchableOpacity>
         
-        {currentIndex === mockQuestions.length - 1 ? (
+        {currentIndex === questionsList.length - 1 ? (
           <TouchableOpacity style={[styles.footerBtnPrimary, { backgroundColor: '#b91c1c' }]} onPress={handleSubmit}>
             <Text style={styles.footerBtnPrimaryText}>Nộp bài</Text>
           </TouchableOpacity>
@@ -423,8 +484,8 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc', paddingTop: 40, paddingBottom: 30 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 15 },
-  backBtn: { flexDirection: 'row', alignItems: 'center' },
-  backText: { fontSize: 16, color: '#1e293b', marginLeft: 4, fontWeight: '500' },
+  backBtn: { flexDirection: 'row', alignItems: 'center',flex: 1, marginRight: 10 },
+  backText: { fontSize: 16, color: '#1e293b', marginLeft: '4%', fontWeight: 'bold' },
   avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#e2e8f0' },
   progressSection: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 15 },
   progressBarBg: { flex: 1, height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, marginRight: 12 },

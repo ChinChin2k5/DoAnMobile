@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 65 notes | Score threshold: >40
+> 880 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -16,34 +16,64 @@
 - **ALWAYS** ask the user before running commands that modify system state, install packages, or make network requests.
 - When in doubt, **show the command first** and wait for approval.
 
-**Stack:** JavaScript · React
+**Stack:** JavaScript · React · DB: Firebase
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
+- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes** — -   useEffect(() => {
++ useEffect(() => {
+- 
++   const loadUserData
+- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes** — -       setTimeout(async () => {
++           // Reset AsyncStorage để
+- **gotcha in Dashboard_Thi_Sinh.js** — -   // 🔴 BƯỚC 3: THÊM DÒNG NÀY ĐỂ MƯỢN BIẾN TỪ KHO CHỨA CHUNG
++   //
+- **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized GOTCHA
++ - ⚠️ GOTCHA: Optimized Score — paral
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 868 notes | Score threshold: >40
++ > 872 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized GOTCHA
++ - ⚠️ GOTCHA: Optimized Score — paral
 
-Content summary (4
+## Active: `Screens_Duy`
+
+- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes**
+- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes**
+- **gotcha in Dashboard_Thi_Sinh.js**
+- **🟢 Edited Screens_Duy/Dashboard_Thi_Sinh.js (61 changes, 5min) — confirmed 3x**
+- **what-changed in Dashboard_Thi_Sinh.js — confirmed 14x**
 
 ## Project Standards
 
-- Optimized Optimized — confirmed 3x
-- what-changed in shared-context.json — confirmed 3x
-- Optimized Score — avoids unnecessary re-renders in React — confirmed 3x
-- what-changed in shared-context.json — confirmed 3x
-- what-changed in shared-context.json — confirmed 3x
-- Strengthened types Recent
-- what-changed in brainsync_auto.md — confirmed 3x
-- what-changed in brainsync_auto.md — confirmed 3x
+- 🟢 Edited Screens_Duy/Dashboard_Thi_Sinh.js (61 changes, 5min) — confirmed 3x
+- what-changed in Dashboard_Thi_Sinh.js — confirmed 14x
+- what-changed in Dashboard_Thi_Sinh.js — confirmed 81x
+- what-changed in Dashboard_Thi_Sinh.js — confirmed 11x
+- Fixed null crash in Async — prevents null/undefined runtime crashes — confirmed 6x
+- what-changed in Dashboard_Thi_Sinh.js — confirmed 5x
+- what-changed in Dashboard_Thi_Sinh.js — confirmed 10x
+- convention in Tao_De_Thi_Part2.js
+
+## Known Fixes
+
+- ❌ - - Fixed null crash in Async — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ - - Fixed null crash in View — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ -           console.error('Failed to load user data', e); → ✅ Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes
+- ❌ - - Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ - - Fixed null crash in Ionicons — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
 
 ## Recent Decisions
 
+- decision in firebaseConfig.js
 - Optimized Score — parallelizes async operations for speed
-- Optimized Score — avoids unnecessary re-renders in React
-- Optimized Score — avoids unnecessary re-renders in React
+- Optimized Score — parallelizes async operations for speed
+- Optimized Score — parallelizes async operations for speed
 
 ## Learned Patterns
 
 - Always: what-changed in brainsync_auto.md — confirmed 3x (seen 2x)
+- Decision: Optimized Score (seen 2x)
+- Decision: Optimized Score — parallelizes async operations for speed (seen 3x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 
@@ -159,69 +189,8 @@ Reference these guidelines when:
 [upgrading-react-native]: references/upgrading-react...
 (truncated)
 
-
-### 📚 Core Framework Rules: [vercel-labs/react-best-practices]
-# Vercel React Best Practices
-
-Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 64 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
-
-## When to Apply
-
-Reference these guidelines when:
-- Writing new React components or Next.js pages
-- Implementing data fetching (client or server-side)
-- Reviewing code for performance issues
-- Refactoring existing React/Next.js code
-- Optimizing bundle size or load times
-
-## Rule Categories by Priority
-
-| Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
-| 1 | Eliminating Waterfalls | CRITICAL | `async-` |
-| 2 | Bundle Size Optimization | CRITICAL | `bundle-` |
-| 3 | Server-Side Performance | HIGH | `server-` |
-| 4 | Client-Side Data Fetching | MEDIUM-HIGH | `client-` |
-| 5 | Re-render Optimization | MEDIUM | `rerender-` |
-| 6 | Rendering Performance | MEDIUM | `rendering-` |
-| 7 | JavaScript Performance | LOW-MEDIUM | `js-` |
-| 8 | Advanced Patterns | LOW | `advanced-` |
-
-## Quick Reference
-
-### 1. Eliminating Waterfalls (CRITICAL)
-
-- `async-defer-await` - Move await into branches where actually used
-- `async-parallel` - Use Promise.all() for independent operations
-- `async-dependencies` - Use better-all for partial dependencies
-- `async-api-routes` - Start promises early, await late in API routes
-- `async-suspense-boundaries` - Use Suspense to stream content
-
-### 2. Bundle Size Optimization (CRITICAL)
-
-- `bundle-barrel-imports` - Import directly, avoid barrel files
-- `bundle-dynamic-imports` - Use next/dynamic for heavy components
-- `bundle-defer-third-party` - Load analytics/logging after hydration
-- `bundle-conditional` - Load modules only when feature is activated
-- `bundle-preload` - Preload on hover/focus for perceived speed
-
-### 3. Server-Side Performance (HIGH)
-
-- `server-auth-actions` - Authenticate server actions like API routes
-- `server-cache-react` - Use React.cache() for per-request deduplication
-- `server-cache-lru` - Use LRU cache for cross-request caching
-- `server-dedup-props` - Avoid duplicate serialization in RSC props
-- `server-hoist-static-io` - Hoist static I/O (fonts, logos) to module level
-- `server-serialization` - Minimize data passed to client components
-- `server-parallel-fetching` - Restructure components to parallelize fetches
-- `server-after-nonblocking` - Use after() for non-blocking operations
-
-### 4. Client-Side Data Fetching (MEDIUM-HIGH)
-
-- `c...
-(truncated)
-
 - [JavaScript/TypeScript] Use === not == (strict equality prevents type coercion bugs)
+- [JavaScript/TypeScript] Use const by default, let when reassignment needed, never var
 
 ## Available Tools (ON-DEMAND only)
 - `sys_core_01(q)` — Deep search when stuck

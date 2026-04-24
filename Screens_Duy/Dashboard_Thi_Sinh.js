@@ -1,11 +1,15 @@
 // Screens_Duy/Dashboard_Thi_Sinh.js
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, Text, StyleSheet, FlatList, TouchableOpacity, 
-  TextInput, SafeAreaView, Animated 
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { UserContext } from '../context/UserContext';
+import {
+  View, Text, StyleSheet, FlatList, TouchableOpacity,
+  TextInput, SafeAreaView, Animated
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+//thêm thư viện firebase để lưu trữ
+import { db } from '../firebaseConfig';
+import {collection,query,onSnapshot,orderBy} from 'firebase/firestore'
 
 // ==========================================
 // 1. COMPONENT SKELETON CHỚP TẮT
@@ -32,22 +36,22 @@ const SkeletonItem = ({ width, height, borderRadius = 4, style }) => {
 // Hàm render một thẻ Skeleton bài thi (tách ra để dùng chung)
 const renderSkeletonExamCard = (key) => (
   <View key={key} style={styles.examCard}>
-     <View style={{flexDirection: 'row', marginBottom: 10}}>
-        <SkeletonItem width={70} height={20} style={{marginRight: 8}}/>
-        <SkeletonItem width={70} height={20} style={{marginRight: 8}}/>
-     </View>
-     <SkeletonItem width="80%" height={20} style={{marginBottom: 15}}/>
-     <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15}}>
-         <SkeletonItem width="40%" height={15}/>
-         <SkeletonItem width="40%" height={15}/>
-     </View>
-     <SkeletonItem width="100%" height={45} borderRadius={8}/>
+    <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+      <SkeletonItem width={70} height={20} style={{ marginRight: 8 }} />
+      <SkeletonItem width={70} height={20} style={{ marginRight: 8 }} />
+    </View>
+    <SkeletonItem width="80%" height={20} style={{ marginBottom: 15 }} />
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+      <SkeletonItem width="40%" height={15} />
+      <SkeletonItem width="40%" height={15} />
+    </View>
+    <SkeletonItem width="100%" height={45} borderRadius={8} />
   </View>
 );
 
-// ==========================================
-// 2. DỮ LIỆU MẪU (MOCK DATA)
-// ==========================================
+// 
+// 2. DỮ LIỆU MẪU (MOCK DATA) (CẬP NHẬT, GIỜ ĐÂY HÀM NÀY ĐÃ KHÔNG CÒN QUAN TRỌNG NỮA, NHƯNG NÓ VẪN LÀ 1 DI SẢN CẦN ĐỂ TƯỞNG NHỚ)
+// 
 const mockStats = [
   { id: '1', title: 'Tổng bài thi', value: '12', icon: 'document-text-outline' },
   { id: '2', title: 'Điểm trung bình', value: '8.5', icon: 'star-outline' },
@@ -70,45 +74,77 @@ const mockExams = Array.from({ length: 12 }).map((_, index) => ({
 // 3. MAIN COMPONENT
 // ==========================================
 export default function Dashboard_Thi_Sinh({ navigation }) {
-  const [userName, setUserName] = useState('');
-  
+  // const [userName, setUserName] = useState('');
+  // DÒNG NÀY ĐỂ MƯỢN BIẾN TỪ KHO CHỨA CHUNG Context API
+  const { userName, setUserName } = useContext(UserContext);
   // --- STATES ---
+  const [examsList, setExamsList] = useState([]); // State này dùng để lưu Firebase data
   const [isLoading, setIsLoading] = useState(true); // Load lần đầu toàn bộ màn hình
   const [isPageLoading, setIsPageLoading] = useState(false); // Load Skeleton khi chuyển trang
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
   // --- REF CHO FLATLIST ---
   const flatListRef = useRef(null);
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      setTimeout(async () => {
-        try {
-          const storedName = await AsyncStorage.getItem('userName');
-          if (storedName) setUserName(storedName);
-          else {
-            await AsyncStorage.setItem('userName', 'Nguyễn Văn A');
-            setUserName('Nguyễn Văn A');
-          }
-        } catch (e) {
-          console.error('Failed to load user data', e);
-        } finally {
-          setIsLoading(false);
-        }
-      }, 750); 
-    };
-    
-    loadUserData();
-  }, []);
+// --- LẤY DỮ LIỆU TỪ FIREBASE REALTIME ---
+    useEffect(() => {
+        const loadUserData = async () => {
+            try {
+                const storedName = await AsyncStorage.getItem('userName');
+                if (storedName) setUserName(storedName);
+                else {
+                    await AsyncStorage.setItem('userName', 'Nguyễn Đình Duy');
+                    setUserName('Nguyễn Đình Duy');
+                }
+            } catch (e) {
+                console.error('Failed to load user data', e);
+            }
+        };
+        loadUserData();
+
+        // Query Firestore lấy danh sách bài thi
+        const q = query(collection(db, "Exams"), orderBy("createdAt", "desc"));
+        //onsnapshot của firebase giúp phát hiện thay đổi trong DB, tự động đẩy thẻ 'Đề số 1' ra giao diện
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const tempExams = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                tempExams.push({
+                    id: doc.id,
+                    status: 'CO_THE_LAM', // Logic tạm thời cho phép làm hết
+                    statusText: 'CÓ THỂ LÀM',
+                    subject: data.domain || 'CHƯA PHÂN LOẠI',
+                    level: 'TRUNG BÌNH',
+                    title: data.title || 'Bài thi không tên', // Nhận tên từ Part 2
+                    date: new Date(data.createdAt?.seconds * 1000).toLocaleDateString('vi-VN') || 'Hôm nay',
+                    time: `${data.config?.duration || 0} phút`,
+                    // Truyền toàn bộ cấu hình vào để dùng cho màn hình làm bài
+                    rawConfig: data.config,
+                    rawQuestions: data.questions
+                });
+            });
+            setExamsList(tempExams);
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
   // --- LOGIC PHÂN TRANG ---
-  const totalPages = Math.ceil(mockExams.length / ITEMS_PER_PAGE);
-  const displayedExams = mockExams.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE, 
+  //giờ mockExams đã không còn cần thiết nữa
+  // const totalPages = Math.ceil(mockExams.length / ITEMS_PER_PAGE);
+
+  // const displayedExams = mockExams.slice(
+  //   (currentPage - 1) * ITEMS_PER_PAGE,
+  //   currentPage * ITEMS_PER_PAGE
+  // );
+  const totalPages=Math.ceil(examsList.length/ITEMS_PER_PAGE);
+  const displayedExams = examsList.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
-  );
+);
 
   // --- HÀM XỬ LÝ KHI NHẤN CHUYỂN TRANG (SỐ N, HOẶC PREV/NEXT) ---
   const handlePageChange = (newPage) => {
@@ -133,22 +169,22 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={{ padding: 16 }}>
           <View style={styles.topBar}>
-             <SkeletonItem width={80} height={20} />
-             <SkeletonItem width={40} height={40} borderRadius={20} />
+            <SkeletonItem width={80} height={20} />
+            <SkeletonItem width={40} height={40} borderRadius={20} />
           </View>
           <View style={styles.statsContainer}>
             {[1, 2, 3, 4].map(i => (
               <View key={i} style={styles.statCard}>
                 <View>
-                  <SkeletonItem width={100} height={12} style={{marginBottom: 8}}/>
-                  <SkeletonItem width={40} height={24}/>
+                  <SkeletonItem width={100} height={12} style={{ marginBottom: 8 }} />
+                  <SkeletonItem width={40} height={24} />
                 </View>
-                <SkeletonItem width={40} height={40} borderRadius={8}/>
+                <SkeletonItem width={40} height={40} borderRadius={8} />
               </View>
             ))}
           </View>
-          <SkeletonItem width={150} height={24} style={{marginVertical: 15}}/>
-          <SkeletonItem width="100%" height={45} borderRadius={8} style={{marginBottom: 20}}/>
+          <SkeletonItem width={150} height={24} style={{ marginVertical: 15 }} />
+          <SkeletonItem width="100%" height={45} borderRadius={8} style={{ marginBottom: 20 }} />
           {[1, 2].map(i => renderSkeletonExamCard(`first-load-${i}`))}
         </View>
       </SafeAreaView>
@@ -175,18 +211,23 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
         ))}
       </View>
 
-      <Text style={styles.sectionTitle}>Danh sách bài thi</Text>
+      <View style={styles.sectionTitle}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0f172a' }} >Danh sách bài thi</Text>
+        <TouchableOpacity style={styles.btn_tao_de_thi} onPress={()=>navigation.navigate
+          
+        ('Tao_De_Thi_Part1')}><Text>Tạo bài thi cá nhân</Text></TouchableOpacity>
+      </View>
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="gray" />
         <TextInput style={styles.searchInput} placeholder="Tìm kiếm bài thi..." />
         <TouchableOpacity style={styles.filterBtn}>
           <Ionicons name="options-outline" size={20} color="gray" />
-          <Text style={{marginLeft: 5}}>Bộ lọc</Text>
+          <Text style={{ marginLeft: 5 }}>Bộ lọc</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.tabContainer}>
-        <Text style={[styles.tabText, styles.activeTab]}>Tất cả ({mockExams.length})</Text>
+        <Text style={[styles.tabText, styles.activeTab]}>Tất cả ({examsList.length})</Text>
         <Text style={styles.tabText}>Có thể làm (4)</Text>
       </View>
     </View>
@@ -208,10 +249,16 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
           <Text style={styles.infoText}><Ionicons name="calendar-outline" /> {item.date}</Text>
           <Text style={styles.infoText}><Ionicons name="time-outline" /> {item.time}</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionBtn, isCanDo ? styles.btnPrimary : styles.btnDisabled]}
           disabled={!isCanDo}
-          onPress={() => isCanDo && navigation.navigate('Man_Hinh_Lam_Bai', { examId: item.id })}
+          //khi ấn "Tạo bài", dữ liệu questions, duration, title được truyền gia trị sang "Man_Hinh_Lam_Bai" qua biến 'route.params'
+          onPress={() => isCanDo && navigation.navigate('Man_Hinh_Lam_Bai', { 
+            examId: item.id, 
+            title: item.title,
+            duration:item.rawConfig.duration,
+            questions:item.rawQuestions
+           })}//chuyền đi giá trị của biến ID và Title,... sang Screen có tên là "Man_Hinh_Lam_Bai"
         >
           <Text style={[styles.actionBtnText, isCanDo ? styles.textPrimary : styles.textDisabled]}>
             {isCanDo ? 'Bắt đầu làm bài' : 'Chưa tới giờ thi'}
@@ -227,7 +274,7 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
     return (
       <View style={styles.paginationContainer}>
         {/* Nút Prev */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.pageBtn, (currentPage === 1 || isPageLoading) && styles.pageBtnDisabled]}
           disabled={currentPage === 1 || isPageLoading}
           onPress={() => handlePageChange(currentPage - 1)}
@@ -237,24 +284,24 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
 
         {/* Các Nút Số n */}
         <View style={styles.pageNumbersWrapper}>
-            {Array.from({ length: totalPages }).map((_, index) => {
-                const page = index + 1;
-                const isActive = currentPage === page;
-                return (
-                    <TouchableOpacity 
-                        key={page} 
-                        style={[styles.numBtn, isActive && styles.numBtnActive]}
-                        disabled={isPageLoading || isActive}
-                        onPress={() => handlePageChange(page)}
-                    >
-                        <Text style={[styles.numBtnText, isActive && styles.numBtnTextActive]}>{page}</Text>
-                    </TouchableOpacity>
-                );
-            })}
+          {Array.from({ length: totalPages }).map((_, index) => {
+            const page = index + 1;
+            const isActive = currentPage === page;
+            return (
+              <TouchableOpacity
+                key={page}
+                style={[styles.numBtn, isActive && styles.numBtnActive]}
+                disabled={isPageLoading || isActive}
+                onPress={() => handlePageChange(page)}
+              >
+                <Text style={[styles.numBtnText, isActive && styles.numBtnTextActive]}>{page}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Nút Next */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.pageBtn, (currentPage === totalPages || isPageLoading) && styles.pageBtnDisabled]}
           disabled={currentPage === totalPages || isPageLoading}
           onPress={() => handlePageChange(currentPage + 1)}
@@ -284,27 +331,41 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
 
 // --- STYLES ---
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc',paddingBottom: 100, paddingTop: 10 },
+  container: { flex: 1, backgroundColor: '#f8fafc', paddingBottom: 100, paddingTop: 10 },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, marginTop: 10 },
   greeting: { fontSize: 16, color: '#64748b' },
   boldText: { fontWeight: 'bold', color: '#0f172a' },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
-  
-  statsContainer: { flexDirection: 'column',},
+
+  statsContainer: { flexDirection: 'column', },
   statCard: { width: '100%', backgroundColor: 'white', padding: 16, borderRadius: 12, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   statTitle: { fontSize: 13, color: '#64748b', marginBottom: 4 },
   statValue: { fontSize: 24, fontWeight: 'bold', color: '#0f172a' },
   iconWrapper: { backgroundColor: '#eff6ff', padding: 10, borderRadius: 8 },
-  
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#0f172a', marginVertical: 15 },
+
+  sectionTitle: { 
+    flexDirection: 'row',          // QUAN TRỌNG
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',              // giờ mới có tác dụng
+
+    marginVertical: 15,
+},
+btn_tao_de_thi:{
+  fontSize:14,
+  borderWidth:2,
+  borderColor:'black',
+  borderRadius:15,
+  padding:'0.8%',
+},
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 8, paddingHorizontal: 12, height: 45, marginBottom: 15 },
-  searchInput: { flex: 1, marginLeft: 10,fontSize:11 },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 11 },
   filterBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   tabContainer: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', marginBottom: 20 },
   tabText: { paddingVertical: 10, marginRight: 20, fontSize: 14, color: '#64748b' },
   activeTab: { color: '#3b82f6', fontWeight: 'bold', borderBottomWidth: 2, borderBottomColor: '#3b82f6' },
-  
+
   examCard: { backgroundColor: 'white', padding: 16, borderRadius: 12, marginBottom: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
   tagRow: { flexDirection: 'row', marginBottom: 10, alignItems: 'center' },
   tag: { fontSize: 10, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, backgroundColor: '#f1f5f9', color: '#64748b', marginRight: 8, fontWeight: 'bold' },
@@ -313,7 +374,7 @@ const styles = StyleSheet.create({
   examTitle: { fontSize: 16, fontWeight: 'bold', color: '#0f172a', marginBottom: 12 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   infoText: { fontSize: 13, color: '#64748b', marginBottom: 6 },
-  
+
   actionBtn: { marginTop: 15, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
   btnPrimary: { backgroundColor: '#3b82f6' },
   btnDisabled: { backgroundColor: '#e2e8f0' },
