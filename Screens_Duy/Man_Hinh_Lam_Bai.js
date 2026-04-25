@@ -410,7 +410,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Bảng câu hỏi</Text>
               <View style={styles.sheetBadge}>
-                <Text style={styles.sheetBadgeText}>{mockQuestions.length} câu</Text>
+                <Text style={styles.sheetBadgeText}>{questionsList.length} câu</Text>
               </View>
             </View>
 
@@ -441,7 +441,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
 
             <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
                 <View style={styles.gridContainer}>
-                {mockQuestions.map((q, i) => {
+                {questionsList.map((q, i) => {
                     const isCurrent = i === currentIndex;
                     const isFlagged = flagged.includes(q.id);
                     const isAnswered = !!answers[q.id];
