@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Import các Screens chính
 import Dashboard_Thi_Sinh from '../Screens_Duy/Dashboard_Thi_Sinh';
@@ -28,14 +29,22 @@ const ClassesScreen = () => (
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-
+//đây là phần bottom tabnavigator dành cho người dùng 'thí sinh'
 function MainTabNavigator() {
+  const insets = useSafeAreaInsets();
   return (
+    
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false, 
-        tabBarStyle: styles.tabBar,
+        // tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            bottom: insets.bottom + 1, //fix lỗi render khi khởi chạy lần đầu
+          }
+        ],
         tabBarItemStyle: { flex: 1 }, 
         tabBarIcon: ({ focused }) => {
           let iconName;
@@ -88,6 +97,7 @@ function MainTabNavigator() {
 
 export default function AppNavigator() {
   return (
+    //đặt tên của bottom navigator dành cho 'thí sinh' là: "MainTabs" 
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="Man_Hinh_Lam_Bai" component={Man_Hinh_Lam_Bai} />
@@ -106,25 +116,32 @@ export default function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 85,
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    borderTopWidth: 0,
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    paddingHorizontal: 10,
-    position: 'absolute',
-    bottom: 0,
-    display: 'flex',
-    flexDirection: 'row',
-     alignItems: 'center',
-     paddingBottom: Platform.OS === 'ios' ? 20 : 20,
-    
-  },
+    minHeight:85,
+  height: 85,
+  backgroundColor: '#ffffff',
+  borderTopLeftRadius: 25,
+  borderTopRightRadius: 25,
+  borderTopWidth: 0,
+
+  elevation: 20,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: -10 },
+  shadowOpacity: 0.05,
+  shadowRadius: 10,
+
+  paddingHorizontal: 10,
+
+  position: 'absolute',
+  bottom: 0,
+
+  left: 10,
+  right: 10, 
+
+  flexDirection: 'row',
+  alignItems: 'center',
+
+  paddingBottom: Platform.OS === 'ios' ? 20 : 15,
+},
   tabItem: {
     flexDirection: 'column',
     alignItems: 'center',
