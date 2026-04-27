@@ -16,7 +16,7 @@ import Lich_Su_Lam_Bai from '../Screens_Duy/Lich_Su_Lam_Bai';
 import Chi_Tiet_Dap_An from '../Screens_Duy/Chi_Tiet_Dap_An';
 import Ket_Qua_Dummy from '../Screens_Duy/Ket_Qua_Dummy';
 import AdminChartScreen from "../src/screens/AdminChartScreen";
-import AdminConfigScreen from "..AdminChartScreen/src/screens/AdminConfigScreen";
+import AdminConfigScreen from "../src/screens/AdminConfigScreen";
 import AdminDashboardScreen from "../src/screens/AdminDashboardScreen";
 import LoadingScreen from "../src/screens/LoadingScreen";
 import SandboxScreen from "../src/screens/SandboxScreen";
