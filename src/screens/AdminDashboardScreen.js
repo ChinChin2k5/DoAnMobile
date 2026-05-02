@@ -1,10 +1,12 @@
-import React from "react";
+import React, {useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
   Text,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator, //Tạo hiệu ứng xoay xoay loading
+  RefreshControl
 } from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { 
@@ -15,33 +17,83 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Header from "../components/Header";
+import ButtonNice from "../components/Button";
 
 export default function AdminDashboardScreen() {
   const navigation = useNavigation();
+  //dashboarData để chứa dữ liệu khi chưa tải trang, setDashboarData để tuỳ biến thay đổi giá trị sau này của dashboarData
+  const [dashboardData, setDashboardData] = useState({
+    totalUsers: "0",
+    totalExams: "0",
+    activeSession: "0",
+    systemHealth: "0%"
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const fetchDashboardStats = async () => {
+    try {
+      setIsLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const fakeApiResponse = {
+        data: {
+          totalUsers: "15,300", // Data thay đổi so với file gốc của em
+          totalExams: "6,900",
+          activeSessions: "720",
+          systemHealth: "100%"
+        }
+      };
+      setDashboardData(fakeApiResponse.data);
+    } catch(error) {
+      console.error("Lỗi khi lấy dữ liệu Dashboard:", error);
+      alert("Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const [refreshing, setRefreshing] = useState(false);
+  // Hàm này sẽ chạy khi người dùng vuốt mạnh xuống
+  const onRefresh = async () => {
+    setRefreshing(true); // 1. Bật cái vòng xoay loading ở trên cùng lên
+    
+    await fetchDashboardStats(); // 2. Gọi lại anh Shipper (hàm Axios nãy viết) để đi lấy data mới
+    
+    setRefreshing(false); // 3. Lấy xong rồi thì tắt cái vòng xoay đi, giấu nó lên trên
+  };
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []); // Mảng rỗng [] nghĩa là chỉ chạy 1 lần duy nhất khi render lần đầu
   
   // Dữ liệu 4 thẻ thống kê ở trên (Giữ nguyên)
   const stats = [
     {
-      id: 1, title: "TOTAL USERS", value: "12,842", 
+      id: 1, title: "TOTAL USERS", value: dashboardData.totalUsers, 
       icon: <Users color="#1A2134" size={20} />, iconBg: '#E8EFFB', badge: { text: "+12%", type: 'success' },
     },
     {
-      id: 2, title: "TOTAL EXAMS", value: "4,290", 
+      id: 2, title: "TOTAL EXAMS", value: dashboardData.totalExams, 
       icon: <FileText color="#1A2134" size={20} />, iconBg: '#F3F4F6', badge: { text: "Live", type: 'primary' },
     },
     {
-      id: 3, title: "ACTIVE SESSIONS", value: "512", 
+      id: 3, title: "ACTIVE SESSIONS", value: dashboardData.activeSessions, 
       icon: <Zap color="#1A2134" size={20} />, iconBg: '#EDE9FE', badge: { text: "84% Full", type: 'warning' },
     },
     {
-      id: 4, title: "SYSTEM HEALTH", value: "99.9%", 
+      id: 4, title: "SYSTEM HEALTH", value: dashboardData.systemHealth, 
       icon: <ShieldCheck color="#FFFFFF" size={20} />, iconBg: '#333333', badge: { text: "", type: 'online' }, isDark: true, 
     },
   ];
 
   return (
-    <ScreenWrapper backgroundColor="#F5F7FA"> 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScreenWrapper backgroundColor="#F5F7FA">
+      {/*showsVerticalScrollIndicator có nghĩa là ẩn cái thanh cuộn đi, contentContainerStyle tạo thêm khoảng trống ở bên dưới */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing} // Trạng thái bật/tắt của vòng xoay
+          onRefresh={onRefresh}   // Hàm gọi khi vuốt
+          colors={['#084CCB']}    // Màu của vòng xoay (Android)
+          tintColor="#084CCB"     // Màu của vòng xoay (iOS)
+        />
+      }>
         
         <Header title="Atoza Admin" leftIcon="grid-view" showBell={false} />
 
@@ -55,18 +107,22 @@ export default function AdminDashboardScreen() {
           </View>
 
           <View style={styles.navButtonsRow}>
-            <TouchableOpacity style={[styles.dashboardButton, styles.secondaryDashboardButton]} onPress={() => navigation.navigate("ConfigAdmin")}>
-              <View style={styles.buttonContent}>
-                <MaterialIcons name="tune" size={18} color="#1A2134" style={styles.buttonIcon} />
-                <Text style={[styles.dashboardButtonText, styles.secondaryDashboardButtonText]}>Config</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.dashboardButton, styles.primaryDashboardButton]} onPress={() => navigation.navigate("ChartAdmin")}>
-              <View style={styles.buttonContent}>
-                <MaterialIcons name="show-chart" size={18} color="white" style={styles.buttonIcon} />
-                <Text style={[styles.dashboardButtonText, styles.primaryDashboardButtonText]}>View Analytics</Text>
-              </View>
-            </TouchableOpacity>
+            <ButtonNice 
+             text="Cấu Hình"
+             iconName="tune"
+             iconPosition="left"
+             customStyle={{ width: 150, backgroundColor: '#DCE9FF' }}
+             customTextStyle={{ color: '#003FA4' }}
+             iconColor="#003FA4"
+             onPress={() => navigation.navigate("ConfigAdmin")}>
+            </ButtonNice>
+            <ButtonNice 
+             text="Thống Kê"
+             iconName="show-chart"
+             iconPosition="left"
+             customStyle={{ width: 190, backgroundColor: '#0050CB' }}
+             onPress={() => navigation.navigate("ChartAdmin")}>
+            </ButtonNice>
           </View>
 
           {stats.map((item) => (
@@ -185,20 +241,13 @@ export default function AdminDashboardScreen() {
   );
 }
 
-// ==========================================
-// BẢNG STYLE - FULL GIÁP ENTERPRISE
-// ==========================================
 const styles = StyleSheet.create({
-  // ... (Gần như toàn bộ các CSS của đoạn cũ giữ nguyên, Đại ca chỉ thêm phần mới vào dưới)
   body: { paddingHorizontal: 16, paddingTop: 10 },
   headerTextContainer: { marginBottom: 20 },
   dashBoard: { fontSize: 34, fontFamily: "Inter-Black", color: '#1A2134' },
   miniDashBoard: { fontSize: 16, fontFamily: "Inter-SemiBold", color: '#6F7F91', marginTop: 4 },
   textBlue: { color: '#084CCB' },
   navButtonsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
-  dashboardButton: { flex: 1, borderRadius: 100, paddingVertical: 14, justifyContent: 'center', alignItems: 'center' },
-  primaryDashboardButton: { backgroundColor: '#084CCB', shadowColor: "#084CCB", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 8 },
-  secondaryDashboardButton: { backgroundColor: '#E8EFFB' },
   buttonContent: { flexDirection: 'row', alignItems: 'center' },
   dashboardButtonText: { fontFamily: 'Inter-Bold', fontSize: 15 },
   buttonIcon: { marginRight: 8 },

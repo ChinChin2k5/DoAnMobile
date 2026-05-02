@@ -3,12 +3,12 @@ import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import { MaterialIcons, Feather } from "@expo/vector-icons"; // Thêm Feather cho cái chuông
 import { useNavigation } from "@react-navigation/native";
 
-// BIẾN THÁI COMPONENT BẰNG PROPS
+// BIẾN COMPONENT THÀNH PROPS
 export default function Header({ 
   title = "Tiêu Đề", 
   leftIcon = "arrow-back", // Mặc định là mũi tên lùi, có thể truyền "grid-view" vào
   showBell = true,         // Có muốn hiện chuông không?
-  onLeftPress              // Lệnh chạy khi bấm nút trái (nếu không truyền sẽ tự goBack)
+  onLeftPress = false,            // Lệnh chạy khi bấm nút trái (nếu không truyền sẽ tự goBack)
 }) {
   const navigation = useNavigation();
 

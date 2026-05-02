@@ -1,8 +1,8 @@
 import * as React from "react";
 import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { List, Switch, Text } from "react-native-paper";
+import axios from "axios";
 import AppTextInput from "../components/AppTextInput";
-import { Feather } from "@expo/vector-icons";
 import ScreenWrapper from "../components/ScreenWrapper";
 import Header from "../components/Header";
 import Dropdown from "../components/Dropdown";
@@ -234,7 +234,7 @@ const AdminConfigScreen = () => {
             <List.AccordionGroup>
               <View style={styles.cardWrapper}>
                 <List.Accordion
-                  title="General Settings" // Thay chữ Chung cộc lốc bằng tiếng Anh (hoặc Cài Đặt Chung)
+                  title="Cấu Hình Chung" // Thay chữ Chung cộc lốc bằng tiếng Anh (hoặc Cài Đặt Chung)
                   description="Core identity and localization" // Thêm Subtitle giống y xì Figma
                   id="1"
                   titleStyle={styles.accordionTitle}
@@ -259,7 +259,7 @@ const AdminConfigScreen = () => {
               <View style={{ height: 12, backgroundColor: "#E5EEFF" }} />
               <View style={styles.cardWrapper}>
                 <List.Accordion
-                  title="Đa Ta Bây" // Thay chữ Chung cộc lốc bằng tiếng Anh (hoặc Cài Đặt Chung)
+                  title="Database" // Thay chữ Chung cộc lốc bằng tiếng Anh (hoặc Cài Đặt Chung)
                   description="Core identity and localization" // Thêm Subtitle giống y xì Figma
                   id="2"
                   titleStyle={styles.accordionTitle}
@@ -271,7 +271,7 @@ const AdminConfigScreen = () => {
                       {/* Đổi icon thành bánh răng (cog) và set màu xanh đậm */}
                       <List.Icon
                         {...props}
-                        icon="cog"
+                        icon="database"
                         color="#084CCB"
                         style={{ margin: 0 }}
                       />
@@ -309,7 +309,7 @@ const AdminConfigScreen = () => {
               <View style={{ height: 12, backgroundColor: "#E5EEFF" }} />
               <View style={styles.cardWrapper}>
                 <List.Accordion
-                  title="Sờ Cu Rờ Ti" // Thay chữ Chung cộc lốc bằng tiếng Anh (hoặc Cài Đặt Chung)
+                  title="Bảo Mật" // Thay chữ Chung cộc lốc bằng tiếng Anh (hoặc Cài Đặt Chung)
                   description="Core identity and localization" // Thêm Subtitle giống y xì Figma
                   id="4"
                   titleStyle={styles.accordionTitle}

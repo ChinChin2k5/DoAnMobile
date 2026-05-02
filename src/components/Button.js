@@ -1,21 +1,47 @@
 import React from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
-import { Feather } from "@expo/vector-icons";
-//Em đang muốn khai báo các props cho biến Button này, đồng thời kích hoạt khả năng OnPress của Button
-//Và em đang chọn Text là props duy nhất đảm nhận cái này
-const ButtonNice = ({ text, onPress }) => {
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+
+const ButtonNice = ({ 
+  text, 
+  onPress, 
+  iconName, // Truyền tên icon vào đây (vd: 'settings', 'user')
+  iconPosition = 'right', // Mặc định là bên phải nếu không truyền gì
+  customStyle, //Style đè sau sẽ đè thằng đè trước
+  customTextStyle,
+  iconColor = "white", // CỬA HẬU MỚI: Mặc định là trắng, truyền màu khác sẽ tự đổi!
+}) => {
   return (
-    <TouchableOpacity style={styles.buttonBetter} onPress={onPress}>
-      <Text style={styles.textStyle}>{text}</Text>
-      <Feather
-        name="chevron-right"
-        size={20}
-        color="white"
-        style={{ marginLeft: 8 }}
-      />
+    <TouchableOpacity style={[styles.buttonBetter,customStyle, customTextStyle]} onPress={onPress}>
+      
+      {/* CÁNH TAY ROBOT SỐ 1: BẮT ĐIỀU KIỆN ICON BÊN TRÁI */}
+      {/* Lệnh này dịch ra là: Nếu iconPosition là 'left' VÀ có truyền tên icon thì mới vẽ */}
+      {iconPosition === 'left' && iconName && (
+        <MaterialIcons
+          name={iconName}
+          size={20}
+          color={iconColor}
+          style={{ marginRight: 8 }} // Icon bên trái thì cách chữ ra 1 đoạn ở bên phải
+        />
+      )}
+
+      {/* CHỮ LUÔN Ở GIỮA TRONG HỆ THỐNG */}
+      <Text style={[styles.textStyle,customTextStyle]}>{text}</Text>
+
+      {/* CÁNH TAY ROBOT SỐ 2: BẮT ĐIỀU KIỆN ICON BÊN PHẢI */}
+      {iconPosition === 'right' && iconName && (
+        <MaterialIcons
+          name={iconName}
+          size={20}
+          color={iconColor}
+          style={{ marginLeft: 8 }} // Icon bên phải thì cách chữ ra 1 đoạn ở bên trái
+        />
+      )}
+
     </TouchableOpacity>
   );
 };
+
 const styles = StyleSheet.create({
   buttonBetter: {
     width: 300,
@@ -23,7 +49,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3B82F6",
     justifyContent: "center",
     alignItems: "center",
-    flexDirection: "row",
+    flexDirection: "row", // Cốt lõi là ở đây: Các khối bên trong sẽ nằm ngang hàng
     borderRadius: 30,
     elevation: 3,
   },
@@ -33,4 +59,5 @@ const styles = StyleSheet.create({
     color: "white",
   },
 });
+
 export default ButtonNice;

@@ -3,7 +3,9 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-
+//Cơ chế của Navigation
+//Ví dụ, screen 1 khi bấm chuyển sang screen 2 thì screen 2 sẽ chồng lên screen 1
+//screen 1 không chết, nó chỉ bị che khuất thôi
 // Import các Screens chính
 import Dashboard_Thi_Sinh from '../Screens_Duy/Dashboard_Thi_Sinh';
 import Profile_Thi_Sinh from '../Screens_Duy/Profile_Thi_Sinh';
@@ -98,7 +100,6 @@ export default function AppNavigator() {
   return (
     <Stack.Navigator initialRouteName="Loading" screenOptions={{ headerShown: false }}>
       
-      {/* ================= ĐÀN CON CỦA CHIẾN ================= */}
       <Stack.Screen name="Loading" component={LoadingScreen} />
       <Stack.Screen name="Sandbox" component={SandboxScreen} />
       <Stack.Screen name="DashboardAdmin" component={AdminDashboardScreen} />
@@ -108,7 +109,6 @@ export default function AppNavigator() {
       <Stack.Screen name="SecondOnboarding" component={Onboarding2} />
       <Stack.Screen name="ThirdOnboarding" component={Onboarding3} />
 
-      {/* ================= ĐÀN CON CỦA DUY ================= */}
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="Man_Hinh_Lam_Bai" component={Man_Hinh_Lam_Bai} />
       <Stack.Screen name="Ket_Qua_Va_Phan_Tich" component={Ket_Qua_Va_Phan_Tich} />

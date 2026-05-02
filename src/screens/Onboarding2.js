@@ -25,7 +25,8 @@ export default function Onboarding2({ navigation }) {
       </Container>
       <View style={styles.superCenter}>
         <ButtonNice text="Tiếp Tục" 
-        onPress={() => navigation.navigate("ThirdOnboarding")}/>
+        onPress={() => navigation.navigate("ThirdOnboarding")}
+        iconName="arrow-forward"/>
       </View>
       <View style={styles.mrInvisible}>
         <TouchableOpacity>

@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import ButtonNice from "../components/Button";
 import Container from "../components/Container";
+
 export default function Onboarding1({ navigation }) {
   return (
     <View style={styles.background}>
@@ -32,7 +33,8 @@ export default function Onboarding1({ navigation }) {
         <View style={styles.mrButton}>
           <ButtonNice 
             text="Tiếp Tục"
-            onPress={() => navigation.navigate("SecondOnboarding")} />
+            onPress={() => navigation.navigate("SecondOnboarding")}
+            iconName="arrow-forward" />
         </View>
         <View style={styles.mrInvisible}>
             <TouchableOpacity>
