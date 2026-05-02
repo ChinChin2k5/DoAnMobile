@@ -15,6 +15,7 @@ import {
   ClipboardSignature, Shield 
 } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Header from "../components/Header";
 import ButtonNice from "../components/Button";
@@ -32,16 +33,22 @@ export default function AdminDashboardScreen() {
   const fetchDashboardStats = async () => {
     try {
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const fakeApiResponse = {
-        data: {
-          totalUsers: "15,300", // Data thay đổi so với file gốc của em
-          totalExams: "6,900",
-          activeSessions: "720",
-          systemHealth: "100%"
-        }
-      };
-      setDashboardData(fakeApiResponse.data);
+      const response = await axios.get('http://192.168.32.101:5221/api/Admin/DashboardStats');
+      const result = response.data; // Mở hộp JSON
+      if (result.success === true) {
+        // Lấy đúng cái gói "stats" từ Backend trả về
+        const backendStats = result.data.stats;
+
+        // Bơm data thật vào kho (State) của React Native
+        setDashboardData({
+          totalUsers: backendStats.totalActiveUsers.toString(),
+          totalExams: backendStats.totalExams.toString(),
+          activeSessions: backendStats.totalExamsToday.toString(), 
+          systemHealth: result.data.health.storageUsagePercentage + "%" 
+        });
+      } else {
+        alert("API báo lỗi: " + result.message);
+      }
     } catch(error) {
       console.error("Lỗi khi lấy dữ liệu Dashboard:", error);
       alert("Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng!");

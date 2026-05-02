@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from "react-native"; 
 import { List, Switch, Text } from "react-native-paper";
 import axios from "axios";
 import AppTextInput from "../components/AppTextInput";
