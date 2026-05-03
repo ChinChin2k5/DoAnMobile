@@ -1,0 +1,7 @@
+{
+    "dashboard": {
+      "totalUsers": "Total Users",
+      "totalExams": "Total Exams",
+      "systemHealth": "System Health"
+    }
+  }

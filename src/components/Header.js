@@ -1,14 +1,13 @@
 import React from "react";
-import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
-import { MaterialIcons, Feather } from "@expo/vector-icons"; // Thêm Feather cho cái chuông
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from "react-native"; // 🔴 Import thêm Alert
+import { MaterialIcons, Feather } from "@expo/vector-icons"; 
 import { useNavigation } from "@react-navigation/native";
 
-// BIẾN COMPONENT THÀNH PROPS
 export default function Header({ 
   title = "Tiêu Đề", 
-  leftIcon = "arrow-back", // Mặc định là mũi tên lùi, có thể truyền "grid-view" vào
-  showBell = true,         // Có muốn hiện chuông không?
-  onLeftPress = false,            // Lệnh chạy khi bấm nút trái (nếu không truyền sẽ tự goBack)
+  leftIcon = "arrow-back", 
+  showBell = true,         
+  onLeftPress = false,             
 }) {
   const navigation = useNavigation();
 
@@ -19,6 +18,29 @@ export default function Header({
     } else if (navigation.canGoBack()) {
       navigation.goBack();
     }
+  };
+
+  // 🔴 Xử lý luồng bấm vào Avatar (Đăng xuất)
+  const handleAvatarPress = () => {
+    Alert.alert(
+      "Xác nhận", // Tiêu đề của hộp thoại
+      "Bạn có chắc chắn muốn đăng xuất không?", // Lời nhắn
+      [
+        {
+          text: "Hủy",
+          style: "cancel", // Nút Hủy sẽ có màu mặc định và tắt hộp thoại
+        },
+        {
+          text: "Đăng xuất",
+          style: "destructive", // style destructive sẽ làm chữ trên iOS biến thành màu ĐỎ cảnh báo
+          onPress: () => {
+            console.log("Đã bấm đăng xuất!");
+            // Về sau em nhét code xóa Token và chuyển hướng về màn hình Đăng Nhập ở đây nhé!
+            // navigation.navigate("LoginScreen");
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -38,19 +60,17 @@ export default function Header({
       <View style={styles.rightRow}>
         {showBell && (
           <TouchableOpacity style={styles.bellIcon}>
-            {/* Icon chuông chuẩn Figma */}
             <Feather name="bell" size={20} color="#495D7A" /> 
           </TouchableOpacity>
         )}
         
-        {/* Vòng tròn bọc Avatar (Thay cho cục A màu tím cũ) */}
-        <View style={styles.avatarBorder}>
+        {/* 🔴 Đổi <View> thành <TouchableOpacity> để bấm được */}
+        <TouchableOpacity style={styles.avatarBorder} onPress={handleAvatarPress}>
           <Image 
-            // Nhét tạm cái ảnh test này vào, sau này gọi API user để đắp vào sau
             source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' }} 
             style={styles.avatarImage}
           />
-        </View>
+        </TouchableOpacity>
       </View>
 
     </View>
@@ -67,18 +87,18 @@ const styles = StyleSheet.create({
   globalBetween: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
-    alignItems: "center" // Ép tất cả căn giữa theo chiều dọc
+    alignItems: "center" 
   },
   leftRow: { 
     flexDirection: "row", 
     alignItems: "center", 
     gap: 12, 
-    flex: 1, // Đẩy thằng này ăn hết khoảng trống để chữ được phép xuống dòng
+    flex: 1, 
   },
   titleText: { 
-    fontWeight: "800", // In đậm dày cộp
+    fontWeight: "800", 
     fontSize: 18,
-    color: '#084CCB', // Chữ xanh Enterprise
+    color: '#084CCB', 
     textTransform: 'capitalize',
   },
   rightRow: {
@@ -94,7 +114,7 @@ const styles = StyleSheet.create({
     height: 44, 
     borderRadius: 22, 
     borderWidth: 1,
-    borderColor: '#D3E0F7', // Cái viền xanh nhạt nhạt bọc ngoài Avatar
+    borderColor: '#D3E0F7', 
     justifyContent: 'center', 
     alignItems: 'center', 
     overflow: 'hidden',

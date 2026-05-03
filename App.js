@@ -4,6 +4,7 @@ import AppNavigator from './navigation/AppNavigator';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { UserProvider } from './context/UserContext';
+import './i18n';
 
 export default function App() {
   // 1. Load Font chữ
