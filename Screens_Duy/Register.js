@@ -1,19 +1,32 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
     StyleSheet, Text, View, TextInput, TouchableOpacity,
-    KeyboardAvoidingView, Platform, ScrollView, Dimensions, Alert, Image, Animated
+    KeyboardAvoidingView, Platform, ScrollView, Dimensions,
+    Image, Animated, ActivityIndicator
 } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather, FontAwesome5 } from '@expo/vector-icons';
 
-const { width, height } = Dimensions.get('window');
+// ── Context ──
+import { UserContext } from '../context/UserContext';
 
-// ── 1. KHAI BÁO CÁC CHẤM NỀN (Dùng để chuyển màu) ──
+// ── Firebase ──
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
+
+// ── Social Auth ──
+import { useSocialAuth } from '../hooks/useSocialAuth';
+
+const { width } = Dimensions.get('window');
+//loại bỏ trùng lặp auth
+// const auth = getAuth();
+
 const BG_DOTS = [
-    { top: -40, left: -40, size: 200 },
-    { top: height * 0.3, left: width - 80, size: 120 },
-    { top: height * 0.6, left: -50, size: 150 },
-    { top: height * 0.85, left: width - 100, size: 180 },
+    { top: 60, left: 30, size: 120, opacity: 0.06 },
+    { top: 200, left: width - 80, size: 80, opacity: 0.08 },
+    { top: 380, left: 10, size: 60, opacity: 0.05 },
+    { top: 500, left: width - 50, size: 100, opacity: 0.07 },
 ];
 
 export default function Register({ navigation }) {
@@ -23,484 +36,523 @@ export default function Register({ navigation }) {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [errors, setErrors] = useState({});//state cho validation
+    const [loading, setLoading] = useState(false);
+    const [firebaseError, setFirebaseError] = useState('');
 
-    //  LOGIC ANIMATED CHUẨN (Khóa chuyển màu) 
+    // ── Social Auth Hook ──
+    const { setUserName, setUserRole } = useContext(UserContext);
+    const { handleGoogle, handleFacebook, socialLoading, socialError } = useSocialAuth({
+        setUserName, setUserRole, navigation,
+    });
+
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({
+        fullName: false, email: false, password: false, confirmPassword: false,
+    });
+
+    // ── Animated ──
     const animatedValue = useRef(new Animated.Value(0)).current;
+    const shakeFullName = useRef(new Animated.Value(0)).current;
+    const shakeEmail = useRef(new Animated.Value(0)).current;
+    const shakePassword = useRef(new Animated.Value(0)).current;
+    const shakeConfirmPw = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        Animated.timing(animatedValue, {
+        Animated.spring(animatedValue, {
             toValue: activeRole === 'Học sinh' ? 0 : 1,
-            duration: 500, // Tốc độ chuyển màu mượt mà
-            useNativeDriver: false, // Phải để false để nội suy màu sắc (color interpolation)
+            speed: 14, bounciness: 6, useNativeDriver: false,
         }).start();
     }, [activeRole]);
 
-    const isTeacher = activeRole === 'Giảng viên';
-
-    // ── Màu accent theo role (giống Login) ──
-    // Học sinh: xanh dương, Giảng viên: cam
+    const isTeacher = activeRole === 'Giáo viên';
     const accentColor = isTeacher ? '#F57C00' : '#3B5BDB';
+    const bgColors = isTeacher
+        ? ['#FFF9F0', '#FFF4E0', '#FFF0D0']
+        : ['#EEF2FF', '#E8EFFE', '#DCE4FD'];
+    const registerGradientColors = isTeacher
+        ? ['#FFB74D', '#F57C00']
+        : ['#4C6EF5', '#3B5BDB'];
 
-    // Nội suy màu chủ đạo (Primary Theme Color)
-    // 0: Học sinh (xanh), 1: Giảng viên (cam)
-    const themeColor = animatedValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['#3B5BDB', '#F57C00'],
+    // ── Real-time role label ──
+    const roleLabel = isTeacher ? 'Giáo viên' : 'Học sinh';
+
+    // ── Animated interpolations ──
+    const cardBgColor = animatedValue.interpolate({
+        inputRange: [0, 1], outputRange: ['#FFFFFF', '#FFFDF7'],
     });
-
-    // Nội suy màu nền nhạt (Light Theme Background) dùng cho border input
-    const lightThemeColor = animatedValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['#EEF2FF', '#FFF4E0'], // xanh nhạt -> cam nhạt
+    const dotColor = animatedValue.interpolate({
+        inputRange: [0, 1], outputRange: ['#3B5BDB', '#F57C00'],
     });
-
-    // đảm bảo trong mọi trường hợp KHÔNG tạo tài khoản Admin
-    const handleRegister = () => {
-        if (!validate()) return;
-
-        if (activeRole === 'Admin') {
-            Alert.alert('Không hỗ trợ', 'Admin không được phép đăng ký.');
-            return;
-        }
-
-        Alert.alert('Thành công', `Đã tạo tài khoản ${activeRole}`);
-        navigation.navigate('Login');
+    const studentTabStyle = {
+        transform: [{ scale: animatedValue.interpolate({ inputRange: [0, 1], outputRange: [1.02, 1] }) }],
     };
-    //Hàm Validate ô nhập liệu
+    const teacherTabStyle = {
+        transform: [{ scale: animatedValue.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] }) }],
+    };
+
+    // ── Shake helper ──
+    const triggerShake = (anim) => {
+        Animated.sequence([
+            Animated.timing(anim, { toValue: 10, duration: 40, useNativeDriver: true }),
+            Animated.timing(anim, { toValue: -10, duration: 40, useNativeDriver: true }),
+            Animated.timing(anim, { toValue: 6, duration: 40, useNativeDriver: true }),
+            Animated.timing(anim, { toValue: -6, duration: 40, useNativeDriver: true }),
+            Animated.timing(anim, { toValue: 0, duration: 40, useNativeDriver: true }),
+        ]).start();
+    };
+
+    // ── Sanitize ──
+    const sanitize = (text) => text.replace(/[<>]/g, '');
+
+    // ── Validate ──
     const validate = () => {
         let newErrors = {};
 
-        // FULL NAME
-        //2-50 ký tự, không chứa ký tự đặc biệt nguy hiểm, không toàn là số
-        if (!fullName.trim()) {
-            newErrors.fullName = 'Không được để trống';
-        } else if (fullName.length < 2 || fullName.length > 50) {
-            newErrors.fullName = 'Tên phải từ 2–50 ký tự';
-        } else if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(fullName)) {
-            newErrors.fullName = 'Tên không hợp lệ';
-        }
+        if (!fullName.trim()) newErrors.fullName = 'Không được để trống';
+        else if (fullName.length < 2 || fullName.length > 50) newErrors.fullName = 'Tên phải từ 2–50 ký tự';
+        else if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(fullName)) newErrors.fullName = 'Tên không hợp lệ';
 
-        // EMAIL
-        //Không dùng uppcase, không space, không dùng dấu và ký tự lạ ngoài bảng chữ cái ABC tiếng anh
-        const emailRegex =
-            /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+\.[a-z]{2,}$/;
+        const emailRegex = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+\.[a-z]{2,}$/;
+        if (!email) newErrors.email = 'Email không được để trống';
+        else if (!emailRegex.test(email.toLowerCase())) newErrors.email = 'Email không hợp lệ';
 
-        if (!email) {
-            newErrors.email = 'Email không được để trống';
-        } else if (!emailRegex.test(email.toLowerCase())) {
-            newErrors.email = 'Email không hợp lệ';
-        }
+        if (!password) newErrors.password = 'Không được để trống';
+        else if (password.length < 8) newErrors.password = 'Ít nhất 8 ký tự';
+        else if (!/[A-Z]/.test(password)) newErrors.password = 'Cần có chữ hoa';
+        else if (!/[a-z]/.test(password)) newErrors.password = 'Cần có chữ thường';
+        else if (!/[0-9]/.test(password)) newErrors.password = 'Cần có chữ số';
+        else if (!/[!@#$%^&*]/.test(password)) newErrors.password = 'Cần ký tự đặc biệt (!@#$%^&*)';
 
-        // PASSWORD
-        //>=8 ký tự, có chữ hóa, có chữ thường, có chữ số, có ký tự đặc biệt
-        if (!password) {
-            newErrors.password = 'Không được để trống';
-        } else if (password.length < 8) {
-            newErrors.password = 'Ít nhất 8 ký tự';
-        } else if (!/[A-Z]/.test(password)) {
-            newErrors.password = 'Cần chữ hoa';
-        } else if (!/[a-z]/.test(password)) {
-            newErrors.password = 'Cần chữ thường';
-        } else if (!/[0-9]/.test(password)) {
-            newErrors.password = 'Cần số';
-        } else if (!/[!@#$%^&*]/.test(password)) {
-            newErrors.password = 'Cần ký tự đặc biệt';
-        }
-
-        // CONFIRM PASSWORD
-        if (confirmPassword !== password) {
-            newErrors.confirmPassword = 'Không khớp mật khẩu';
-        }
+        if (!confirmPassword) newErrors.confirmPassword = 'Không được để trống';
+        else if (confirmPassword !== password) newErrors.confirmPassword = 'Mật khẩu không khớp';
 
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return newErrors;
     };
-    //Hàm chống input bẩn (security), trống inject <script>
-    const sanitize = (text) => text.replace(/[<>]/g, '');
-    //Hàm vô hiệu hóa nút khi chưa hợp lệ
-    const isValid = Object.keys(errors).length === 0 &&
-    fullName && email && password && confirmPassword;
-    
-    return (
-        <View style={styles.container}>
-            {/* 3. CÁC CHẤM NỀN BIẾN ĐỔI MÀU THEO ROLE */}
-            {BG_DOTS.map((dot, index) => (
-                <Animated.View
-                    key={index}
-                    style={[
-                        styles.bgDot,
-                        {
-                            top: dot.top,
-                            left: dot.left,
-                            width: dot.size,
-                            height: dot.size,
-                            borderRadius: dot.size / 2,
-                            backgroundColor: themeColor, // Xanh -> Cam như Login
-                            opacity: 0.06,
-                        },
-                    ]}
+
+    // ── Firebase error messages ──
+    const parseFirebaseError = (code) => {
+        switch (code) {
+            case 'auth/email-already-in-use': return 'Email này đã được đăng ký';
+            case 'auth/weak-password': return 'Mật khẩu quá yếu';
+            case 'auth/invalid-email': return 'Email không hợp lệ';
+            case 'auth/network-request-failed': return 'Lỗi kết nối mạng';
+            default: return 'Đăng ký thất bại, vui lòng thử lại';
+        }
+    };
+
+    // ── Handle Register ──
+    const handleRegister = async () => {
+        setTouched({ fullName: true, email: true, password: true, confirmPassword: true });
+        setFirebaseError('');
+
+        const validation = validate();
+        if (validation.fullName) triggerShake(shakeFullName);
+        if (validation.email) triggerShake(shakeEmail);
+        if (validation.password) triggerShake(shakePassword);
+        if (validation.confirmPassword) triggerShake(shakeConfirmPw);
+        if (Object.keys(validation).length > 0) return;
+
+        setLoading(true);
+        try {
+            // Tạo tài khoản Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const uid = userCredential.user.uid;
+
+            // Lưu thông tin vào Firestore
+            await setDoc(doc(db, 'users', uid), {
+                uid,
+                fullName: fullName.trim(),
+                email: email.toLowerCase(),
+                role: activeRole,       // 'Học sinh' | 'Giáo viên'
+                createdAt: serverTimestamp(),
+            });
+
+            // Điều hướng về màn hình đăng nhập (hoặc thẳng vào app tùy flow)
+            navigation.navigate('Login');
+        } catch (error) {
+            setFirebaseError(parseFirebaseError(error.code));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ── Helper render input ──
+    const renderInput = ({
+        label, iconName, value, onChangeText, onBlur,
+        placeholder, secureTextEntry, keyboardType,
+        autoCapitalize, rightElement, shakeAnim, errorKey,
+    }) => (
+        <>
+            <Text style={styles.label}>{label}</Text>
+            <Animated.View style={[styles.inputBox, {
+                transform: [{ translateX: shakeAnim }],
+                borderColor: errors[errorKey] && touched[errorKey]
+                    ? '#E53935'
+                    : value ? accentColor + '55' : '#E8ECF4',
+            }]}>
+                <Feather name={iconName} size={18}
+                    color={value ? accentColor : '#A0AEC0'} style={styles.inputIcon} />
+                <TextInput
+                    style={styles.input}
+                    placeholder={placeholder}
+                    placeholderTextColor="#C0C9D8"
+                    value={value}
+                    onChangeText={onChangeText}
+                    onBlur={onBlur}
+                    secureTextEntry={secureTextEntry}
+                    keyboardType={keyboardType}
+                    autoCapitalize={autoCapitalize || 'sentences'}
                 />
-            ))}
+                {rightElement}
+            </Animated.View>
+            {touched[errorKey] && errors[errorKey]
+                ? <Text style={styles.errorText}>{errors[errorKey]}</Text>
+                : null}
+        </>
+    );
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
+    return (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+        >
+            {/* Nền gradient */}
+            <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill}>
+                {BG_DOTS.map((dot, i) => (
+                    <Animated.View key={i} style={{
+                        position: 'absolute', top: dot.top, left: dot.left,
+                        width: dot.size, height: dot.size,
+                        borderRadius: dot.size / 2,
+                        backgroundColor: dotColor, opacity: dot.opacity,
+                    }} />
+                ))}
+                <Animated.View style={[styles.bgCircleLarge, { backgroundColor: dotColor, opacity: 0.06 }]} />
+            </LinearGradient>
+
+            <ScrollView
+                contentContainerStyle={styles.scroll}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
             >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {/* LOGO + TÊN THƯƠNG HIỆU */}
-                    <View style={styles.headerContainer}>
-                        <View style={styles.logoRow}>
-                            <Image
-                                source={require('../assets/logo.png')}
-                                style={styles.logoImg}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.logoText}>ATOZA</Text>
-                        </View>
-                        <Text style={styles.subTitle}>Kiến tạo tương lai số</Text>
-                    </View>
-
-                    {/* TABS DẠNG PILL (VIÊN THUỐC) */}
-                    <View style={styles.pillTabContainer}>
-                        <TouchableOpacity
-                            style={[
-                                styles.pillTab,
-                                activeRole === 'Học sinh' && styles.pillTabActive,
-                            ]}
-                            onPress={() => setActiveRole('Học sinh')}
-                        >
-                            <FontAwesome5
-                                name="user-graduate"
-                                size={13}
-                                color={!isTeacher ? '#3B5BDB' : '#A0AEC0'}
-                                style={{ marginBottom: 3 }}
-                            />
-                            <Text
-                                style={[
-                                    styles.pillTabText,
-                                    activeRole === 'Học sinh' && { color: accentColor },
-                                ]}
-                            >
-                                Học sinh
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[
-                                styles.pillTab,
-                                activeRole === 'Giảng viên' && styles.pillTabActive,
-                            ]}
-                            onPress={() => setActiveRole('Giảng viên')}
-                        >
-                            <FontAwesome5
-                                name="chalkboard-teacher"
-                                size={13}
-                                color={isTeacher ? '#F57C00' : '#A0AEC0'}
-                                style={{ marginBottom: 3 }}
-                            />
-                            <Text
-                                style={[
-                                    styles.pillTabText,
-                                    activeRole === 'Giảng viên' && { color: accentColor },
-                                ]}
-                            >
-                                Giảng viên
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* 4. CONTENT CARD VỚI BORDER RADIUS 35 CHUẨN */}
-                    <View style={styles.contentCard}>
-                        <Animated.Text style={[styles.cardTitle, { color: themeColor }]}>
-                            Đăng ký ngay
+                {/* ── Logo + Brand ── */}
+                <View style={styles.brandRow}>
+                    <Animated.View style={[styles.logoBox, { borderColor: dotColor }]}>
+                        <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
+                    </Animated.View>
+                    <View>
+                        <Text style={styles.brandName}>Atoza</Text>
+                        {/* Real-time role label */}
+                        <Animated.Text style={[styles.roleHint, { color: dotColor }]}>
+                            Đăng ký: {roleLabel}
                         </Animated.Text>
+                    </View>
+                </View>
 
-                        {/* Input Họ Tên */}
+                {/* ── Card chính ── */}
+                <Animated.View style={[styles.contentCard, { backgroundColor: cardBgColor }]}>
 
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Họ và tên</Text>
-                            <Animated.View
-                                style={[
-                                    styles.inputPill,
-                                    {
-                                        borderColor: fullName
-                                            ? accentColor + '66'
-                                            : lightThemeColor,
-                                    },
-                                ]}
-                            >
-                                <Feather
-                                    name="user"
-                                    size={18}
-                                    color={fullName ? accentColor : '#94a3b8'}
-                                    style={styles.inputIcon}
-                                />
-                                <TextInput
-                                    style={styles.textInput}
-                                    placeholder="Nguyễn Văn A"
-                                    value={fullName}
-                                    onChangeText={(text) => {
-                                        //chống input bẩn (security) chống inject <script>
-                                        setFullName(sanitize(text));
-                                        if (errors.fullName) validate();
-                                    }}
-                                />
-                            </Animated.View>
-                        </View>
-                        {errors.fullName && (
-                            <Text style={{ color: 'red', fontSize: 12, marginLeft: 10 }}>
-                                {errors.fullName}
-                            </Text>
-                        )}
-
-                        {/* Input Email */}
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Email</Text>
-                            <Animated.View
-                                style={[
-                                    styles.inputPill,
-                                    {
-                                        borderColor: email ? accentColor + '66' : lightThemeColor,
-                                    },
-                                ]}
-                            >
-                                <Feather
-                                    name="mail"
-                                    size={18}
-                                    color={email ? accentColor : '#94a3b8'}
-                                    style={styles.inputIcon}
-                                />
-                                <TextInput
-                                    style={styles.textInput}
-                                    placeholder="atoza@gmail.com"
-                                    autoCapitalize="none"
-                                    keyboardType="email-address"
-                                    value={email}
-                                    onChangeText={(text) => {
-                                        setEmail(text);
-                                        if (errors.email) validate();
-                                    }}
-                                />
-                            </Animated.View>
-                        </View>
-                        {errors.email && (
-                            <Text style={{ color: 'red', fontSize: 12, marginLeft: 10 }}>
-                                {errors.email}
-                            </Text>
-                        )}
-
-                        {/* Input Mật khẩu */}
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Mật khẩu</Text>
-                            <Animated.View
-                                style={[
-                                    styles.inputPill,
-                                    {
-                                        borderColor: password
-                                            ? accentColor + '66'
-                                            : lightThemeColor,
-                                    },
-                                ]}
-                            >
-                                <Feather
-                                    name="lock"
-                                    size={18}
-                                    color={password ? accentColor : '#94a3b8'}
-                                    style={styles.inputIcon}
-                                />
-                                <TextInput
-                                    style={styles.textInput}
-                                    placeholder="••••••••"
-                                    secureTextEntry={!showPassword}
-                                    value={password}
-                                    onChangeText={(text) => {
-                                        setPassword(text);
-                                        if (errors.password) validate();
-                                    }}
-                                />
-                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                    <Feather
-                                        name={showPassword ? 'eye' : 'eye-off'}
-                                        size={18}
-                                        color="#94a3b8"
-                                    />
-                                </TouchableOpacity>
-                            </Animated.View>
-                        </View>
-                        {errors.password && (
-                            <Text style={{ color: 'red', fontSize: 12, marginLeft: 10 }}>
-                                {errors.password}
-                            </Text>
-                        )}
-
-                        {/* Input Nhập lại mật khẩu */}
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Nhập lại mật khẩu</Text>
-                            <Animated.View
-                                style={[
-                                    styles.inputPill,
-                                    {
-                                        borderColor: confirmPassword
-                                            ? accentColor + '66'
-                                            : lightThemeColor,
-                                    },
-                                ]}
-                            >
-                                <Feather
-                                    name="lock"
-                                    size={18}
-                                    color={confirmPassword ? accentColor : '#94a3b8'}
-                                    style={styles.inputIcon}
-                                />
-                                <TextInput
-                                    style={styles.textInput}
-                                    placeholder="••••••••"
-                                    secureTextEntry={!showPassword}
-                                    value={confirmPassword}
-                                    onChangeText={(text) => {
-                                        setConfirmPassword(text);
-                                        if (errors.confirmPassword) validate();
-                                    }}
-                                />
-                            </Animated.View>
-                        </View>
-                        {errors.confirmPassword && (
-                            <Text style={{ color: 'red', fontSize: 12, marginLeft: 10 }}>
-                                {errors.confirmPassword}
-                            </Text>
-                        )}
-
-                        {/* 5. NÚT ĐĂNG KÝ CHUYỂN MÀU THEO ROLE (Xanh -> Cam) */}
-                        <Animated.View
-                            style={{
-                                backgroundColor: themeColor,
-                                borderRadius: 50,
-                                marginTop: 10,
-                            }}
-                        >
-                            <TouchableOpacity
-                                style={styles.btnSubmitPill}
-                                onPress={handleRegister}
-                            >
-                                {/* Icon trái theo role */}
-                                <View style={styles.loginIconLeft}>
-                                    <FontAwesome5
-                                        name={isTeacher ? 'chalkboard-teacher' : 'user-graduate'}
-                                        size={16}
-                                        color="rgba(255,255,255,0.85)"
-                                    />
-                                </View>
-                                <Text style={styles.btnSubmitText}>Tạo tài khoản</Text>
-                                <Ionicons
-                                    name="arrow-forward-outline"
-                                    size={20}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
-                        </Animated.View>
+                    {/* Badge "Đăng ký" phân biệt với Login */}
+                    <View style={[styles.screenBadge, { backgroundColor: accentColor + '18', borderColor: accentColor + '44' }]}>
+                        <Feather name="user-plus" size={13} color={accentColor} />
+                        <Text style={[styles.screenBadgeText, { color: accentColor }]}>Tạo tài khoản mới</Text>
                     </View>
 
-                    {/* FOOTER */}
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>Bạn đã có tài khoản? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                            <Animated.Text
-                                style={[styles.registerLink, { color: themeColor }]}
-                            >
-                                Đăng nhập ngay
-                            </Animated.Text>
+                    <Text style={styles.title}>Đăng ký</Text>
+                    <Text style={styles.subtitle}>
+                        Điền thông tin bên dưới để tạo tài khoản của bạn.
+                    </Text>
+
+                    {/* ── Tab Role (không có Admin) ── */}
+                    <View style={styles.tabRow}>
+                        <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveRole('Học sinh')} activeOpacity={0.8}>
+                            <Animated.View style={[
+                                styles.tabBtn,
+                                !isTeacher && styles.tabBtnActive,
+                                studentTabStyle,
+                                !isTeacher && { borderColor: accentColor },
+                            ]}>
+                                <FontAwesome5 name="user-graduate" size={13}
+                                    color={!isTeacher ? '#3B5BDB' : '#A0AEC0'} style={{ marginBottom: 3 }} />
+                                <Text style={[styles.tabText, !isTeacher && styles.tabTextActiveBlue]}>Học sinh</Text>
+                            </Animated.View>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveRole('Giáo viên')} activeOpacity={0.8}>
+                            <Animated.View style={[
+                                styles.tabBtn,
+                                isTeacher && styles.tabBtnActive,
+                                teacherTabStyle,
+                                isTeacher && { borderColor: accentColor },
+                            ]}>
+                                <FontAwesome5 name="chalkboard-teacher" size={13}
+                                    color={isTeacher ? '#F57C00' : '#A0AEC0'} style={{ marginBottom: 3 }} />
+                                <Text style={[styles.tabText, isTeacher && styles.tabTextActiveOrange]}>Giáo viên</Text>
+                            </Animated.View>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </View>
+
+                    {/* Firebase error banner */}
+                    {firebaseError ? (
+                        <View style={styles.errorBanner}>
+                            <Feather name="alert-circle" size={14} color="#E53935" />
+                            <Text style={styles.errorBannerText}>{firebaseError}</Text>
+                        </View>
+                    ) : null}
+
+                    {/* ── Input HỌ VÀ TÊN ── */}
+                    {renderInput({
+                        label: 'HỌ VÀ TÊN',
+                        iconName: 'user',
+                        value: fullName,
+                        onChangeText: (t) => {
+                            setFullName(sanitize(t));
+                            if (touched.fullName) validate();
+                        },
+                        onBlur: () => { setTouched(p => ({ ...p, fullName: true })); validate(); },
+                        placeholder: 'Nguyễn Văn A',
+                        shakeAnim: shakeFullName,
+                        errorKey: 'fullName',
+                    })}
+
+                    {/* ── Input EMAIL ── */}
+                    {renderInput({
+                        label: 'EMAIL',
+                        iconName: 'mail',
+                        value: email,
+                        onChangeText: (t) => {
+                            setEmail(t); setFirebaseError('');
+                            if (touched.email) validate();
+                        },
+                        onBlur: () => { setTouched(p => ({ ...p, email: true })); validate(); },
+                        placeholder: 'example@atoza.vn',
+                        keyboardType: 'email-address',
+                        autoCapitalize: 'none',
+                        shakeAnim: shakeEmail,
+                        errorKey: 'email',
+                    })}
+
+                    {/* ── Input MẬT KHẨU ── */}
+                    {renderInput({
+                        label: 'MẬT KHẨU',
+                        iconName: 'lock',
+                        value: password,
+                        onChangeText: (t) => { setPassword(t); if (touched.password) validate(); },
+                        onBlur: () => { setTouched(p => ({ ...p, password: true })); validate(); },
+                        placeholder: '••••••••',
+                        secureTextEntry: !showPassword,
+                        shakeAnim: shakePassword,
+                        errorKey: 'password',
+                        rightElement: (
+                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                <Feather name={showPassword ? 'eye' : 'eye-off'} size={18} color="#A0AEC0" />
+                            </TouchableOpacity>
+                        ),
+                    })}
+
+                    {/* ── Input NHẬP LẠI MẬT KHẨU ── */}
+                    {renderInput({
+                        label: 'NHẬP LẠI MẬT KHẨU',
+                        iconName: 'lock',
+                        value: confirmPassword,
+                        onChangeText: (t) => { setConfirmPassword(t); if (touched.confirmPassword) validate(); },
+                        onBlur: () => { setTouched(p => ({ ...p, confirmPassword: true })); validate(); },
+                        placeholder: '••••••••',
+                        secureTextEntry: !showPassword,
+                        shakeAnim: shakeConfirmPw,
+                        errorKey: 'confirmPassword',
+                    })}
+
+                    {/* ── Nút Đăng ký ── */}
+                    <TouchableOpacity onPress={handleRegister} activeOpacity={0.85}
+                        disabled={loading} style={{ marginTop: 8, marginBottom: 28 }}>
+                        <LinearGradient
+                            colors={registerGradientColors}
+                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            style={styles.loginBtn}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <>
+                                    <View style={styles.loginIconLeft}>
+                                        <Feather name="user-plus" size={16} color="rgba(255,255,255,0.85)" />
+                                    </View>
+                                    <Text style={styles.loginBtnText}>Tạo tài khoản</Text>
+                                    <View style={styles.loginIconRight}>
+                                        <Feather name="arrow-right" size={18} color="rgba(255,255,255,0.85)" />
+                                    </View>
+                                </>
+                            )}
+                        </LinearGradient>
+                    </TouchableOpacity>
+
+                    {/* ── Divider ── */}
+                    <View style={styles.dividerRow}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>HOẶC TIẾP TỤC VỚI</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+
+                    {/* ── Social error banner ── */}
+                    {socialError ? (
+                        <View style={styles.errorBanner}>
+                            <Feather name="alert-circle" size={14} color="#E53935" />
+                            <Text style={styles.errorBannerText}>{socialError}</Text>
+                        </View>
+                    ) : null}
+
+                    {/* ── Social ── */}
+                    <View style={styles.socialRow}>
+                        <TouchableOpacity
+                            style={[styles.socialPill, socialLoading === 'google' && styles.socialPillLoading]}
+                            activeOpacity={0.8}
+                            onPress={handleGoogle}
+                            disabled={!!socialLoading}
+                        >
+                            {socialLoading === 'google'
+                                ? <ActivityIndicator size="small" color="#EA4335" />
+                                : <>
+                                    <FontAwesome5 name="google" size={17} color="#EA4335" solid />
+                                    <Text style={styles.socialPillText}>Google</Text>
+                                </>
+                            }
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.socialPill, socialLoading === 'facebook' && styles.socialPillLoading]}
+                            activeOpacity={0.8}
+                            onPress={handleFacebook}
+                            disabled={!!socialLoading}
+                        >
+                            {socialLoading === 'facebook'
+                                ? <ActivityIndicator size="small" color="#1877F2" />
+                                : <>
+                                    <FontAwesome5 name="facebook" size={17} color="#1877F2" solid />
+                                    <Text style={styles.socialPillText}>Facebook</Text>
+                                </>
+                            }
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+
+                {/* ── Footer ── */}
+                <View style={styles.registerRow}>
+                    <Text style={styles.registerHint}>Bạn đã có tài khoản? </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                        <Text style={[styles.registerLink, { color: accentColor }]}>Đăng nhập ngay</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
-    bgDot: { position: 'absolute' },
-    scrollContent: { paddingHorizontal: 25, paddingTop: 40, paddingBottom: 40 },
-
-    headerContainer: { alignItems: 'center', marginBottom: 30 },
-    logoRow: { flexDirection: 'row', alignItems: 'center' },
-    logoImg: { width: 45, height: 45, marginRight: 10 },
-    logoText: { fontSize: 32, fontWeight: '900', color: '#1e293b', letterSpacing: 1 },
-    subTitle: { color: '#64748b', fontSize: 13, fontWeight: '500' },
-
-    pillTabContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#e2e8f0',
-        borderRadius: 50,
-        padding: 5,
-        marginBottom: 25,
-    },
-    pillTab: {
-        flex: 1,
-        paddingVertical: 12,
-        alignItems: 'center',
-        borderRadius: 50,
-    },
-    pillTabActive: {
-        backgroundColor: '#ffffff',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-    },
-    pillTabText: { fontWeight: '700', color: '#94a3b8' },
-
-    // THẺ CONTENT CARD CHUẨN 35PX
-    contentCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 35,
-        padding: 25,
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 20 },
-        shadowOpacity: 0.1,
-        shadowRadius: 25,
-    },
-    cardTitle: {
-        fontSize: 22,
-        fontWeight: '800',
-        marginBottom: 25,
-        textAlign: 'center',
+    scroll: { paddingHorizontal: 24, paddingTop: 60, paddingBottom: 48 },
+    bgCircleLarge: {
+        position: 'absolute', top: -60, right: -80,
+        width: 300, height: 300, borderRadius: 150,
     },
 
-    inputGroup: { marginBottom: 15 },
-    inputLabel: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#475569',
-        marginBottom: 8,
-        marginLeft: 10,
-    },
-    inputPill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f8fafc',
-        borderRadius: 50,
-        paddingHorizontal: 20,
+    // Brand
+    brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 28, gap: 12 },
+    logoBox: {
+        width: 46, height: 46, borderRadius: 12,
+        backgroundColor: '#EEF2FF',
+        justifyContent: 'center', alignItems: 'center',
         borderWidth: 1.5,
     },
-    inputIcon: { marginRight: 10 },
-    textInput: { flex: 1, paddingVertical: 12, color: '#1e293b' },
+    logoImage: { width: 30, height: 30 },
+    brandName: { fontSize: 22, fontWeight: '800', color: '#1A202C', letterSpacing: 0.3 },
+    roleHint: { fontSize: 11, fontWeight: '600', marginTop: 2 },
 
-    btnSubmitPill: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 16,
-        gap: 10,
+    // Screen badge
+    screenBadge: {
+        flexDirection: 'row', alignItems: 'center', gap: 6,
+        alignSelf: 'center',
+        borderRadius: 20, borderWidth: 1,
+        paddingHorizontal: 12, paddingVertical: 5,
+        marginBottom: 12,
     },
-    btnSubmitText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+    screenBadgeText: { fontSize: 12, fontWeight: '700' },
 
-    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 30 },
-    footerText: { color: '#64748b',fontSize:11, },
-    registerLink: { fontWeight: '800',fontSize:11, },
+    // Card
+    contentCard: {
+        borderRadius: 24, paddingHorizontal: 22, paddingVertical: 28,
+        shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1, shadowRadius: 16, elevation: 5, marginBottom: 24,
+    },
+    title: { fontSize: 22, fontWeight: '800', color: '#1A202C', marginBottom: 6, textAlign: 'center' },
+    subtitle: { fontSize: 13, color: '#718096', lineHeight: 20, marginBottom: 24, textAlign: 'center' },
+
+    // Tab
+    tabRow: {
+        flexDirection: 'row', backgroundColor: '#F0F2F8',
+        borderRadius: 16, padding: 5, marginBottom: 24, gap: 4,
+    },
+    tabBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center' },
+    tabBtnActive: {
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08, shadowRadius: 6,
+        borderWidth: 1.5,
+    },
+    tabText: { fontSize: 13, fontWeight: '600', color: '#A0AEC0' },
+    tabTextActiveBlue: { color: '#3B5BDB' },
+    tabTextActiveOrange: { color: '#F57C00' },
+
+    // Error banner
+    errorBanner: {
+        flexDirection: 'row', alignItems: 'center', gap: 6,
+        backgroundColor: '#FFEBEE', borderRadius: 10,
+        paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14,
+    },
+    errorBannerText: { color: '#E53935', fontSize: 12, fontWeight: '600', flex: 1 },
+
+    // Input
+    label: { fontSize: 11, fontWeight: '700', color: '#718096', letterSpacing: 1, marginBottom: 8 },
+    inputBox: {
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: '#F7F8FC', borderRadius: 14,
+        paddingHorizontal: 16, paddingVertical: 13,
+        marginBottom: 14, borderWidth: 1.5,
+    },
+    inputIcon: { marginRight: 12 },
+    input: { flex: 1, fontSize: 14, color: '#1A202C' },
+    errorText: { color: '#E53935', fontSize: 11, marginTop: -10, marginBottom: 10, marginLeft: 4 },
+
+    // Button
+    loginBtn: {
+        borderRadius: 50, paddingVertical: 16,
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        shadowColor: '#3B5BDB', shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
+        position: 'relative', minHeight: 54,
+    },
+    loginIconLeft: { position: 'absolute', left: 22 },
+    loginBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 0.3 },
+    loginIconRight: { position: 'absolute', right: 22 },
+
+    // Divider
+    dividerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
+    dividerLine: { flex: 1, height: 1, backgroundColor: '#E8ECF4' },
+    dividerText: { fontSize: 10, fontWeight: '700', color: '#A0AEC0', letterSpacing: 1, marginHorizontal: 10 },
+
+    // Social
+    socialRow: { flexDirection: 'row', gap: 12 },
+    socialPill: {
+        flex: 1, flexDirection: 'row', alignItems: 'center',
+        justifyContent: 'center', backgroundColor: '#FFFFFF',
+        borderRadius: 50, paddingVertical: 13, gap: 8,
+        borderWidth: 1.5, borderColor: '#E8ECF4',
+        shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+    },
+    socialPillText: { fontSize: 13, fontWeight: '700', color: '#2D3748' },
+    socialPillLoading: { opacity: 0.6 },
+
+    // Footer
+    registerRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+    registerHint: { fontSize: 11, color: '#718096' },
+    registerLink: { fontSize: 11, fontWeight: '700' },
 });
