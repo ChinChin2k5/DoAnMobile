@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   cardSubtitle: { fontSize: 12, fontWeight: '700', color: '#64748b', letterSpacing: 1, marginBottom: 20 },
   scoreCircleContainer: { alignItems: 'center', marginBottom: 24 },
   scoreCircle: { width: 160, height: 160, borderRadius: 80, borderWidth: 14, borderColor: '#4338ca', justifyContent: 'center', alignItems: 'center' },
-  scoreText: { fontSize: 42, fontWeight: 'bold', color: '#0f172a' },
+  scoreText: { fontSize: 26, fontWeight: 'bold', color: '#0f172a' },
   maxScoreText: { fontSize: 16, fontWeight: '600', color: '#475569', marginTop: -5 },
   greetingText: { fontSize: 20, fontWeight: 'bold', color: '#0f172a', textAlign: 'center', marginBottom: 8 },
   descText: { fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 20 },

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Import các Screens chính
 import Dashboard_Thi_Sinh from '../Screens_Duy/Dashboard_Thi_Sinh';
@@ -11,32 +12,45 @@ import Man_Hinh_Lam_Bai from '../Screens_Duy/Man_Hinh_Lam_Bai';
 import Ket_Qua_Va_Phan_Tich from '../Screens_Duy/Ket_Qua_Va_Phan_Tich';
 import Tao_De_Thi_Part1 from '../Screens_Duy/Tao_De_Thi_Part1';
 import Tao_De_Thi_Part2 from '../Screens_Duy/Tao_De_Thi_Part2';
-import Dashboard_GiangVien_Dummy from '../Screens_Duy/Dashboard_GiangVien_Dummy';
 import Lich_Su_Lam_Bai from '../Screens_Duy/Lich_Su_Lam_Bai';
 import Chi_Tiet_Dap_An from '../Screens_Duy/Chi_Tiet_Dap_An';
 import Ket_Qua_Dummy from '../Screens_Duy/Ket_Qua_Dummy';
+import Login from '../Screens_Duy/Login';
+import Register from '../Screens_Duy/Register';
 
-// --- GIẢI QUYẾT WARNING INLINE FUNCTION ---
-// Định nghĩa các component bên ngoài để React không render lại vô ích
+// ── Placeholder screens cho các role chưa có màn hình riêng ──
 const ClassesScreen = () => (
   <View style={styles.placeholder}><Text>Classes Screen</Text></View>
 );
-//xóa hình nhân Dummy cũ của HistoryScreen và thay thế bằng Lich_Su_Lam_Bai.js chính thức
-// const HistoryScreen = () => (
-//   <View style={styles.placeholder}><Text>History Screen</Text></View>
-// );
+
+// Placeholder tạm cho teacher / admin — thay bằng navigator thật khi có screens
+const TeacherAdminPlaceholder = () => (
+  <View style={styles.placeholder}>
+    <Text style={{ fontSize: 18, fontWeight: '700', color: '#F57C00' }}>
+      Khu vực Giáo viên / Admin
+    </Text>
+    <Text style={{ fontSize: 13, color: '#718096', marginTop: 8 }}>
+      (Đang phát triển)
+    </Text>
+  </View>
+);
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// ── Bottom Tab Navigator dành cho 'student' ──
 function MainTabNavigator() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarShowLabel: false, 
-        tabBarStyle: styles.tabBar,
-        tabBarItemStyle: { flex: 1 }, 
+        tabBarShowLabel: false,
+        tabBarStyle: [
+          styles.tabBar,
+          { bottom: insets.bottom + 1 },
+        ],
+        tabBarItemStyle: { flex: 1 },
         tabBarIcon: ({ focused }) => {
           let iconName;
           let label;
@@ -57,10 +71,10 @@ function MainTabNavigator() {
 
           return (
             <View style={[styles.tabItem, focused && styles.tabItemActive]}>
-              <Ionicons 
-                name={iconName} 
-                size={22} 
-                color={focused ? '#1d4ed8' : '#94a3b8'} 
+              <Ionicons
+                name={iconName}
+                size={22}
+                color={focused ? '#1d4ed8' : '#94a3b8'}
               />
               <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>
                 {label}
@@ -71,41 +85,102 @@ function MainTabNavigator() {
       })}
     >
       <Tab.Screen name="Dashboard" component={Dashboard_Thi_Sinh} />
-      <Tab.Screen name="Classes" component={ClassesScreen} />
-      <Tab.Screen name="History" component={Lich_Su_Lam_Bai} />
-      <Tab.Screen name="Profile" component={Profile_Thi_Sinh} />
-      {/* MÀN HÌNH KẾT QUẢ NẰM TRONG TAB ĐỂ HIỆN THANH NAVIGATOR
-      <Tab.Screen 
-        name="Ket_Qua_Va_Phan_Tich" 
-        component={Ket_Qua_Va_Phan_Tich} 
-        options={{ 
-          tabBarButton: () => null, // Ẩn nút này đi, không cho hiện icon thứ 5
-        }} 
-      /> */}
+      <Tab.Screen name="Classes"   component={ClassesScreen} />
+      <Tab.Screen name="History"   component={Lich_Su_Lam_Bai} />
+      <Tab.Screen name="Profile"   component={Profile_Thi_Sinh} />
+    </Tab.Navigator>
+  );
+}
+
+// ── Bottom Tab Navigator dành cho 'teacher' / 'admin' ──
+// Thay TeacherAdminPlaceholder bằng các screen thật khi sẵn sàng
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+//CHIẾN HÃY XÓA HÀM NÀY ĐI ĐỂ THAY THẾ BẰNG SCREEN ADMIN THẬT
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+function MainTabNavigatorAdmin() {
+  const insets = useSafeAreaInsets();
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: [
+          styles.tabBar,
+          { bottom: insets.bottom + 1 },
+        ],
+        tabBarItemStyle: { flex: 1 },
+        tabBarIcon: ({ focused }) => {
+          let iconName;
+          let label;
+
+          if (route.name === 'AdminHome') {
+            iconName = focused ? 'grid' : 'grid-outline';
+            label = 'Trang chủ';
+          } else if (route.name === 'AdminClasses') {
+            iconName = focused ? 'book' : 'book-outline';
+            label = 'Lớp học';
+          } else if (route.name === 'AdminStats') {
+            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+            label = 'Thống kê';
+          } else if (route.name === 'AdminProfile') {
+            iconName = focused ? 'person' : 'person-outline';
+            label = 'Hồ sơ';
+          }
+
+          return (
+            <View style={[styles.tabItem, focused && styles.tabItemActive]}>
+              <Ionicons
+                name={iconName}
+                size={22}
+                color={focused ? '#F57C00' : '#94a3b8'}
+              />
+              <Text style={[styles.tabLabel, focused && { color: '#F57C00', fontWeight: '700' }]}>
+                {label}
+              </Text>
+            </View>
+          );
+        },
+      })}
+    >
+      <Tab.Screen name="AdminHome"    component={TeacherAdminPlaceholder} />
+      <Tab.Screen name="AdminClasses" component={TeacherAdminPlaceholder} />
+      <Tab.Screen name="AdminStats"   component={TeacherAdminPlaceholder} />
+      <Tab.Screen name="AdminProfile" component={TeacherAdminPlaceholder} />
     </Tab.Navigator>
   );
 }
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-      <Stack.Screen name="Man_Hinh_Lam_Bai" component={Man_Hinh_Lam_Bai} />
-      <Stack.Screen name="Ket_Qua_Va_Phan_Tich" component={Ket_Qua_Va_Phan_Tich} />
-      {/*Màn hình giao diện làm bài thi */}
-      <Stack.Screen name="Tao_De_Thi_Part1" component={Tao_De_Thi_Part1}/>
-      <Stack.Screen name="Tao_De_Thi_Part2" component={Tao_De_Thi_Part2}/>
-      {/*Màn hình kết quả chi tiết */}
-      <Stack.Screen name="Ket_Qua_Dummy" component={Ket_Qua_Dummy}/>
-      {/*màn hình chi tiết đáp án */}
-      <Stack.Screen name="Chi_Tiet_Dap_An" component={Chi_Tiet_Dap_An}/>
+    <Stack.Navigator
+      initialRouteName="Login" //màn hình đầu tiên hiển thị khi chạy dự án là screen này
+      screenOptions={{ headerShown: false }}
+    >
+      {/* ── Auth ── */}
+      <Stack.Screen name="Login"    component={Login} />
+      <Stack.Screen name="Register" component={Register} />
 
+      {/* ── Student area ── */}
+      <Stack.Screen name="MainTabs"            component={MainTabNavigator} />
+      <Stack.Screen name="Man_Hinh_Lam_Bai"    component={Man_Hinh_Lam_Bai} />
+      <Stack.Screen name="Ket_Qua_Va_Phan_Tich" component={Ket_Qua_Va_Phan_Tich} />
+      <Stack.Screen name="Tao_De_Thi_Part1"    component={Tao_De_Thi_Part1} />
+      <Stack.Screen name="Tao_De_Thi_Part2"    component={Tao_De_Thi_Part2} />
+      <Stack.Screen name="Ket_Qua_Dummy"       component={Ket_Qua_Dummy} />
+      <Stack.Screen name="Chi_Tiet_Dap_An"     component={Chi_Tiet_Dap_An} />
+
+      {/* ── Teacher / Admin area ── */}
+      {/* Login & Register đều navigate sang 'MainTabsAdmin' cho role teacher/admin */}
+      <Stack.Screen name="MainTabsAdmin" component={MainTabNavigatorAdmin} />
     </Stack.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
+    minHeight: 85,
     height: 85,
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 25,
@@ -119,44 +194,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     position: 'absolute',
     bottom: 0,
-    display: 'flex',
+    left: 10,
+    right: 10,
     flexDirection: 'row',
-     alignItems: 'center',
-     paddingBottom: Platform.OS === 'ios' ? 20 : 20,
-    
+    alignItems: 'center',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 15,
   },
   tabItem: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    width: 85, 
+    width: 85,
     height: 65,
     borderRadius: 18,
-    // Căn chỉnh cho iOS
     marginTop: Platform.OS === 'ios' ? 20 : 0,
   },
   tabItemActive: {
-  backgroundColor: '#eff6ff',
-  width: 85,
-  height: 65,
-  borderRadius: 20,
-
-
-  justifyContent: 'center',
-  alignItems: 'center',
-
-  shadowColor: '#1d4ed8',
-  shadowOpacity: 0.15,
-  shadowRadius: 8,
-  elevation: 4,
-  transform: [{ scale: 1.05 }],
+    backgroundColor: '#eff6ff',
+    width: 85,
+    height: 65,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#1d4ed8',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    transform: [{ scale: 1.05 }],
   },
   tabLabel: {
-      fontSize: 10,
-  marginTop: 2,
-  color: '#94a3b8',
-  fontWeight: '500',
+    fontSize: 10,
+    marginTop: 2,
+    color: '#94a3b8',
+    fontWeight: '500',
   },
   tabLabelActive: {
     color: '#1d4ed8',
@@ -166,6 +237,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8fafc'
-  }
+    backgroundColor: '#f8fafc',
+  },
 });

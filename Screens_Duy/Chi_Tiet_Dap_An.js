@@ -264,7 +264,7 @@ export default function Ket_Qua_Va_Phan_Tich({ navigation, route }) {
                                         boxStyle = styles.optBoxUserWrong;
                                         showUserChoiceTag = true;
                                         tagChoiceColor = '#b91c1c'; // Màu đỏ khi chọn sai
-                                        rightIcon = <Ionicons name="close-circle" size={20} color="#b91c1c" style={{ marginLeft: 8 }} />;
+                                        rightIcon = <Ionicons name="close-circle" size={20} color="#b91c1c" style={{ marginLeft: 8, }} />;
                                     }
                                     else if (!isUserChoice && isActualCorrect) {
                                         boxStyle = styles.optBoxActualCorrect;
@@ -315,17 +315,17 @@ export default function Ket_Qua_Va_Phan_Tich({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc' },
+    container: { flex: 1, backgroundColor: '#f8fafc',paddingTop:40, paddingBottom:60, },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
     headerTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e3a8a' },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
 
     scoreCard: { backgroundColor: 'white', borderRadius: 20, padding: 30, alignItems: 'center', marginBottom: 20, position: 'relative', elevation: 1 },
     scoreCircle: { width: 120, height: 120, borderRadius: 60, borderWidth: 8, borderColor: '#eff6ff', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-    scoreNumber: { fontSize: 36, fontWeight: '900', color: '#1e40af' },
+    scoreNumber: { fontSize: 26, fontWeight: '900', color: '#1e40af' },
     scoreLabel: { fontSize: 10, fontWeight: 'bold', color: '#64748b', letterSpacing: 1 },
     badgeIcon: { position: 'absolute', top: 20, right: 20, backgroundColor: '#f3f4f6', padding: 10, borderRadius: 25 },
-    msgTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 8 },
+    msgTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e293b', marginBottom: 8 },
     msgSub: { fontSize: 13, color: '#64748b', textAlign: 'center', lineHeight: 20, paddingHorizontal: 10 },
 
     statsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 20 },
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     optText: { flex: 1, fontSize: 13, color: '#334155', lineHeight: 20 },
     optCircleDefault: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: '#cbd5e1' },
 
-    tagChoice: { paddingHorizontal: 6, paddingVertical: 4, borderRadius: 4, marginRight: 8, maxWidth: 65, alignItems: 'center', justifyContent: 'center' },
+    tagChoice: { paddingHorizontal: 6, paddingVertical: 4, borderRadius: 4, marginRight: 8, maxWidth: '43%', alignItems: 'center', justifyContent: 'center' },
     tagChoiceText: { color: 'white', fontSize: 8, fontWeight: 'bold', textAlign: 'center', lineHeight: 10 },
     tagCorrectAnswerText: { fontSize: 11, fontWeight: 'bold', color: '#166534', marginRight: 8 },
 
