@@ -2,6 +2,7 @@
   "expo": {
     "name": "DoAnMobile",
     "slug": "DoAnMobile",
+    "scheme": "doanmobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,14 +14,16 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.duy.doanmobile"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.duy.doanmobile"
     },
     "web": {
       "bundler": "metro",
@@ -40,6 +43,11 @@
           ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7cd2405b-e4c2-42ab-abfc-2862ac7cee90"
+      }
+    }
   }
 }

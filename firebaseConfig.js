@@ -1,9 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { Platform } from "react-native";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBQ_xApMP9oplsXKexvlDbo9oxIIRtuTB8",
+  // Firebase dùng authDomain này làm trung gian xử lý OAuth redirect
+  // Nếu để web.app, getRedirectResult sẽ thất bại trên mobile browser
   authDomain: "app-atoza.firebaseapp.com",
   projectId: "app-atoza",
   storageBucket: "app-atoza.firebasestorage.app",
@@ -13,7 +16,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
-// Dùng getAuth — tương thích Expo managed workflow
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// browserLocalPersistence chỉ khả dụng trên web browser
+// Native (Expo Go) tự dùng AsyncStorage persistence — không cần set
+if (Platform.OS === 'web') {
+  setPersistence(auth, browserLocalPersistence)
+    .catch((err) => console.error("[Firebase] Persistence error:", err));
+}

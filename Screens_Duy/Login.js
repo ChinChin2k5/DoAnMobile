@@ -208,7 +208,13 @@ export default function Login({ navigation }) {
             >
                 {/* ── Logo (giữ 3s → Admin) + Real-time role hint ── */}
                 <View style={styles.brandRow}>
-                    <TouchableOpacity onPressIn={handleLogoPressIn} onPressOut={handleLogoPressOut} activeOpacity={1}>
+                    <TouchableOpacity
+                        onPressIn={handleLogoPressIn}
+                        onPressOut={handleLogoPressOut}
+                        onLongPress={() => { }}
+                        delayLongPress={3000}
+                        activeOpacity={1}
+                    >
                         <Animated.View style={[styles.logoBox, { borderColor: dotColor, transform: [{ scale: logoScale }] }]}>
                             <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
                         </Animated.View>

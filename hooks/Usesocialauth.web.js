@@ -11,6 +11,7 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
+// Bắt buộc để trình duyệt tự đóng sau khi đăng nhập
 WebBrowser.maybeCompleteAuthSession();
 
 const FACEBOOK_APP_ID   = '2078204966089322';
@@ -40,14 +41,14 @@ export function useSocialAuth({ setUserName, setUserRole, navigation }) {
     const [socialLoading, setSocialLoading] = useState(null);
     const [socialError,   setSocialError]   = useState('');
 
-    // Cấu hình Google Proxy
+    // Cấu hình Google: Sử dụng Proxy để chạy được trên Expo Go cho cả 2 OS
     const [gRequest, gResponse, gPromptAsync] = Google.useAuthRequest({
         clientId: GOOGLE_WEB_CLIENT,
-        // useProxy: true giúp Expo Go tự xử lý Redirect URI cho cả 2 hệ điều hành
+        // Dùng Proxy của Expo để thống nhất Redirect URI
         redirectUri: AuthSession.makeRedirectUri({ useProxy: true }),
     });
 
-    // Cấu hình Facebook Proxy
+    // Cấu hình Facebook
     const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
         clientId: FACEBOOK_APP_ID,
         redirectUri: AuthSession.makeRedirectUri({ useProxy: true }),
@@ -61,26 +62,26 @@ export function useSocialAuth({ setUserName, setUserRole, navigation }) {
         }
     };
 
-    // Lắng nghe kết quả từ Google
+    // Xử lý kết quả Google
     useEffect(() => {
         if (gResponse?.type === 'success') {
             const { id_token } = gResponse.params;
             const credential = GoogleAuthProvider.credential(id_token);
-            processSignIn(credential, 'Google');
+            handleFirebaseSignIn(credential, 'google');
         }
     }, [gResponse]);
 
-    // Lắng nghe kết quả từ Facebook
+    // Xử lý kết quả Facebook
     useEffect(() => {
         if (fbResponse?.type === 'success') {
             const { access_token } = fbResponse.params;
             const credential = FacebookAuthProvider.credential(access_token);
-            processSignIn(credential, 'Facebook');
+            handleFirebaseSignIn(credential, 'facebook');
         }
     }, [fbResponse]);
 
-    const processSignIn = async (credential, providerName) => {
-        setSocialLoading(providerName.toLowerCase());
+    const handleFirebaseSignIn = async (credential, providerName) => {
+        setSocialLoading(providerName);
         try {
             const { user } = await signInWithCredential(auth, credential);
             const { role, fullName } = await getOrCreateUser(user.uid, user.displayName, user.email);
@@ -88,7 +89,7 @@ export function useSocialAuth({ setUserName, setUserRole, navigation }) {
             setUserRole(role);
             navigateByRole(role);
         } catch (err) {
-            console.error(`[SocialAuth] ${providerName} Error:`, err.message);
+            console.error(`[SocialAuth.native] ${providerName}:`, err.message);
             setSocialError(`Đăng nhập ${providerName} thất bại`);
         } finally {
             setSocialLoading(null);
