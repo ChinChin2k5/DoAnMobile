@@ -1,115 +1,173 @@
 // hooks/useSocialAuth.js
 // Dùng chung cho Login và Register
-// Yêu cầu: npx expo install expo-auth-session expo-crypto expo-web-browser
+// Web (Firebase Hosting): dùng signInWithPopup + getRedirectResult — KHÔNG dùng expo-auth-session
+// Mobile (Expo Go/bare): vẫn dùng expo-auth-session như cũ
 
-import { useState } from 'react';
-import { makeRedirectUri } from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
+import { useState, useEffect } from 'react';
+import { Platform } from 'react-native';
 import {
     GoogleAuthProvider,
     FacebookAuthProvider,
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     signInWithCredential,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
-// Bắt buộc gọi để đóng browser popup sau khi auth xong
-WebBrowser.maybeCompleteAuthSession();
+// ── Import expo packages chỉ khi KHÔNG phải web ──
+// Tránh lỗi "unable to process request due to initial state" trên web
+let WebBrowser, Google, Facebook;
+if (Platform.OS !== 'web') {
+    WebBrowser = require('expo-web-browser');
+    Google = require('expo-auth-session/providers/google');
+    Facebook = require('expo-auth-session/providers/facebook');
+    WebBrowser.maybeCompleteAuthSession();
+}
 
-// ── Constants ──
 const FACEBOOK_APP_ID = '2078204966089322';
+const GOOGLE_WEB_CLIENT = '832551425671-spk2j9c26cnv5gf8lf4tb1t4hms2nu7k.apps.googleusercontent.com';
 
-// ─────────────────────────────────────────────
-// Hàm dùng chung: sau khi có credential từ Google/Facebook,
-// sign in Firebase → kiểm tra/tạo Firestore doc → trả về role
-// ─────────────────────────────────────────────
-async function firebaseSignInAndGetRole(credential, displayName, email) {
-    // 1. Đăng nhập Firebase Auth
-    const userCredential = await signInWithCredential(auth, credential);
-    const { uid } = userCredential.user;
-
-    // 2. Kiểm tra Firestore — user đã tồn tại chưa?
+// ── Lưu / đọc user Firestore (collection 'users' chữ thường) ──
+async function getOrCreateUser(uid, displayName, email) {
     const userRef = doc(db, 'users', uid);
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists()) {
-        // User cũ → trả về role hiện tại
-        return userSnap.data().role || 'student';
+        // User đã tồn tại → trả về role + fullName
+        return {
+            role: userSnap.data().role || 'Học sinh',
+            fullName: userSnap.data().fullName || displayName || 'Người dùng',
+        };
     }
 
-    // User mới (lần đầu đăng nhập bằng social) → tạo document
-    await setDoc(userRef, {
+    // User mới → tạo document trong Firestore
+    const newUser = {
         uid,
-        fullName:  displayName || 'Người dùng',
-        email:     (email || '').toLowerCase(),  // Facebook có thể trả về rỗng nếu chưa được phê duyệt scope email
-        role:      'student',   // Social login mặc định là student
-        provider:  email ? 'social' : 'facebook_no_email',
+        fullName: displayName || 'Người dùng',
+        email: (email || '').toLowerCase(),
+        role: 'Học sinh',          // mặc định social login là Học sinh
         createdAt: serverTimestamp(),
-    });
-
-    return 'student';
+    };
+    await setDoc(userRef, newUser);
+    return { role: 'Học sinh', fullName: newUser.fullName };
 }
 
-// ─────────────────────────────────────────────
-// Hook chính export ra ngoài
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// Hook chính
+// ─────────────────────────────────────────────────────────────────
 export function useSocialAuth({ setUserName, setUserRole, navigation }) {
-    const [socialLoading, setSocialLoading] = useState(null); // 'google' | 'facebook' | null
-    const [socialError,   setSocialError]   = useState('');
+    const [socialLoading, setSocialLoading] = useState(null);
+    const [socialError, setSocialError] = useState('');
 
-    // ── Google Auth Request ──
-    const [, googleResponse, googlePromptAsync] = Google.useAuthRequest({
-        webClientId:  '832551425671-spk2j9c26cnv5gf8lf4tb1t4hms2nu7k.apps.googleusercontent.com',
-        expoClientId: '832551425671-spk2j9c26cnv5gf8lf4tb1t4hms2nu7k.apps.googleusercontent.com',
-        redirectUri: makeRedirectUri({
-            scheme: 'https',
-            path:   'auth.expo.io/@nguyendinhduy2578921113/DoAnMobile',
-        }),
-    });
+    // ── Hooks expo-auth-session (chỉ gọi trên non-web) ──
+    // Rules of Hooks: phải gọi unconditionally — dùng dummy nếu web
+    const googleHook = (Platform.OS !== 'web' && Google)
+        ? Google.useAuthRequest({ webClientId: GOOGLE_WEB_CLIENT, expoClientId: GOOGLE_WEB_CLIENT })
+        : [null, null, async () => ({ type: 'dismiss' })];
 
-    // ── Facebook Auth Request ──
-    const [, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
-        clientId: FACEBOOK_APP_ID,
-        scopes: ['public_profile'],   // Bỏ 'email' — App chưa được Facebook phê duyệt scope này
-    });
+    const fbHook = (Platform.OS !== 'web' && Facebook)
+        ? Facebook.useAuthRequest({ clientId: FACEBOOK_APP_ID, scopes: ['public_profile'] })
+        : [null, null, async () => ({ type: 'dismiss' })];
 
-    // ── Navigate theo role ──
+    const [, , googlePromptAsync] = googleHook;
+    const [, , fbPromptAsync] = fbHook;
+
+    // ── Điều hướng theo role ──
     const navigateByRole = (role) => {
-        if (role === 'teacher' || role === 'admin') {
+        if (role === 'Giáo viên' || role === 'Admin') {
             navigation.navigate('MainTabsAdmin');
         } else {
             navigation.navigate('MainTabs');
         }
     };
 
+    // ── Xử lý kết quả sau redirect (chạy khi app mount lại trên web) ──
+    // Đây là bước quan trọng: getRedirectResult đọc kết quả OAuth sau khi
+    // trình duyệt redirect về lại app-atoza.web.app
+    useEffect(() => {
+        if (Platform.OS !== 'web') return;
+
+        const handleRedirectResult = async () => {
+            try {
+                const result = await getRedirectResult(auth);
+                if (!result) return; // Không có redirect result → bỏ qua
+
+                setSocialLoading('redirecting');
+                const { user } = result;
+                const { role, fullName } = await getOrCreateUser(
+                    user.uid, user.displayName, user.email
+                );
+                setUserName(fullName);
+                setUserRole(role);
+                navigateByRole(role);
+            } catch (err) {
+                // Bỏ qua lỗi "no redirect" bình thường
+                if (err.code !== 'auth/no-auth-event') {
+                    console.error('Redirect result error:', err.code, err.message);
+                    setSocialError('Đăng nhập thất bại, vui lòng thử lại');
+                }
+            } finally {
+                setSocialLoading(null);
+            }
+        };
+
+        handleRedirectResult();
+    }, []); // Chỉ chạy 1 lần khi mount
+
     // ── Handle Google ──
     const handleGoogle = async () => {
         setSocialError('');
         setSocialLoading('google');
+
         try {
-            const result = await googlePromptAsync();
-            if (result?.type !== 'success') {
-                // User đóng popup hoặc cancel — không báo lỗi
-                return;
+            if (Platform.OS === 'web') {
+                const provider = new GoogleAuthProvider();
+                provider.addScope('profile');
+                provider.addScope('email');
+
+                try {
+                    // Thử popup trước (Chrome desktop)
+                    const result = await signInWithPopup(auth, provider);
+                    const { user } = result;
+                    const { role, fullName } = await getOrCreateUser(
+                        user.uid, user.displayName, user.email
+                    );
+                    setUserName(fullName);
+                    setUserRole(role);
+                    navigateByRole(role);
+                } catch (popupErr) {
+                    // Popup bị block (Safari, mobile browser) → dùng redirect
+                    // getRedirectResult() trong useEffect sẽ xử lý kết quả
+                    if (
+                        popupErr.code === 'auth/popup-blocked' ||
+                        popupErr.code === 'auth/popup-closed-by-user' ||
+                        popupErr.code === 'auth/cancelled-popup-request'
+                    ) {
+                        await signInWithRedirect(auth, provider);
+                        // Sau dòng này trình duyệt sẽ redirect → app reload
+                        // useEffect ở trên sẽ bắt getRedirectResult()
+                        return;
+                    }
+                    throw popupErr; // Lỗi khác thì ném ra ngoài
+                }
+            } else {
+                // ── Mobile (Expo Go / bare) ──
+                const result = await googlePromptAsync();
+                if (result?.type !== 'success') return;
+                const { id_token } = result.params;
+                const credential = GoogleAuthProvider.credential(id_token);
+                const { user } = await signInWithCredential(auth, credential);
+                const { role, fullName } = await getOrCreateUser(
+                    user.uid, user.displayName, user.email
+                );
+                setUserName(fullName);
+                setUserRole(role);
+                navigateByRole(role);
             }
-
-            const { id_token } = result.params;
-            const credential = GoogleAuthProvider.credential(id_token);
-            const { user } = await signInWithCredential(auth, credential);
-
-            const role = await firebaseSignInAndGetRole(
-                credential,
-                user.displayName,
-                user.email,
-            );
-
-            setUserName(user.displayName || 'Người dùng');
-            setUserRole(role);
-            navigateByRole(role);
         } catch (err) {
-            console.error('Google auth error:', err);
+            console.error('Google auth error:', err.code, err.message);
             setSocialError('Đăng nhập Google thất bại, vui lòng thử lại');
         } finally {
             setSocialLoading(null);
@@ -120,38 +178,55 @@ export function useSocialAuth({ setUserName, setUserRole, navigation }) {
     const handleFacebook = async () => {
         setSocialError('');
         setSocialLoading('facebook');
+
         try {
-            const result = await fbPromptAsync();
-            if (result?.type !== 'success') {
-                return;
+            if (Platform.OS === 'web') {
+                const provider = new FacebookAuthProvider();
+                provider.setCustomParameters({ scope: 'public_profile' });
+
+                try {
+                    // Thử popup trước
+                    const result = await signInWithPopup(auth, provider);
+                    const { user } = result;
+                    const { role, fullName } = await getOrCreateUser(
+                        user.uid, user.displayName, user.email
+                    );
+                    setUserName(fullName);
+                    setUserRole(role);
+                    navigateByRole(role);
+                } catch (popupErr) {
+                    // Popup bị block → redirect
+                    if (
+                        popupErr.code === 'auth/popup-blocked' ||
+                        popupErr.code === 'auth/popup-closed-by-user' ||
+                        popupErr.code === 'auth/cancelled-popup-request'
+                    ) {
+                        await signInWithRedirect(auth, provider);
+                        return; // useEffect sẽ bắt kết quả
+                    }
+                    throw popupErr;
+                }
+            } else {
+                // ── Mobile ──
+                const result = await fbPromptAsync();
+                if (result?.type !== 'success') return;
+                const { access_token } = result.params;
+                const credential = FacebookAuthProvider.credential(access_token);
+                const { user } = await signInWithCredential(auth, credential);
+                const { role, fullName } = await getOrCreateUser(
+                    user.uid, user.displayName, user.email
+                );
+                setUserName(fullName);
+                setUserRole(role);
+                navigateByRole(role);
             }
-
-            const { access_token } = result.params;
-            const credential = FacebookAuthProvider.credential(access_token);
-            const { user } = await signInWithCredential(auth, credential);
-
-            const role = await firebaseSignInAndGetRole(
-                credential,
-                user.displayName,
-                user.email,
-            );
-
-            setUserName(user.displayName || 'Người dùng');
-            setUserRole(role);
-            navigateByRole(role);
         } catch (err) {
-            console.error('Facebook auth error:', err);
+            console.error('Facebook auth error:', err.code, err.message);
             setSocialError('Đăng nhập Facebook thất bại, vui lòng thử lại');
         } finally {
             setSocialLoading(null);
         }
     };
 
-    return {
-        handleGoogle,
-        handleFacebook,
-        socialLoading,
-        socialError,
-        setSocialError,
-    };
+    return { handleGoogle, handleFacebook, socialLoading, socialError, setSocialError };
 }
