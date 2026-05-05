@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+// hooks/useSocialAuth.js
+import { useState } from 'react';
+import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
-import * as AuthSession from 'expo-auth-session';
 import {
     GoogleAuthProvider,
     FacebookAuthProvider,
     signInWithCredential,
+    signInWithPopup,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
@@ -40,17 +42,14 @@ export function useSocialAuth({ setUserName, setUserRole, navigation }) {
     const [socialLoading, setSocialLoading] = useState(null);
     const [socialError,   setSocialError]   = useState('');
 
-    // Cấu hình Google Proxy
-    const [gRequest, gResponse, gPromptAsync] = Google.useAuthRequest({
-        clientId: GOOGLE_WEB_CLIENT,
-        // useProxy: true giúp Expo Go tự xử lý Redirect URI cho cả 2 hệ điều hành
-        redirectUri: AuthSession.makeRedirectUri({ useProxy: true }),
+    // Native hooks — phải gọi unconditionally
+    const [, gResponse, gPromptAsync] = Google.useAuthRequest({
+        webClientId:  GOOGLE_WEB_CLIENT,
+        expoClientId: GOOGLE_WEB_CLIENT,
     });
-
-    // Cấu hình Facebook Proxy
-    const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
+    const [, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
         clientId: FACEBOOK_APP_ID,
-        redirectUri: AuthSession.makeRedirectUri({ useProxy: true }),
+        scopes:   ['public_profile'],
     });
 
     const navigateByRole = (role) => {
@@ -61,45 +60,65 @@ export function useSocialAuth({ setUserName, setUserRole, navigation }) {
         }
     };
 
-    // Lắng nghe kết quả từ Google
-    useEffect(() => {
-        if (gResponse?.type === 'success') {
-            const { id_token } = gResponse.params;
-            const credential = GoogleAuthProvider.credential(id_token);
-            processSignIn(credential, 'Google');
-        }
-    }, [gResponse]);
+    const processSignIn = async (user) => {
+        const { role, fullName } = await getOrCreateUser(
+            user.uid, user.displayName, user.email
+        );
+        setUserName(fullName);
+        setUserRole(role);
+        navigateByRole(role);
+    };
 
-    // Lắng nghe kết quả từ Facebook
-    useEffect(() => {
-        if (fbResponse?.type === 'success') {
-            const { access_token } = fbResponse.params;
-            const credential = FacebookAuthProvider.credential(access_token);
-            processSignIn(credential, 'Facebook');
-        }
-    }, [fbResponse]);
-
-    const processSignIn = async (credential, providerName) => {
-        setSocialLoading(providerName.toLowerCase());
+    // Google
+    const handleGoogle = async () => {
+        setSocialError('');
+        setSocialLoading('google');
         try {
-            const { user } = await signInWithCredential(auth, credential);
-            const { role, fullName } = await getOrCreateUser(user.uid, user.displayName, user.email);
-            setUserName(fullName);
-            setUserRole(role);
-            navigateByRole(role);
+            if (Platform.OS === 'web') {
+                const provider = new GoogleAuthProvider();
+                provider.addScope('profile');
+                provider.addScope('email');
+                const result = await signInWithPopup(auth, provider);
+                await processSignIn(result.user);
+            } else {
+                const result = await gPromptAsync();
+                if (result?.type !== 'success') return;
+                const credential = GoogleAuthProvider.credential(result.params.id_token);
+                const { user } = await signInWithCredential(auth, credential);
+                await processSignIn(user);
+            }
         } catch (err) {
-            console.error(`[SocialAuth] ${providerName} Error:`, err.message);
-            setSocialError(`Đăng nhập ${providerName} thất bại`);
+            console.error('[Google]', err.code, err.message);
+            setSocialError('Đăng nhập Google thất bại, vui lòng thử lại');
         } finally {
             setSocialLoading(null);
         }
     };
 
-    return { 
-        handleGoogle: () => gPromptAsync(), 
-        handleFacebook: () => fbPromptAsync(), 
-        socialLoading, 
-        socialError, 
-        setSocialError 
+    // Facebook
+    const handleFacebook = async () => {
+        setSocialError('');
+        setSocialLoading('facebook');
+        try {
+            if (Platform.OS === 'web') {
+                const provider = new FacebookAuthProvider();
+                provider.setCustomParameters({ scope: 'public_profile' });
+                const result = await signInWithPopup(auth, provider);
+                await processSignIn(result.user);
+            } else {
+                const result = await fbPromptAsync();
+                if (result?.type !== 'success') return;
+                const credential = FacebookAuthProvider.credential(result.params.access_token);
+                const { user } = await signInWithCredential(auth, credential);
+                await processSignIn(user);
+            }
+        } catch (err) {
+            console.error('[Facebook]', err.code, err.message);
+            setSocialError(`FB Error: ${err.code} - ${err.message}`);
+        } finally {
+            setSocialLoading(null);
+        }
     };
+
+    return { handleGoogle, handleFacebook, socialLoading, socialError, setSocialError };
 }
