@@ -18,6 +18,7 @@ WebBrowser.maybeCompleteAuthSession();
 const FACEBOOK_APP_ID   = '2078204966089322';
 const GOOGLE_WEB_CLIENT = '832551425671-spk2j9c26cnv5gf8lf4tb1t4hms2nu7k.apps.googleusercontent.com';
 
+
 async function getOrCreateUser(uid, displayName, email) {
     const userRef  = doc(db, 'users', uid);
     const userSnap = await getDoc(userRef);
@@ -46,6 +47,7 @@ export function useSocialAuth({ setUserName, setUserRole, navigation }) {
     const [, gResponse, gPromptAsync] = Google.useAuthRequest({
         webClientId:  GOOGLE_WEB_CLIENT,
         expoClientId: GOOGLE_WEB_CLIENT,
+        androidClientId: GOOGLE_WEB_CLIENT,
     });
     const [, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
         clientId: FACEBOOK_APP_ID,
