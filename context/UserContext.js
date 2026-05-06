@@ -8,7 +8,7 @@ export const UserContext = createContext();
 // 2. Tạo Provider (Người quản lý kho)
 export const UserProvider = ({ children }) => {
   const [userName, setUserName] = useState('Người dùng mới'); // Dữ liệu mặc định 
-  const [userRole, setUserRole] = useState('giảng viên'); // 'thí sinh' hoặc 'giảng viên'
+  const [userRole, setUserRole] = useState('Giáo viên'); // 'thí sinh' hoặc 'giảng viên'
   const [classCode, setClassCode] = useState('Lop_Mobile_01');
 
   return (

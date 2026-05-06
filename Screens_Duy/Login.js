@@ -1,24 +1,33 @@
+// screens/Login.js
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import {
     StyleSheet, Text, View, TextInput, TouchableOpacity,
     KeyboardAvoidingView, Platform, ScrollView, Dimensions,
-    Image, Animated, ActivityIndicator
+    Image, Animated, ActivityIndicator, Modal, Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
+
+//  Import AsyncStorage để lưu session Role Admin
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// ── Context ──
+// UserContext: lưu thông tin user đang đăng nhập (tên, role)
 import { UserContext } from '../context/UserContext';
+// ConfigContext: lưu cấu hình hệ thống đọc từ Firestore (đã tạo ở bước 1)
+import { ConfigContext } from '../context/ConfigContext';
 
 // ── Firebase ──
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+// auth, db: đã khởi tạo sẵn trong firebaseConfig.js, không cần gọi getAuth() lại
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 
-// ── Social Auth ──
+// ── Social Auth Hook ──
+// useSocialAuth: hook xử lý đăng nhập Google/Phone, nằm ở hooks/useSocialAuth.js
 import { useSocialAuth } from '../hooks/useSocialAuth';
 
 const { width } = Dimensions.get('window');
-//Loại bỏ gây trùng tên
-// const auth = getAuth();
 
 const BG_DOTS = [
     { top: 60, left: 30, size: 120, opacity: 0.06 },
@@ -28,22 +37,39 @@ const BG_DOTS = [
 ];
 
 export default function Login({ navigation }) {
+    // ── UserContext: để ghi tên và role sau khi login thành công ──
+    const { setUserName, setUserRole } = useContext(UserContext);
+
+    // ── ConfigContext: đọc cấu hình hệ thống từ Firestore ──
+    // App.js đã đọc Firestore và lưu vào đây — Login chỉ việc dùng
+    const config = useContext(ConfigContext);
+
+    // ── State UI ──
     const [activeRole, setActiveRole] = useState('Học sinh');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [firebaseError, setFirebaseError] = useState('');
-    const { setUserName, setUserRole } = useContext(UserContext);
+    const [isAdminModalVisible, setIsAdminModalVisible] = useState(false);
+    const [adminKey, setAdminKey] = useState('');
+    const [adminKeyError, setAdminKeyError] = useState('');
 
-    // ── Social Auth Hook ──
+    //  đếm số lần đăng nhập thất bại → dùng cho secMaxFailedLogins
+    const [failCount, setFailCount] = useState(0);
+    // khóa form khi vượt quá số lần cho phép
+    const [isLocked, setIsLocked] = useState(false);
+
+    // ── Social Auth ──
     const { handleGoogle, handleFacebook, socialLoading, socialError, setSocialError } = useSocialAuth({
-        setUserName, setUserRole, navigation,
+        setUserName, setUserRole, navigation, activeRole
     });
 
+    // ── Validate state ──
     const [errors, setErrors] = useState({ email: '', password: '' });
     const [touched, setTouched] = useState({ email: false, password: false });
 
+    // ── Animation refs ──
     const animatedValue = useRef(new Animated.Value(0)).current;
     const shakeEmail = useRef(new Animated.Value(0)).current;
     const shakePassword = useRef(new Animated.Value(0)).current;
@@ -87,33 +113,62 @@ export default function Login({ navigation }) {
         ]).start();
     };
 
+    // ─────────────────────────────────────────────
+    //  validate()
+    // Trước: password.length < 6  (hardcode cứng)
+    // Sau:   đọc secMinPasswordLength từ bảng Appconfigs trên firebase 
+    // ─────────────────────────────────────────────
     const validate = () => {
         let newErrors = { email: '', password: '' };
+
         if (!email)
             newErrors.email = 'Email không được để trống';
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
             newErrors.email = 'Email không hợp lệ';
+
+        //  thay số 6 hardcode → đọc từ config (parseInt để chuyển string "8" → số 8)
+        const minLen = parseInt(config.secMinPasswordLength, 10) || 6;
         if (!password)
             newErrors.password = 'Mật khẩu không được để trống';
-        else if (password.length < 6)
-            newErrors.password = 'Mật khẩu tối thiểu 6 ký tự';
+        else if (password.length < minLen)
+            newErrors.password = `Mật khẩu tối thiểu ${minLen} ký tự`;
+
         setErrors(newErrors);
         return newErrors;
     };
 
+    // ─────────────────────────────────────────────
+    // parseFirebaseError()
+    //  case 'auth/network-request-failed' hiển thị message khác nhau
+    // tùy theo secBlockUnknownIP trong config
+    // ─────────────────────────────────────────────
     const parseFirebaseError = (code) => {
         switch (code) {
             case 'auth/invalid-credential':
             case 'auth/user-not-found':
-            case 'auth/wrong-password': return 'Email hoặc mật khẩu không đúng';
-            case 'auth/too-many-requests': return 'Quá nhiều lần thử, vui lòng thử lại sau';
-            case 'auth/network-request-failed': return 'Lỗi kết nối mạng';
-            default: return 'Đăng nhập thất bại, vui lòng thử lại';
+            case 'auth/wrong-password':
+                return 'Email hoặc mật khẩu không đúng';
+            case 'auth/too-many-requests':
+                return 'Quá nhiều lần thử, vui lòng thử lại sau';
+            case 'auth/network-request-failed':
+                // nếu admin bật secBlockUnknownIP → hiện message cụ thể hơn
+                return config.secBlockUnknownIP
+                    ? 'Kết nối bị từ chối — thiết bị không được nhận dạng'
+                    : 'Lỗi kết nối mạng';
+            default:
+                return 'Đăng nhập thất bại, vui lòng thử lại';
         }
     };
 
-    // ── Handle Login: Auth → Firestore users (chữ thường) ──
+    // ─────────────────────────────────────────────
+    // handleLogin()
+    //  đếm failCount → khóa form khi >= secMaxFailedLogins
+    //  check requirePasswordChange sau login thành công
+    // ─────────────────────────────────────────────
     const handleLogin = async () => {
+        // Không cho login nếu form đang bị khóa
+        if (isLocked) return;
+
         setTouched({ email: true, password: true });
         setFirebaseError('');
         const validation = validate();
@@ -127,7 +182,7 @@ export default function Login({ navigation }) {
             const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
             const uid = userCredential.user.uid;
 
-            // Bước 2: Đọc role + fullName từ Firestore — collection 'users' (chữ thường)
+            // Bước 2: Đọc thông tin user từ Firestore
             const userDoc = await getDoc(doc(db, 'users', uid));
             let role = activeRole;
             let fullName = email;
@@ -136,17 +191,52 @@ export default function Login({ navigation }) {
                 fullName = userDoc.data().fullName || email;
             }
 
+            // Bước 3: Reset failCount vì đã login thành công
+            setFailCount(0);
+            setIsLocked(false);
+
             setUserName(fullName);
             setUserRole(role);
 
-            // Bước 3: Điều hướng theo role
+            //  check requirePasswordChange
+            // Field này được set true bởi flow Quên mật khẩu
+            // Nếu true → bắt buộc đổi mật khẩu trước khi vào app
+            const mustChange = userDoc.exists()
+                ? (userDoc.data().requirePasswordChange || false)
+                : false;
+
+            if (mustChange) {
+                // Navigate sang màn đổi mật khẩu, truyền uid để màn đó biết cần update ai
+                navigation.navigate('ChangePassword', { uid, isRequired: true });
+                return;
+            }
+
+            // Bước 4: Điều hướng bình thường theo role
             if (role === 'Giáo viên' || role === 'Admin') {
                 navigation.navigate('MainTabsAdmin');
             } else {
                 navigation.navigate('MainTabs');
             }
+
         } catch (error) {
-            setFirebaseError(parseFirebaseError(error.code));
+            //  đếm số lần thất bại
+            const maxFail = parseInt(config.secMaxFailedLogins, 10) || 5;
+            const newCount = failCount + 1;
+            setFailCount(newCount);
+
+            if (newCount >= maxFail) {
+                // Vượt ngưỡng → khóa form
+                setIsLocked(true);
+                setFirebaseError(
+                    `Tài khoản tạm khóa sau ${maxFail} lần thất bại liên tiếp. Vui lòng thử lại sau.`
+                );
+            } else {
+                // Chưa đến ngưỡng → hiện đếm còn lại
+                setFirebaseError(
+                    `${parseFirebaseError(error.code)} (${newCount}/${maxFail})`
+                );
+            }
+
             triggerShake(shakeEmail);
             triggerShake(shakePassword);
         } finally {
@@ -154,34 +244,85 @@ export default function Login({ navigation }) {
         }
     };
 
-    // ── Admin ẩn: nhấn giữ Logo 3 giây ──
+    // Admin ẩn: giữ logo 3 giây
     const handleLogoPressIn = () => {
-        Animated.spring(logoScale, {
-            toValue: 0.85,
-            useNativeDriver: true, // nên để true cho scale
-        }).start();
-
+        Animated.spring(logoScale, { toValue: 0.85, useNativeDriver: true }).start();
         logoTimer.current = setTimeout(() => {
-            Animated.spring(logoScale, {
-                toValue: 1,
-                useNativeDriver: true,
-            }).start();
-
-            setUserName('Admin');
-            setUserRole('Admin');
-            navigation.navigate('MainTabsAdmin');
+            Animated.spring(logoScale, { toValue: 1, useNativeDriver: true }).start();
+            //  Thay vì vào thẳng Admin, mở Modal yêu cầu khóa bảo mật
+            setIsAdminModalVisible(true);
+            setAdminKey('');
+            setAdminKeyError('');
         }, 3000);
     };
 
     const handleLogoPressOut = () => {
-        if (logoTimer.current) {
-            clearTimeout(logoTimer.current);
-            logoTimer.current = null;
+        if (logoTimer.current) { clearTimeout(logoTimer.current); logoTimer.current = null; }
+        Animated.spring(logoScale, { toValue: 1, useNativeDriver: true }).start();
+    };
+
+    // Hàm xử lý kiểm tra mã bí mật của Admin
+    const verifyAdminKeyAndLogin = async () => {
+        // Khóa bảo mật siêu mạnh tối thiểu 15 ký tự (2 mã này là giống nhau)
+        //bản mã secret key hardcode là để thuận tiện cho việc debug trước khi deploy dự án
+        const SECRET_ADMIN_KEY = config.adminSecretKey||"Atoza@AdminSuperKey2026";
+
+        if (adminKey.length < 15) {
+            setAdminKeyError('Khóa bảo mật phải có ít nhất 15 ký tự.');
+            return;
         }
-        Animated.spring(logoScale, {
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
+
+        if (adminKey === SECRET_ADMIN_KEY) {
+            setIsAdminModalVisible(false);
+            // Ghi nhận session Admin để App.js không chặn Auto-login
+            await AsyncStorage.setItem('pending_login_role', 'Admin');
+            setUserName('Quản trị viên (Bù nhìn)');
+            setUserRole('Admin');
+            navigation.navigate('MainTabsAdmin');
+        } else {
+            setAdminKeyError('Khóa bảo mật không chính xác. Quyền truy cập bị từ chối!');
+        }
+    };
+
+    // hàm xử lý quên mật khẩu, khôi phục mật khẩu
+    const showAlert = (message) => {
+        if (Platform.OS === 'web') {
+            // alert mặc định của trình duyệt
+            window.alert(message);
+        } else {
+            // Alert native cho iOS / Android
+            Alert.alert('Thông báo', message);
+        }
+    };
+
+    const handleForgotPassword = async () => {
+        if (!email) {
+            showAlert('Vui lòng nhập địa chỉ email của bạn vào ô đăng nhập trước.');
+            return;
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, email.trim());
+            showAlert(
+                'Một liên kết đặt lại mật khẩu đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư (cả mục Spam).'
+            );
+        } catch (error) {
+            console.error('Lỗi gửi email reset:', error.code);
+
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    showAlert('Email này chưa được đăng ký trong hệ thống.');
+                    break;
+                case 'auth/invalid-email':
+                    showAlert('Địa chỉ email không hợp lệ.');
+                    break;
+                case 'auth/too-many-requests':
+                    showAlert('Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau ít phút.');
+                    break;
+                default:
+                    showAlert('Có lỗi xảy ra: ' + error.message);
+            }
+        }
     };
 
     return (
@@ -206,16 +347,17 @@ export default function Login({ navigation }) {
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >
-                {/* ── Logo (giữ 3s → Admin) + Real-time role hint ── */}
+                {/* ── Logo + Brand ── */}
                 <View style={styles.brandRow}>
                     <TouchableOpacity
                         onPressIn={handleLogoPressIn}
                         onPressOut={handleLogoPressOut}
-                        onLongPress={() => { }}
-                        delayLongPress={3000}
                         activeOpacity={1}
                     >
-                        <Animated.View style={[styles.logoBox, { borderColor: dotColor, transform: [{ scale: logoScale }] }]}>
+                        <Animated.View style={[
+                            styles.logoBox,
+                            { borderColor: dotColor, transform: [{ scale: logoScale }] }
+                        ]}>
                             <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
                         </Animated.View>
                     </TouchableOpacity>
@@ -246,7 +388,6 @@ export default function Login({ navigation }) {
                                 <Text style={[styles.tabText, !isTeacher && styles.tabTextBlue]}>Học sinh</Text>
                             </Animated.View>
                         </TouchableOpacity>
-
                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveRole('Giáo viên')} activeOpacity={0.8}>
                             <Animated.View style={[
                                 styles.tabBtn, isTeacher && styles.tabBtnActive,
@@ -261,9 +402,22 @@ export default function Login({ navigation }) {
 
                     {/* ── Firebase error banner ── */}
                     {firebaseError ? (
-                        <View style={styles.errorBanner}>
-                            <Feather name="alert-circle" size={14} color="#E53935" />
-                            <Text style={styles.errorBannerText}>{firebaseError}</Text>
+                        <View style={[
+                            styles.errorBanner,
+                            // đổi màu banner thành cam đậm khi form bị khóa
+                            isLocked && { backgroundColor: '#FFF3E0', borderColor: '#F57C00', borderWidth: 1 }
+                        ]}>
+                            <Feather
+                                name={isLocked ? 'lock' : 'alert-circle'}
+                                size={14}
+                                color={isLocked ? '#F57C00' : '#E53935'}
+                            />
+                            <Text style={[
+                                styles.errorBannerText,
+                                isLocked && { color: '#F57C00' }
+                            ]}>
+                                {firebaseError}
+                            </Text>
                         </View>
                     ) : null}
 
@@ -284,6 +438,8 @@ export default function Login({ navigation }) {
                             onBlur={() => { setTouched(p => ({ ...p, email: true })); validate(); }}
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            //  disable input khi form bị khóa
+                            editable={!isLocked}
                         />
                     </Animated.View>
                     {touched.email && errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
@@ -291,8 +447,11 @@ export default function Login({ navigation }) {
                     {/* ── Mật khẩu ── */}
                     <View style={styles.labelRow}>
                         <Text style={styles.label}>MẬT KHẨU</Text>
-                        <TouchableOpacity>
-                            <Text style={[styles.forgotText, { color: accentColor }]}>Quên mật khẩu?</Text>
+                        <TouchableOpacity
+                            onPress={handleForgotPassword}
+                            style={{ alignSelf: 'flex-end', marginTop: 10, marginBottom: 20 }}
+                        >
+                            <Text style={{ color: '#3B5BDB', fontWeight: '600' }}>Quên mật khẩu?</Text>
                         </TouchableOpacity>
                     </View>
                     <Animated.View style={[styles.inputBox, {
@@ -309,6 +468,7 @@ export default function Login({ navigation }) {
                             onChangeText={(t) => { setPassword(t); setFirebaseError(''); if (touched.password) validate(); }}
                             onBlur={() => { setTouched(p => ({ ...p, password: true })); validate(); }}
                             secureTextEntry={!showPassword}
+                            editable={!isLocked}
                         />
                         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                             <Feather name={showPassword ? 'eye' : 'eye-off'} size={18} color="#A0AEC0" />
@@ -317,19 +477,33 @@ export default function Login({ navigation }) {
                     {touched.password && errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
                     {/* ── Nút Đăng nhập ── */}
-                    <TouchableOpacity onPress={handleLogin} activeOpacity={0.85} disabled={loading}
-                        style={{ marginTop: 8, marginBottom: 28 }}>
-                        <LinearGradient colors={loginGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.loginBtn}>
+                    {/* Chức năng gắn cờ khóa đăng nhập tạm thời: thêm isLocked vào disabled */}
+                    <TouchableOpacity
+                        onPress={handleLogin}
+                        activeOpacity={0.85}
+                        disabled={loading || isLocked}
+                        style={{ marginTop: 8, marginBottom: 28 }}
+                    >
+                        <LinearGradient
+                            colors={isLocked ? ['#CBD5E0', '#A0AEC0'] : loginGradient}
+                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            style={styles.loginBtn}
+                        >
                             {loading ? <ActivityIndicator color="#fff" /> : (
                                 <>
                                     <View style={styles.loginIconLeft}>
-                                        <FontAwesome5 name={isTeacher ? 'chalkboard-teacher' : 'user-graduate'}
+                                        <FontAwesome5
+                                            name={isLocked ? 'lock' : (isTeacher ? 'chalkboard-teacher' : 'user-graduate')}
                                             size={16} color="rgba(255,255,255,0.85)" />
                                     </View>
-                                    <Text style={styles.loginBtnText}>Đăng nhập</Text>
-                                    <View style={styles.loginIconRight}>
-                                        <Feather name="arrow-right" size={18} color="rgba(255,255,255,0.85)" />
-                                    </View>
+                                    <Text style={styles.loginBtnText}>
+                                        {isLocked ? 'Tài khoản tạm khóa' : 'Đăng nhập'}
+                                    </Text>
+                                    {!isLocked && (
+                                        <View style={styles.loginIconRight}>
+                                            <Feather name="arrow-right" size={18} color="rgba(255,255,255,0.85)" />
+                                        </View>
+                                    )}
                                 </>
                             )}
                         </LinearGradient>
@@ -342,7 +516,7 @@ export default function Login({ navigation }) {
                         <View style={styles.dividerLine} />
                     </View>
 
-                    {/* ── Social error banner ── */}
+                    {/* Social error banner */}
                     {socialError ? (
                         <View style={styles.errorBanner}>
                             <Feather name="alert-circle" size={14} color="#E53935" />
@@ -354,9 +528,7 @@ export default function Login({ navigation }) {
                     <View style={styles.socialRow}>
                         <TouchableOpacity
                             style={[styles.socialPill, socialLoading === 'google' && styles.socialPillLoading]}
-                            activeOpacity={0.8}
-                            onPress={handleGoogle}
-                            disabled={!!socialLoading}
+                            activeOpacity={0.8} onPress={handleGoogle} disabled={!!socialLoading || isLocked}
                         >
                             {socialLoading === 'google'
                                 ? <ActivityIndicator size="small" color="#EA4335" />
@@ -368,9 +540,7 @@ export default function Login({ navigation }) {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.socialPill, socialLoading === 'facebook' && styles.socialPillLoading]}
-                            activeOpacity={0.8}
-                            onPress={handleFacebook}
-                            disabled={!!socialLoading}
+                            activeOpacity={0.8} onPress={handleFacebook} disabled={!!socialLoading || isLocked}
                         >
                             {socialLoading === 'facebook'
                                 ? <ActivityIndicator size="small" color="#1877F2" />
@@ -390,10 +560,60 @@ export default function Login({ navigation }) {
                         <Text style={[styles.registerLink, { color: accentColor }]}>Đăng ký ngay</Text>
                     </TouchableOpacity>
                 </View>
-
-                {/* Hint ẩn cho dev — xóa khi production */}
-                <Text style={styles.adminHint}> Giữ logo ATOZA 3 giây để vào Admin</Text>
+                <Text style={styles.adminHint}>Giữ logo ATOZA 3 giây để vào Admin</Text>
             </ScrollView>
+
+            {/* ──  MODAL ẨN DÀNH CHO ADMIN ── */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={isAdminModalVisible}
+                onRequestClose={() => setIsAdminModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={{ alignItems: 'center', marginBottom: 15 }}>
+                            <Feather name="shield" size={40} color="#E53E3E" />
+                        </View>
+                        <Text style={styles.modalTitle}>Xác Thực Phân Quyền</Text>
+                        <Text style={styles.modalSubtitle}>
+                            Khu vực dành riêng cho Quản trị viên. Yêu cầu nhập khóa bảo mật cấp cao (Tối thiểu 15 ký tự).
+                        </Text>
+
+                        <TextInput
+                            style={[styles.modalInput, adminKeyError ? { borderColor: '#E53E3E' } : null]}
+                            placeholder="Nhập khóa bảo mật..."
+                            placeholderTextColor="#A0AEC0"
+                            secureTextEntry
+                            autoCapitalize="none"
+                            value={adminKey}
+                            onChangeText={(text) => {
+                                setAdminKey(text);
+                                setAdminKeyError(''); // Xóa lỗi khi gõ phím
+                            }}
+                        />
+
+                        {/* Hiện thông báo lỗi nếu nhập sai */}
+                        {adminKeyError ? <Text style={styles.errorTextModal}>{adminKeyError}</Text> : null}
+
+                        <View style={styles.modalActions}>
+                            <TouchableOpacity
+                                style={[styles.modalBtn, styles.modalBtnCancel]}
+                                onPress={() => setIsAdminModalVisible(false)}
+                            >
+                                <Text style={styles.modalBtnCancelText}>Hủy Bỏ</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalBtn, styles.modalBtnSubmit]}
+                                onPress={verifyAdminKeyAndLogin}
+                            >
+                                <Text style={styles.modalBtnSubmitText}>Truy Cập</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
         </KeyboardAvoidingView>
     );
 }
@@ -473,11 +693,28 @@ const styles = StyleSheet.create({
     registerRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
     registerHint: { fontSize: 11, color: '#718096' },
     registerLink: { fontSize: 11, fontWeight: '700' },
-    adminHint: {
-        textAlign: 'center',
-        fontSize: 9,
-        color: '#7373a8',
-        marginTop: 4,
-        opacity: 0.8,
+    adminHint: { textAlign: 'center', fontSize: 9, color: '#7373a8', marginTop: 4, opacity: 0.8 },
+
+    // ──  CSS CHO MODAL ADMIN ──
+    modalOverlay: {
+        flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        justifyContent: 'center', alignItems: 'center'
     },
+    modalContent: {
+        width: '85%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24,
+        shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 15
+    },
+    modalTitle: { fontSize: 20, fontWeight: '800', color: '#1A202C', marginBottom: 8, textAlign: 'center' },
+    modalSubtitle: { fontSize: 13, color: '#718096', marginBottom: 20, textAlign: 'center', lineHeight: 20 },
+    modalInput: {
+        backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12,
+        paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', marginBottom: 8
+    },
+    errorTextModal: { color: '#E53E3E', fontSize: 12, marginBottom: 16, textAlign: 'center', fontWeight: '600' },
+    modalActions: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 12 },
+    modalBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+    modalBtnCancel: { backgroundColor: '#F1F5F9' },
+    modalBtnSubmit: { backgroundColor: '#E53E3E' },
+    modalBtnCancelText: { color: '#64748B', fontWeight: '700', fontSize: 15 },
+    modalBtnSubmitText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });

@@ -1,9 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
+
+// ── THÊM 3 IMPORT NÀY ĐỂ XỬ LÝ ĐĂNG XUẤT VÀ XÓA DỮ LIỆU ──
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 
 // Import các Screens chính
 import Dashboard_Thi_Sinh from '../Screens_Duy/Dashboard_Thi_Sinh';
@@ -85,22 +91,18 @@ function MainTabNavigator() {
       })}
     >
       <Tab.Screen name="Dashboard" component={Dashboard_Thi_Sinh} />
-      <Tab.Screen name="Classes"   component={ClassesScreen} />
-      <Tab.Screen name="History"   component={Lich_Su_Lam_Bai} />
-      <Tab.Screen name="Profile"   component={Profile_Thi_Sinh} />
+      <Tab.Screen name="Classes" component={ClassesScreen} />
+      <Tab.Screen name="History" component={Lich_Su_Lam_Bai} />
+      <Tab.Screen name="Profile" component={Profile_Thi_Sinh} />
     </Tab.Navigator>
   );
 }
 
 // ── Bottom Tab Navigator dành cho 'teacher' / 'admin' ──
 // Thay TeacherAdminPlaceholder bằng các screen thật khi sẵn sàng
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-//CHIẾN HÃY XÓA HÀM NÀY ĐI ĐỂ THAY THẾ BẰNG SCREEN ADMIN THẬT
-
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-function MainTabNavigatorAdmin() {
+function MainTabNavigatorAdmin({ navigation }) {
   const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -136,17 +138,58 @@ function MainTabNavigatorAdmin() {
                 size={22}
                 color={focused ? '#F57C00' : '#94a3b8'}
               />
-              <Text style={[styles.tabLabel, focused && { color: '#F57C00', fontWeight: '700' }]}>
+              <Text
+                style={[
+                  styles.tabLabel,
+                  focused && { color: '#F57C00', fontWeight: '700' },
+                ]}
+              >
                 {label}
               </Text>
+
+              {/* Nút quay về Login - ĐÃ THÊM LOGIC XÓA DỮ LIỆU ĐỂ CHẶN AUTO LOGIN */}
+              {route.name === 'AdminProfile' && (
+                <TouchableOpacity
+                  onPress={async () => {
+                    try {
+                      // 1. Xóa các key chặn Auto-login trong AsyncStorage
+                      await AsyncStorage.multiRemove([
+                        'atoza_last_active',
+                        'atoza_session_uid',
+                        'pending_login_role',
+                        'userRole',
+                        'userName'
+                      ]);
+
+                      // 2. Đăng xuất khỏi Firebase để clear hoàn toàn Auth session
+                      await signOut(auth);
+
+                      // 3. Reset stack và đưa về Login
+                      navigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{ name: 'Login' }],
+                        })
+                      );
+                    } catch (error) {
+                      console.error("Lỗi đăng xuất:", error);
+                    }
+                  }}
+                  style={{ marginTop: 6 }}
+                >
+                  <Text style={{ fontSize: 11, color: '#ef4444' }}>
+                    Quay về Login
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           );
         },
       })}
     >
-      <Tab.Screen name="AdminHome"    component={TeacherAdminPlaceholder} />
+      <Tab.Screen name="AdminHome" component={TeacherAdminPlaceholder} />
       <Tab.Screen name="AdminClasses" component={TeacherAdminPlaceholder} />
-      <Tab.Screen name="AdminStats"   component={TeacherAdminPlaceholder} />
+      <Tab.Screen name="AdminStats" component={TeacherAdminPlaceholder} />
       <Tab.Screen name="AdminProfile" component={TeacherAdminPlaceholder} />
     </Tab.Navigator>
   );
@@ -159,17 +202,17 @@ export default function AppNavigator() {
       screenOptions={{ headerShown: false }}
     >
       {/* ── Auth ── */}
-      <Stack.Screen name="Login"    component={Login} />
+      <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Register" component={Register} />
 
       {/* ── Student area ── */}
-      <Stack.Screen name="MainTabs"            component={MainTabNavigator} />
-      <Stack.Screen name="Man_Hinh_Lam_Bai"    component={Man_Hinh_Lam_Bai} />
+      <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+      <Stack.Screen name="Man_Hinh_Lam_Bai" component={Man_Hinh_Lam_Bai} />
       <Stack.Screen name="Ket_Qua_Va_Phan_Tich" component={Ket_Qua_Va_Phan_Tich} />
-      <Stack.Screen name="Tao_De_Thi_Part1"    component={Tao_De_Thi_Part1} />
-      <Stack.Screen name="Tao_De_Thi_Part2"    component={Tao_De_Thi_Part2} />
-      <Stack.Screen name="Ket_Qua_Dummy"       component={Ket_Qua_Dummy} />
-      <Stack.Screen name="Chi_Tiet_Dap_An"     component={Chi_Tiet_Dap_An} />
+      <Stack.Screen name="Tao_De_Thi_Part1" component={Tao_De_Thi_Part1} />
+      <Stack.Screen name="Tao_De_Thi_Part2" component={Tao_De_Thi_Part2} />
+      <Stack.Screen name="Ket_Qua_Dummy" component={Ket_Qua_Dummy} />
+      <Stack.Screen name="Chi_Tiet_Dap_An" component={Chi_Tiet_Dap_An} />
 
       {/* ── Teacher / Admin area ── */}
       {/* Login & Register đều navigate sang 'MainTabsAdmin' cho role teacher/admin */}
