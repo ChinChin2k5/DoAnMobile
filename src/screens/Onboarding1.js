@@ -2,8 +2,10 @@ import React from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import ButtonNice from "../components/Button";
 import Container from "../components/Container";
+import { useTranslation } from "react-i18next";
 
 export default function Onboarding1({ navigation }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.background}>
       <Image
@@ -21,25 +23,27 @@ export default function Onboarding1({ navigation }) {
           }}
         />
         <Text style={styles.bigText}>
-          Chào mừng đến với <Text style={styles.colorText}>Atoza.</Text>
+          {t("onboarding1.welcome")}
+          <Text style={styles.colorText}>Atoza.</Text>
         </Text>
-        <Text style={styles.smallText}>
-          Tạo đề thi dễ dàng hơn bao giờ hết với công cụ thông minh dành cho
-          giáo viên hiện đại
-        </Text>
-        <Image 
+        <Text style={styles.smallText}>{t("onboarding1.smallText")}</Text>
+        <Image
           source={require("../assets/Progress1.png")}
-          style={{marginTop: 5}}/>
+          style={{ marginTop: 5 }}
+        />
         <View style={styles.mrButton}>
-          <ButtonNice 
-            text="Tiếp Tục"
+          <ButtonNice
+            text={t("onboarding1.buttonNext")}
             onPress={() => navigation.navigate("SecondOnboarding")}
-            iconName="arrow-forward" />
+            iconName="arrow-forward"
+          />
         </View>
         <View style={styles.mrInvisible}>
-            <TouchableOpacity>
-                <Text style={styles.textInvisible}>Bỏ Qua</Text>
-            </TouchableOpacity>
+          <TouchableOpacity>
+            <Text style={styles.textInvisible}>
+              {t("onboarding1.buttonSkip")}
+            </Text>
+          </TouchableOpacity>
         </View>
       </Container>
     </View>
@@ -72,5 +76,5 @@ const styles = StyleSheet.create({
   textInvisible: {
     fontSize: 20,
     marginBottom: 50,
-  }
+  },
 });

@@ -8,11 +8,22 @@ import ScreenWrapper from "../components/ScreenWrapper";
 import Header from "../components/Header";
 import Dropdown from "../components/Dropdown";
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 // ==========================================
 // FORM CHUNG
 // ==========================================
 const ChungForm = ({ config, updateConfig }) => {
+  const { i18n } = useTranslation(); // Lấy cục i18n ra
+  const { t } = useTranslation();
+  const doiSangTiengAnh = () => {
+    i18n.changeLanguage('en'); // Gọi lệnh này! Nó sẽ đổi UI và tự lưu vào AsyncStorage
+  };
+  
+  const doiSangTiengViet = () => {
+    i18n.changeLanguage('vi');
+  };
   const languageData = [
     { label: "Tiếng Việt", value: "vi" },
     { label: "Tiếng Anh", value: "en" },
@@ -24,48 +35,22 @@ const ChungForm = ({ config, updateConfig }) => {
 
   return (
     <View style={styles.formContainer}>
-      <AppTextInput label="Tên Hệ Thống" value={config.systemName} onChangeText={(text) => updateConfig('systemName', text)} />
-      <AppTextInput label="URL Hệ Thống" value={config.systemUrl} onChangeText={(text) => updateConfig('systemUrl', text)} />
+      <AppTextInput label={t('configScreen.gen_sysName')} value={config.systemName} onChangeText={(text) => updateConfig('systemName', text)} />
+      <AppTextInput label={t('configScreen.gen_sysUrl')} value={config.systemUrl} onChangeText={(text) => updateConfig('systemUrl', text)} />
 
       <Dropdown
-        label="Ngôn ngữ mặc định"
+        label={t('configScreen.gen_defaultLang')}
         data={languageData}
         value={config.lang}
         onChange={(item) => updateConfig('lang', item.value)}
       />
 
       <Dropdown
-        label="Múi giờ"
+        label={t('configScreen.gen_timezone')}
         data={timezoneData}
         value={config.timezone}
         onChange={(item) => updateConfig('timezone', item.value)}
       />
-
-      <View style={styles.notificationBlock}>
-        <View style={styles.notifyRow}>
-          <View style={styles.notifyTextContainer}>
-            <Text style={styles.notifyTitle}>Thông Báo Email</Text>
-            <Text style={styles.notifyDesc}>Gửi thông báo qua Email</Text>
-          </View>
-          <Switch value={config.isEnableEmail} onValueChange={(val) => updateConfig('isEnableEmail', val)} color="#084CCB" />
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.notifyRow}>
-          <View style={styles.notifyTextContainer}>
-            <Text style={styles.notifyTitle}>Thông Báo SMS</Text>
-            <Text style={styles.notifyDesc}>Gửi thông báo qua SMS</Text>
-          </View>
-          <Switch value={config.isEnableSMS} onValueChange={(val) => updateConfig('isEnableSMS', val)} color="#084CCB" />
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.notifyRow}>
-          <View style={styles.notifyTextContainer}>
-            <Text style={styles.notifyTitle}>Thông Báo Push</Text>
-            <Text style={styles.notifyDesc}>Gửi thông báo đẩy lên điện thoại</Text>
-          </View>
-          <Switch value={config.isEnablePush} onValueChange={(val) => updateConfig('isEnablePush', val)} color="#084CCB" />
-        </View>
-      </View>
     </View>
   );
 };
@@ -74,12 +59,13 @@ const ChungForm = ({ config, updateConfig }) => {
 // FORM DATABASE
 // ==========================================
 const DatabaseForm = ({ config, updateConfig }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.formContainer}>
-      <AppTextInput label="Database Host" value={config.dbHost} onChangeText={(text) => updateConfig('dbHost', text)} />
-      <AppTextInput label="Database Name" value={config.dbName} onChangeText={(text) => updateConfig('dbName', text)} />
-      <AppTextInput label="Port" value={config.dbPort} keyboardType="numeric" onChangeText={(text) => updateConfig('dbPort', text)} />
-      <AppTextInput label="Database User" value={config.dbUser} onChangeText={(text) => updateConfig('dbUser', text)} />
+      <AppTextInput label={t('configScreen.db_host')} value={config.dbHost} onChangeText={(text) => updateConfig('dbHost', text)} />
+      <AppTextInput label={t('configScreen.db_name')} value={config.dbName} onChangeText={(text) => updateConfig('dbName', text)} />
+      <AppTextInput label={t('configScreen.db_port')} value={config.dbPort} keyboardType="numeric" onChangeText={(text) => updateConfig('dbPort', text)} />
+      <AppTextInput label={t('configScreen.db_user')} value={config.dbUser} onChangeText={(text) => updateConfig('dbUser', text)} />
     </View>
   );
 };
@@ -88,14 +74,15 @@ const DatabaseForm = ({ config, updateConfig }) => {
 // FORM EMAIL
 // ==========================================
 const EmailForm = ({ config, updateConfig }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.formContainer}>
-      <AppTextInput label="Email Provider" value={config.emailProvider} onChangeText={(text) => updateConfig('emailProvider', text)}/>
-      <AppTextInput label="SMTP Host" value={config.emailHost} onChangeText={(text) => updateConfig('emailHost', text)} />
-      <AppTextInput label="SMTP Port" value={config.emailPort} keyboardType="numeric" onChangeText={(text) => updateConfig('emailPort', text)} />
-      <AppTextInput label="SMTP User" value={config.emailUser} onChangeText={(text) => updateConfig('emailUser', text)} />
+      <AppTextInput label={t('configScreen.email_provider')} value={config.emailProvider} onChangeText={(text) => updateConfig('emailProvider', text)}/>
+      <AppTextInput label={t('configScreen.email_host')} value={config.emailHost} onChangeText={(text) => updateConfig('emailHost', text)} />
+      <AppTextInput label={t('configScreen.email_port')} value={config.emailPort} keyboardType="numeric" onChangeText={(text) => updateConfig('emailPort', text)} />
+      <AppTextInput label={t('configScreen.email_user')} value={config.emailUser} onChangeText={(text) => updateConfig('emailUser', text)} />
       <AppTextInput
-        label="SMTP Password"
+        label={t('configScreen.email_password')}
         value={config.emailPassword}
         secureTextEntry={true} 
         onChangeText={(text) => updateConfig('emailPassword', text)}
@@ -108,37 +95,12 @@ const EmailForm = ({ config, updateConfig }) => {
 // FORM BẢO MẬT
 // ==========================================
 const SecurityForm = ({ config, updateConfig }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.formContainer}>
-      <AppTextInput label="Thời gian timeout (phút)" value={config.secTimeout} keyboardType="numeric" onChangeText={(text) => updateConfig('secTimeout', text)} />
-      <AppTextInput label="Độ dài mật khẩu tối thiểu" value={config.secMinPasswordLength} keyboardType="numeric" onChangeText={(text) => updateConfig('secMinPasswordLength', text)} />
-      <AppTextInput label="Số lần đăng nhập sai tối đa" value={config.secMaxFailedLogins} keyboardType="numeric" onChangeText={(text) => updateConfig('secMaxFailedLogins', text)} />
-
-      <View style={styles.notificationBlock}>
-        <View style={styles.notifyRow}>
-          <View style={styles.notifyTextContainer}>
-            <Text style={styles.notifyTitle}>Đổi mật khẩu định kỳ</Text>
-            <Text style={styles.notifyDesc}>Bắt buộc đổi mật khẩu sau 90 ngày</Text>
-          </View>
-          <Switch value={config.secRequirePasswordChange} onValueChange={(val) => updateConfig('secRequirePasswordChange', val)} color="#084CCB" />
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.notifyRow}>
-          <View style={styles.notifyTextContainer}>
-            <Text style={styles.notifyTitle}>Chặn truy cập lạ</Text>
-            <Text style={styles.notifyDesc}>Chặn truy cập từ các dải IP không xác định</Text>
-          </View>
-          <Switch value={config.secBlockUnknownIP} onValueChange={(val) => updateConfig('secBlockUnknownIP', val)} color="#084CCB" />
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.notifyRow}>
-          <View style={styles.notifyTextContainer}>
-            <Text style={styles.notifyTitle}>System Logs</Text>
-            <Text style={styles.notifyDesc}>Ghi log tất cả các hoạt động trên hệ thống</Text>
-          </View>
-          <Switch value={config.secLogActivities} onValueChange={(val) => updateConfig('secLogActivities', val)} color="#084CCB" />
-        </View>
-      </View>
+      <AppTextInput label={t('configScreen.sec_timeout')} value={config.secTimeout} keyboardType="numeric" onChangeText={(text) => updateConfig('secTimeout', text)} />
+      <AppTextInput label={t('configScreen.sec_minPassLen')} value={config.secMinPasswordLength} keyboardType="numeric" onChangeText={(text) => updateConfig('secMinPasswordLength', text)} />
+      <AppTextInput label={t('configScreen.sec_maxFailed')} value={config.secMaxFailedLogins} keyboardType="numeric" onChangeText={(text) => updateConfig('secMaxFailedLogins', text)} />
     </View>
   );
 };
@@ -148,6 +110,7 @@ const SecurityForm = ({ config, updateConfig }) => {
 // ==========================================
 const AdminConfigScreen = () => {
   const { i18n } = useTranslation();
+  const { t } = useTranslation();
   const [isPushing, setIsPushing] = React.useState(false); // Cờ trạng thái loading khi đẩy data
   
   // 1. TẠO RA MỘT CỤC STATE KHỔNG LỒ CHỨA MỌI DỮ LIỆU
@@ -202,7 +165,9 @@ const AdminConfigScreen = () => {
 
       // Đẩy nguyên cục JSON béo ngậy lên Firestore! (merge: true để ko bị ghi đè mất field khác)
       await setDoc(configRef, finalDataToPush, { merge: true });
-
+      await i18n.changeLanguage(config.lang);
+      await AsyncStorage.setItem("settings.lang", config.lang);
+    console.log("Đã khóa ngôn ngữ xuống ổ cứng:", config.lang);
       i18n.changeLanguage(config.lang); // Áp dụng ngôn ngữ cho App ngay lập tức
       Alert.alert("Thành Công", "Đã lưu toàn bộ cấu hình hệ thống lên Firebase Server!");
       
@@ -215,14 +180,16 @@ const AdminConfigScreen = () => {
   };
 
   return (
-    <ScreenWrapper backgroundColor="ffffff">
-      <ScrollView style={{ backgroundColor: "#E5EEFF" }}>
-        <Header title={"Cấu hình Hệ\nThống"} leftIcon="arrow-back" showBell={true} />
+    <ScreenWrapper backgroundColor="#E5EEFF">
+      <ScrollView 
+        style={{ backgroundColor: "#E5EEFF" }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}>
+        <Header title={t('configScreen.headerTitle')} leftIcon="arrow-back" showBell={true} />
         
         <View style={styles.body}>
           <View style={styles.headerTextContainer}>
-            <Text style={styles.bigHeader}>Cấu Hình Hệ Thống</Text>
-            <Text>Quản Lý Các Thiết Lập Hệ Thống</Text>
+            <Text style={styles.bigHeader}>{t('configScreen.pageTitle')}</Text>
+            <Text>{t('configScreen.pageSubtitle')}</Text>
           </View>
         </View>
 
@@ -231,7 +198,7 @@ const AdminConfigScreen = () => {
             
             {/* THẺ 1: CẤU HÌNH CHUNG */}
             <View style={styles.cardWrapper}>
-              <List.Accordion title="Cấu Hình Chung" description="Core identity and localization" id="1" titleStyle={styles.accordionTitle} descriptionStyle={styles.accordionDesc} style={styles.accordionBackground} left={(props) => (<View style={styles.customIconWrapper}><List.Icon {...props} icon="cog" color="#084CCB" style={{ margin: 0 }} /></View>)}>
+              <List.Accordion title={t('configScreen.accGeneralTitle')} description={t('configScreen.accGeneralDesc')} id="1" titleStyle={styles.accordionTitle} descriptionStyle={styles.accordionDesc} style={styles.accordionBackground} left={(props) => (<View style={styles.customIconWrapper}><List.Icon {...props} icon="cog" color="#084CCB" style={{ margin: 0 }} /></View>)}>
                 <ChungForm config={config} updateConfig={updateConfig}/>
               </List.Accordion>
             </View>
@@ -265,11 +232,11 @@ const AdminConfigScreen = () => {
 
         <View style={styles.bottomActionRow}>
           <TouchableOpacity style={styles.btnDiscard} onPress={() => console.log("Hủy thay đổi")}>
-            <Text style={styles.txtDiscard}>Discard{"\n"}Changes</Text>
+            <Text style={styles.txtDiscard}>{t('configScreen.btnDiscard')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.btnApply, isPushing && { opacity: 0.7 }]} onPress={handleApplyConfiguration} disabled={isPushing}>
-            <Text style={styles.txtApply}>{isPushing ? "Saving..." : "Apply\nConfiguration"}</Text>
+            <Text style={styles.txtApply}>{isPushing ? t('configScreen.btnSaving') : t('configScreen.btnApply')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -285,8 +252,12 @@ const styles = StyleSheet.create({
   body: { marginTop: 20, backgroundColor: "#E5EEFF" },
   headerTextContainer: { marginLeft: 10 },
   bigHeader: { fontFamily: "Inter-ExtraBold", fontSize: 35 },
-  formContainer: { paddingTop: 10, paddingBottom: 20, backgroundColor: "white" },
-  notificationBlock: { backgroundColor: "#C5EDF5", borderRadius: 16, padding: 16, marginTop: 10 },
+  formContainer: { 
+    paddingTop: 5,         // Đại ca giảm xuống 5 để nó bám sát cái Header Accordion hơn
+    paddingBottom: 20, 
+    paddingHorizontal: 20, // <-- BÍ THUẬT LÀ ĐÂY! Ép toàn bộ form lọt thỏm vào trong 20px
+    backgroundColor: "white" 
+  },  notificationBlock: { backgroundColor: "#C5EDF5", borderRadius: 16, padding: 16, marginTop: 10 },
   notifyRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 8 },
   notifyTextContainer: { flex: 1 },
   notifyTitle: { fontSize: 15, fontWeight: "700", color: "#1A2134", marginBottom: 4 },
@@ -295,7 +266,6 @@ const styles = StyleSheet.create({
   accordionTitle: { fontSize: 16, fontWeight: "700", color: "#1A2134" },
   accordionDesc: { fontSize: 13, color: "#6F7F91" },
   customIconWrapper: { width: 44, height: 44, backgroundColor: "#E8EFFB", borderRadius: 12, justifyContent: "center", alignItems: "center", marginLeft: 8, marginRight: 8 },
-  cardWrapper: { backgroundColor: "#FFFFFF", borderRadius: 12, marginBottom: 12, overflow: "hidden" },
   bottomActionRow: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", marginTop: 20, paddingBottom: 40, paddingHorizontal: 10 },
   btnDiscard: { paddingVertical: 12, paddingHorizontal: 20, justifyContent: "center", alignItems: "center" },
   txtDiscard: { fontSize: 15, fontWeight: "700", color: "#495D7A", textAlign: "center" },

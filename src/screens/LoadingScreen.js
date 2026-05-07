@@ -1,25 +1,41 @@
 import React, { useEffect } from 'react';
 import { Image, Text, View, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next'; 
 export default function LoadingScreen({navigation}) {
-    //Bản chất useEffect: màn hình render xong mới bấm 3 giây chạy
+    const { i18n } = useTranslation();
     useEffect(() => {
-        // Thiết lập đồng hồ 3 giây (3000ms)
-        const timer = setTimeout(() => {
-            // Dùng lệnh .replace thay vì .navigate để người dùng không bấm Back quay lại màn Loading được
-            navigation.replace("FirstOnboarding");
-        }, 3000);
-        // Nếu không có clearTimeout => hàm replace vẫn chạy => Nổ app
-        return () => clearTimeout(timer);
-        // Dấu [] báo cho Screen biết rằng hàm setTimeout chỉ được phép dùng 1 lần duy nhất sau khi được render
-    }, []);
+        const bootAppSystem = async () => {
+          try {
+            console.log("LoadingScreen: Đang kiểm tra ổ cứng...");
+            // Ép hệ thống phải đọc ổ cứng trước 
+            const savedLang = await AsyncStorage.getItem("settings.lang");
+            
+            if (savedLang) {
+              await i18n.changeLanguage(savedLang);
+              console.log("LoadingScreen: Đã nạp ngôn ngữ: ", savedLang);
+            } else {
+              await i18n.changeLanguage('vi');
+            }
+            // Cài một cái đồng hồ 2.5 giây để khoe cái Logo Atoza cho đẹp, rồi mới chuyển trang
+            setTimeout(() => {
+                navigation.replace("FirstOnboarding"); 
+            }, 2500); 
+          } catch (error) {
+            console.log("Lỗi khởi động hệ thống:", error);
+            // Lỗi thì cũng cho qua luôn, không để kẹt ở màn loading
+            navigation.replace("FirstOnboarding"); 
+          }
+        };
+        bootAppSystem(); 
+    }, []); // Chỉ cần MỘT cái useEffect duy nhất!
     return (
         <View style={styles.superBg}>
-        <View>
-            {/*Lùi ra một cấp*/}
-            <Image source={require('../assets/Background.png')} alt="Logo"/>
-            <Text style={styles.logoText}>ATOZA</Text>
+            <View>
+                <Image source={require('../assets/Background.png')} alt="Logo"/>
+                <Text style={styles.logoText}>ATOZA</Text>
+            </View>
         </View>
-    </View>
     )
 }
 const styles = StyleSheet.create({

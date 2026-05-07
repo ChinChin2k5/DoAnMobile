@@ -6,13 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Button
 } from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { useTranslation } from 'react-i18next';
 import { 
   Users, FileText, Zap, ShieldCheck, 
-  MoreHorizontal, CheckCircle2, UserPlus, AlertTriangle, 
+  MoreHorizontal, CheckCircle2, 
   ClipboardSignature, Shield, Clock
 } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -145,30 +144,30 @@ export default function AdminDashboardScreen() {
   const stats = [
     { id: 1, title: t('dashboard.totalUsers'), value: dashboardData.totalUsers, icon: <Users color="#1A2134" size={20} />, iconBg: '#E8EFFB', badge: { text: "+12%", type: 'success' } },
     { id: 2, title: t('dashboard.totalExams'), value: dashboardData.totalExams, icon: <FileText color="#1A2134" size={20} />, iconBg: '#F3F4F6', badge: { text: "Live", type: 'primary' } },
-    { id: 3, title: "Phiên Hoạt Động", value: dashboardData.activeSessions, icon: <Zap color="#1A2134" size={20} />, iconBg: '#EDE9FE', badge: { text: "84% Full", type: 'warning' } },
-    { id: 4, title: "Bảo Vệ Hệ Thống", value: dashboardData.systemHealth, icon: <ShieldCheck color="#FFFFFF" size={20} />, iconBg: '#333333', badge: { text: "", type: 'online' }, isDark: true },
+    { id: 3, title: t('dashboard.activeSessions'), value: dashboardData.activeSessions, icon: <Zap color="#1A2134" size={20} />, iconBg: '#EDE9FE', badge: { text: "84% Full", type: 'warning' } },
+    { id: 4, title: t('dashboard.systemHealth'), value: dashboardData.systemHealth, icon: <ShieldCheck color="#FFFFFF" size={20} />, iconBg: '#333333', badge: { text: "", type: 'online' }, isDark: true },
   ];
 
   return (
-    <ScreenWrapper backgroundColor="#F5F7FA">
+    <ScreenWrapper backgroundColor="#E5EEFF">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#084CCB']} tintColor="#084CCB" />
       }>
-        <Header title="Atoza Admin" leftIcon="grid-view" showBell={false} />
+        <Header title={t('dashboard.systemHealth')} leftIcon="grid-view" showBell={false} />
 
         <View style={styles.body}>
           {/* ========================================== */}
           {/* PHẦN 1: HEADER & 4 THẺ TỔNG QUAN */}
           {/* ========================================== */}
           <View style={styles.headerTextContainer}>
-            <Text style={styles.dashBoard}>Dashboard Admin</Text>
-            <Text style={styles.miniDashBoard}>Chào mừng trở lại, <Text style={styles.textBlue}>Quản Trị Viên</Text></Text>
+            <Text style={styles.dashBoard}>{t('dashboard.headerTitle')}</Text>
+            <Text style={styles.miniDashBoard}>{t('dashboard.welcomeBack')} <Text style={styles.textBlue}>{t('dashboard.adminRole')}</Text></Text>
           </View>
 
           <View style={styles.navButtonsRow}>
-            <ButtonNice text="Cấu Hình" iconName="tune" iconPosition="left" customStyle={{ width: 150, backgroundColor: '#DCE9FF' }} customTextStyle={{ color: '#003FA4' }} iconColor="#003FA4" onPress={() => navigation.navigate("ConfigAdmin")} />
-            <ButtonNice text="Thống Kê" iconName="show-chart" iconPosition="left" customStyle={{ width: 190, backgroundColor: '#0050CB' }} onPress={() => navigation.navigate("ChartAdmin")} />
+            <ButtonNice text={t('dashboard.btnConfig')} iconName="tune" iconPosition="left" customStyle={{ width: 150, backgroundColor: '#DCE9FF' }} customTextStyle={{ color: '#003FA4' }} iconColor="#003FA4" onPress={() => navigation.navigate("ConfigAdmin")} />
+            <ButtonNice text={t('dashboard.btnStatistics')} iconName="show-chart" iconPosition="left" customStyle={{ width: 190, backgroundColor: '#0050CB' }} onPress={() => navigation.navigate("ChartAdmin")} />
           </View>
 
           {stats.map((item) => (
@@ -195,7 +194,7 @@ export default function AdminDashboardScreen() {
           {/* ========================================== */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Question Level{'\n'}Distribution</Text>
+              <Text style={styles.sectionTitle}>{t('dashboard.chartTitle')}{'\n'}</Text>
               <TouchableOpacity><MoreHorizontal color="#6F7F91" size={24} /></TouchableOpacity>
             </View>
 
@@ -241,15 +240,15 @@ export default function AdminDashboardScreen() {
 
             <View style={styles.legendContainer}>
               <View style={styles.legendRow}>
-                <View style={styles.legendLeft}><View style={[styles.legendDot, {backgroundColor: '#4C38D9'}]} /><Text style={styles.legendLabel}>Câu hỏi Khó (Hard)</Text></View>
+                <View style={styles.legendLeft}><View style={[styles.legendDot, {backgroundColor: '#4C38D9'}]} /><Text style={styles.legendLabel}>{t('dashboard.hard')}</Text></View>
                 <Text style={styles.legendValue}>{examDist.hard}</Text>
               </View>
               <View style={styles.legendRow}>
-                <View style={styles.legendLeft}><View style={[styles.legendDot, {backgroundColor: '#2563EB'}]} /><Text style={styles.legendLabel}>Câu hỏi TB (Medium)</Text></View>
+                <View style={styles.legendLeft}><View style={[styles.legendDot, {backgroundColor: '#2563EB'}]} /><Text style={styles.legendLabel}>{t('dashboard.medium')}</Text></View>
                 <Text style={styles.legendValue}>{examDist.medium}</Text>
               </View>
               <View style={styles.legendRow}>
-                <View style={styles.legendLeft}><View style={[styles.legendDot, {backgroundColor: '#0369A1'}]} /><Text style={styles.legendLabel}>Câu hỏi Dễ (Easy)</Text></View>
+                <View style={styles.legendLeft}><View style={[styles.legendDot, {backgroundColor: '#0369A1'}]} /><Text style={styles.legendLabel}>{t('dashboard.easy')}</Text></View>
                 <Text style={styles.legendValue}>{examDist.easy}</Text>
               </View>
             </View>
@@ -259,7 +258,7 @@ export default function AdminDashboardScreen() {
           {/* PHẦN 3: HOẠT ĐỘNG GẦN ĐÂY (BẺ LÁI LOGS) */}
           {/* ========================================== */}
           <View style={styles.transparentSection}>
-            <Text style={styles.sectionTitle}>Hoạt Động Gần Đây</Text>
+            <Text style={styles.sectionTitle}>{t('dashboard.logTitle')}</Text>
             
             {recentLogs.length > 0 ? recentLogs.map(log => (
               <View key={log.id} style={styles.logCard}>
@@ -271,7 +270,7 @@ export default function AdminDashboardScreen() {
                 <Text style={styles.logTime}>{log.timeStr}</Text>
               </View>
             )) : (
-              <Text style={{ textAlign: 'center', color: '#6F7F91', marginTop: 10 }}>Chưa có hoạt động nào.</Text>
+              <Text style={{ textAlign: 'center', color: '#6F7F91', marginTop: 10 }}>{t('dashboard.logEmpty')}</Text>
             )}
           </View>
 
@@ -279,18 +278,18 @@ export default function AdminDashboardScreen() {
           {/* PHẦN 4: QUICK CONFIG */}
           {/* ========================================== */}
           <View style={styles.quickConfigCard}>
-            <Text style={styles.qcTitle}>Quick Config</Text>
+            <Text style={styles.qcTitle}>{t('dashboard.quickConfigTitle')}</Text>
             <Text style={styles.qcDesc}>
-              Modify core system parameters or deploy new examination instances across the network.
+            {t('dashboard.quickConfigDesc')}
             </Text>
             <View style={styles.qcButtonsRow}>
               <TouchableOpacity style={styles.qcButton}>
                 <ClipboardSignature color="#FFFFFF" size={20} style={{ marginBottom: 4 }} />
-                <Text style={styles.qcButtonText}>NEW EXAM</Text>
+                <Text style={styles.qcButtonText}>{t('dashboard.btnNewExam')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.qcButton}>
                 <Shield color="#FFFFFF" size={20} style={{ marginBottom: 4 }} />
-                <Text style={styles.qcButtonText}>SECURITY</Text>
+                <Text style={styles.qcButtonText}>{t('dashboard.btnSecurity')}</Text>
               </TouchableOpacity>
             </View>
           </View>

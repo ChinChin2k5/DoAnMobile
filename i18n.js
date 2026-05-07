@@ -9,11 +9,12 @@ const resources = {
 };
 
 i18n
-  .use(initReactI18next) // Nối i18n vào React Native
+  .use(initReactI18next) // Gắn vào React
   .init({
     resources,
-    lng: 'vi', // Ngôn ngữ mặc định khi mới tải app
-    fallbackLng: 'en', // Nếu lỗi không tìm thấy chữ, tự động lùi về Tiếng Anh
+    compatibilityJSON: 'v3', // Rule bắt buộc cho Android
+    lng: 'vi', // Cứ set mặc định là vi. Thằng LoadingScreen sẽ sửa lại sau!
+    fallbackLng: 'vi', 
     interpolation: {
       escapeValue: false 
     }

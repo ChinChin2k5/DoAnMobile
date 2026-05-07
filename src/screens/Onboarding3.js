@@ -2,7 +2,9 @@ import React from "react";
 import { View, StyleSheet, Text, Image, ImageBackground } from "react-native";
 import ButtonNice from "../components/Button";
 import Container from "../components/Container";
+import { useTranslation } from 'react-i18next';
 export default function Onboarding3({navigation}) {
+  const { t } = useTranslation();
   return (
     <View>
       <ImageBackground
@@ -17,14 +19,13 @@ export default function Onboarding3({navigation}) {
       </ImageBackground>
       
       <Container>
-        <Text style={styles.bigText}>Quản lý học sinh và theo dõi tiến độ</Text>
+        <Text style={styles.bigText}>{t("onboarding3.bigText")}</Text>
         <Text style={styles.smallText}>
-          Hệ thống lưu trữ thông minh giúp bạn nắm bắt lộ trình học tập của từng
-          cá nhân một cách trực quan và dễ dàng
+        {t("onboarding3.smallText")}
         </Text>
       </Container>
       <View style={styles.superCenter}>
-        <ButtonNice text="Bắt Đầu Ngay"
+        <ButtonNice text={t("onboarding3.superCenter")}
          onPress={() => navigation.reset({
           index: 0, // Chỉ định đĩa nào sẽ nằm trên cùng (thường là 0)
           routes: [

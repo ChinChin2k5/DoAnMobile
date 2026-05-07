@@ -2,7 +2,9 @@ import React from "react";
 import { View, StyleSheet, Text, Image, TouchableOpacity } from "react-native";
 import ButtonNice from "../components/Button";
 import Container from "../components/Container";
+import { useTranslation } from 'react-i18next';
 export default function Onboarding2({ navigation }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.background}>
       <Image
@@ -10,11 +12,10 @@ export default function Onboarding2({ navigation }) {
         style={{ width: "100%", marginTop: 75 }}
       />
       <Container>
-        <Text style={styles.bigText}>AI hỗ trợ gợi ý{"\n"} 
-        <Text style={styles.blueBigText}>câu hỏi thông mình</Text></Text>
+        <Text style={styles.bigText}>{t("onboarding2.bigText")}{"\n"} 
+        <Text style={styles.blueBigText}>{t("onboarding2.blueBigText")}</Text></Text>
         <Text style={styles.smallText}>
-          Hệ thống tự động phân tích và tạo ra bộ câu hỏi sát thực tế giúp bạn
-          ôn luyện hiệu quả hơn bao giờ hết
+        {t("onboarding2.smallText")}
         </Text>
         <View style={styles.imageCenter}>
         <Image
@@ -24,13 +25,13 @@ export default function Onboarding2({ navigation }) {
         </View>
       </Container>
       <View style={styles.superCenter}>
-        <ButtonNice text="Tiếp Tục" 
+        <ButtonNice text={t("onboarding2.buttonNext")}
         onPress={() => navigation.navigate("ThirdOnboarding")}
         iconName="arrow-forward"/>
       </View>
       <View style={styles.mrInvisible}>
         <TouchableOpacity>
-          <Text style={styles.textInvisible}>Bỏ Qua</Text>
+          <Text style={styles.textInvisible}>{t("onboarding2.buttonSkip")}</Text>
         </TouchableOpacity>
       </View>
     </View>
