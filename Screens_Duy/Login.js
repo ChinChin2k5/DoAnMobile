@@ -364,7 +364,7 @@ export default function Login({ navigation }) {
                     <View>
                         <Text style={styles.brandName}>Atoza</Text>
                         <Animated.Text style={[styles.roleHint, { color: dotColor }]}>
-                            Đăng nhập: {isTeacher ? 'Giáo viên' : 'Học sinh'}
+                            Đăng nhập ROLE: {isTeacher ? 'Giáo viên' : 'Học sinh'}
                         </Animated.Text>
                     </View>
                 </View>
