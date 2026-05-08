@@ -6,7 +6,7 @@ import {
   TextInput, SafeAreaView, Animated, Modal, ScrollView, RefreshControl
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import { collection, query, onSnapshot, orderBy, where } from 'firebase/firestore';
 
 // ==========================================
@@ -78,9 +78,13 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
         ...doc.data()
       }));
 
-      // SỬA TẠI ĐÂY: Chỉ so sánh classCode khi classCode thực sự tồn tại
+      // Lấy UID của user hiện tại
+      const currentUid = auth.currentUser?.uid;
+
+      // SỬA: Lọc theo creatorUid thay vì creatorName
+      // Giữ lại fallback creatorName === userName tạm thời đề phòng các đề thi cũ chưa kịp update db
       const filteredExams = examList.filter(ex =>
-        ex.creatorName === userName || (classCode && ex.targetClass === classCode)
+        ex.creatorUid === currentUid || (!ex.creatorUid && ex.creatorName === userName) || (classCode && ex.targetClass === classCode)
       );
 
       setExams(filteredExams);
@@ -163,7 +167,10 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
           <Text style={styles.welcomeText}>Chào mừng,</Text>
           <Text style={styles.userNameText}>{userName}</Text>
         </View>
-        <TouchableOpacity style={styles.notifBtn}>
+        <TouchableOpacity 
+        style={styles.notifBtn}
+        onPress={() => navigation.navigate('Profile', { openNotif: true })}
+        >
           <Ionicons name="notifications-outline" size={24} color="#1e293b" />
         </TouchableOpacity>
       </View>

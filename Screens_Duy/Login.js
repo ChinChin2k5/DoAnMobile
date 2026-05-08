@@ -166,6 +166,7 @@ export default function Login({ navigation }) {
     //  check requirePasswordChange sau login thành công
     // ─────────────────────────────────────────────
     const handleLogin = async () => {
+
         // Không cho login nếu form đang bị khóa
         if (isLocked) return;
 
@@ -265,7 +266,7 @@ export default function Login({ navigation }) {
     const verifyAdminKeyAndLogin = async () => {
         // Khóa bảo mật siêu mạnh tối thiểu 15 ký tự (2 mã này là giống nhau)
         //bản mã secret key hardcode là để thuận tiện cho việc debug trước khi deploy dự án
-        const SECRET_ADMIN_KEY = config.adminSecretKey||"Atoza@AdminSuperKey2026";
+        const SECRET_ADMIN_KEY = config.adminSecretKey || "Atoza@AdminSuperKey2026";
 
         if (adminKey.length < 15) {
             setAdminKeyError('Khóa bảo mật phải có ít nhất 15 ký tự.');
@@ -353,16 +354,44 @@ export default function Login({ navigation }) {
                         onPressIn={handleLogoPressIn}
                         onPressOut={handleLogoPressOut}
                         activeOpacity={1}
+
+                        // ── Chặn menu giữ lâu trên mobile web ──
+                        delayLongPress={999999}
+
+                        // ── Chặn selection + context menu của browser ──
+                        {...(Platform.OS === 'web'
+                            ? {
+                                onContextMenu: (e) => e.preventDefault(),
+                            }
+                            : {})}
                     >
-                        <Animated.View style={[
-                            styles.logoBox,
-                            { borderColor: dotColor, transform: [{ scale: logoScale }] }
-                        ]}>
-                            <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
+                        <Animated.View
+                            style={[
+                                styles.logoBox,
+                                {
+                                    borderColor: dotColor,
+                                    transform: [{ scale: logoScale }],
+                                }
+                            ]}
+                        >
+                            <Image
+                                source={require('../assets/logo.png')}
+                                style={styles.logoImage}
+                                resizeMode="contain"
+
+                                // ── Web-only props để chặn drag ảnh ──
+                                {...(Platform.OS === 'web'
+                                    ? {
+                                        draggable: false,
+                                    }
+                                    : {})}
+                            />
                         </Animated.View>
                     </TouchableOpacity>
+
                     <View>
                         <Text style={styles.brandName}>Atoza</Text>
+
                         <Animated.Text style={[styles.roleHint, { color: dotColor }]}>
                             Đăng nhập: {isTeacher ? 'Giáo viên' : 'Học sinh'}
                         </Animated.Text>
@@ -626,8 +655,14 @@ const styles = StyleSheet.create({
     logoBox: {
         width: 46, height: 46, borderRadius: 12, backgroundColor: '#EEF2FF',
         justifyContent: 'center', alignItems: 'center', borderWidth: 1.5,
+        // ── Chặn select / callout trên mobile browser ──
+        userSelect: 'none',
     },
-    logoImage: { width: 30, height: 30 },
+    logoImage: { 
+        width: 30, height: 30,    
+        // ── Chặn drag image trên web ──
+        userSelect: 'none', 
+    },
     brandName: { fontSize: 22, fontWeight: '800', color: '#1A202C', letterSpacing: 0.3 },
     roleHint: { fontSize: 11, fontWeight: '600', marginTop: 2 },
 

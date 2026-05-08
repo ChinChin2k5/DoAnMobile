@@ -1,14 +1,14 @@
 // Screens_Duy/Man_Hinh_Lam_Bai.js
 import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
-import { 
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, 
-  ScrollView, Animated, Dimensions, Image, Alert,Platform
+import {
+  View, Text, StyleSheet, SafeAreaView, TouchableOpacity,
+  ScrollView, Animated, Dimensions, Image, Alert, Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // --- IMPORT FIREBASE VÀ CONTEXT ---
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { UserContext } from '../context/UserContext';
 
@@ -33,8 +33,8 @@ const SkeletonItem = ({ width, height, borderRadius = 4, style }) => {
 };
 
 export default function Man_Hinh_Lam_Bai({ navigation, route }) {
-  const { userName } = useContext(UserContext); 
-  
+  const { userName } = useContext(UserContext);
+
   // --- NHẬN DỮ LIỆU TỪ ROUTE PARAMS ---
   const { examId, examData } = route?.params || {};
 
@@ -42,13 +42,13 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   const [currentExam, setCurrentExam] = useState(examData || null);
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isReady, setIsReady] = useState(false); 
+  const [isReady, setIsReady] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [flagged, setFlagged] = useState([]);
-  
+
   const [timeLeft, setTimeLeft] = useState(0);
-  const [targetEndTime, setTargetEndTime] = useState(null); 
+  const [targetEndTime, setTargetEndTime] = useState(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -80,12 +80,12 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           // Xử lý bộ đếm thời gian
           const initialSeconds = (data.duration || 15) * 60;
           const savedData = await AsyncStorage.getItem(`exam_progress_${examId}`);
-          
+
           if (savedData) {
             const { savedAnswers, savedFlagged, endTime } = JSON.parse(savedData);
             if (savedAnswers) setAnswers(savedAnswers);
             if (savedFlagged) setFlagged(savedFlagged);
-            
+
             if (endTime) {
               const remaining = Math.round((endTime - Date.now()) / 1000);
               if (remaining > 0) {
@@ -99,7 +99,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
               }
             }
           } else {
-            const newEndTime = Date.now() + initialSeconds * 1000; 
+            const newEndTime = Date.now() + initialSeconds * 1000;
             setTargetEndTime(newEndTime);
             setTimeLeft(initialSeconds);
             await AsyncStorage.setItem(`exam_progress_${examId}`, JSON.stringify({
@@ -109,7 +109,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           setIsReady(true);
         } else {
           Alert.alert(
-            "Thông báo", 
+            "Thông báo",
             "Không tìm thấy câu hỏi trong đề thi này!",
             [{ text: "Quay lại", onPress: () => navigation.goBack() }]
           );
@@ -142,15 +142,15 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       if (remaining <= 0) {
         clearInterval(timer);
         setTimeLeft(0);
-        
-        // SỬA TẠI ĐÂY: Hỗ trợ nộp bài hết giờ trên Web
+
+        //  Hỗ trợ nộp bài hết giờ trên Web
         if (Platform.OS === 'web') {
-            window.alert("Hết giờ! Hệ thống tự động nộp bài của bạn.");
-            handleForceSubmit();
+          window.alert("Hết giờ! Hệ thống tự động nộp bài của bạn.");
+          handleForceSubmit();
         } else {
-            Alert.alert("Hết giờ!", "Hệ thống tự động nộp bài của bạn.", [
-              { text: "Đồng ý", onPress: handleForceSubmit }
-            ]);
+          Alert.alert("Hết giờ!", "Hệ thống tự động nộp bài của bạn.", [
+            { text: "Đồng ý", onPress: handleForceSubmit }
+          ]);
         }
       } else {
         setTimeLeft(remaining);
@@ -163,15 +163,15 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   // 3. CHUẨN BỊ DỮ LIỆU HIỂN THỊ
   // =========================================================
   const questionsList = useMemo(() => {
-    if (questions.length === 0) return []; 
+    if (questions.length === 0) return [];
     return questions.map((q, i) => ({
-        id: `q${i}`,
-        content: q.text || 'Câu hỏi trống',
-        correctIndex: q.correctIndex, 
-        options: q.options.map((optText, optIdx) => ({
-            id: String(optIdx), 
-            text: optText
-        }))
+      id: `q${i}`,
+      content: q.text || 'Câu hỏi trống',
+      correctIndex: q.correctIndex,
+      options: q.options.map((optText, optIdx) => ({
+        id: String(optIdx),
+        text: optText
+      }))
     }));
   }, [questions]);
 
@@ -185,9 +185,9 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   };
 
   const toggleFlag = () => {
-    setFlagged(prev => 
-      prev.includes(currentQuestion.id) 
-        ? prev.filter(id => id !== currentQuestion.id) 
+    setFlagged(prev =>
+      prev.includes(currentQuestion.id)
+        ? prev.filter(id => id !== currentQuestion.id)
         : [...prev, currentQuestion.id]
     );
   };
@@ -199,64 +199,83 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
 
   const handleSubmit = () => {
     if (Platform.OS === 'web') {
-        const isConfirm = window.confirm("Bạn có chắc chắn muốn nộp bài không?");
-        if (isConfirm) {
-            handleForceSubmit();
-        }
+      const isConfirm = window.confirm("Bạn có chắc chắn muốn nộp bài không?");
+      if (isConfirm) {
+        handleForceSubmit();
+      }
     } else {
-        Alert.alert("Nộp bài", "Bạn có chắc chắn muốn nộp bài không?", [
-          { text: "Hủy", style: "cancel" },
-          { text: "Đồng ý", onPress: handleForceSubmit }
-        ]);
+      Alert.alert("Nộp bài", "Bạn có chắc chắn muốn nộp bài không?", [
+        { text: "Hủy", style: "cancel" },
+        { text: "Đồng ý", onPress: handleForceSubmit }
+      ]);
     }
   };
-
+  //hàm xóa dữ liệu AsyncStorage sau khi nộp bài
+  const clearExamProgress = async () => {
+    try {
+      // Sửa lại cho đúng tên key bạn đã dùng ở trên
+      await AsyncStorage.removeItem(`exam_progress_${examId}`);
+      console.log("Đã reset trạng thái bài thi.");
+    } catch (e) {
+      console.error("Lỗi khi xóa AsyncStorage:", e);
+    }
+  };
   const handleForceSubmit = async () => {
-    await AsyncStorage.removeItem(`exam_progress_${examId}`);
-    
+    // 1. Tính toán điểm số chính xác
     let correctCount = 0;
-    questionsList.forEach(q => {
-        if (answers[q.id] === String(q.correctIndex)) {
-            correctCount++;
-        }
+    questionsList.forEach((q) => {
+      // Chú ý: answers[q.id] lấy từ 'q0', 'q1'... 
+      // q.correctIndex thường là số, optionId thường là chuỗi, nên ép kiểu để so sánh
+      if (answers[q.id] !== undefined && String(answers[q.id]) === String(q.correctIndex)) {
+        correctCount++;
+      }
     });
-    const score = ((correctCount / questionsList.length) * 10).toFixed(2);
-    
-    const initialSeconds = (currentExam?.duration || 15) * 60;
-    const timeTaken = initialSeconds - timeLeft;
+
+    const total = questionsList.length || 1;
+    const score = ((correctCount / total) * 10).toFixed(1);
+
+    const duration = currentExam?.duration || 0;
+    // Nếu hết giờ (timeLeft <= 0) thì timeTaken = toàn bộ thời gian duration
+    const timeTaken = timeLeft <= 0 ? duration * 60 : (duration * 60 - timeLeft);
+
+    const currentUid = auth.currentUser?.uid;
+
+    if (!currentUid) {
+      console.error("Không tìm thấy UID người dùng!");
+    }
 
     const resultData = {
-        examId: examId,
-        examTitle: currentExam?.title || 'Bài thi',
-        studentName: userName,
-        score: Number(score),
-        correctCount: correctCount,
-        totalQuestions: questionsList.length,
-        timeTaken: timeTaken,
-        answersMap: answers,
-        questionsList: questionsList
+      uid: currentUid,
+      examId: examId,
+      examTitle: currentExam?.title || 'Bài thi',
+      studentName: userName,
+      score: Number(score),
+      correctCount: correctCount,
+      totalQuestions: questionsList.length,
+      timeTaken: timeTaken,
+      answersMap: answers,
+      questionsList: questionsList
     };
 
     try {
-        await addDoc(collection(db, "History"), {
-            ...resultData,
-            completedAt: serverTimestamp(),
-        });
+      await addDoc(collection(db, "History"), {
+        ...resultData,
+        completedAt: serverTimestamp(),
+      });
+
+      // XÓA ĐÚNG KEY "exam_progress_..."
+      await clearExamProgress();
+
+      navigation.replace('Ket_Qua_Va_Phan_Tich', { resultData });
+
     } catch (e) {
-        console.error("Lỗi khi lưu lịch sử: ", e);
-    }
-
-    const allowRetake = currentExam?.config?.rules?.allowRetake || false;
-
-    if (allowRetake) {
-        navigation.replace('Ket_Qua_Va_Phan_Tich', { resultData });
-    } else {
-        navigation.replace('Ket_Qua_Va_Phan_Tich', { resultData });
+      console.error("Lỗi lưu lịch sử:", e);
+      Alert.alert("Lỗi", "Không thể lưu kết quả.");
     }
   };
 
-  const progressPercent = questionsList.length > 0 
-    ? Math.round((Object.keys(answers).length / questionsList.length) * 100) 
+  const progressPercent = questionsList.length > 0
+    ? Math.round((Object.keys(answers).length / questionsList.length) * 100)
     : 0;
 
   const formatTime = (seconds) => {
@@ -365,8 +384,8 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       <View style={styles.questionHeader}>
         <Text style={styles.questionNumber}>Câu {currentIndex + 1}/{questionsList.length}</Text>
         <View style={styles.actionIcons}>
-          <TouchableOpacity 
-            style={[styles.iconBtn, flagged.includes(currentQuestion.id) && { backgroundColor: '#fef08a' }]} 
+          <TouchableOpacity
+            style={[styles.iconBtn, flagged.includes(currentQuestion.id) && { backgroundColor: '#fef08a' }]}
             onPress={toggleFlag}
           >
             <Ionicons name={flagged.includes(currentQuestion.id) ? "flag" : "flag-outline"} size={20} color={flagged.includes(currentQuestion.id) ? "#ca8a04" : "#475569"} />
@@ -386,7 +405,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           {currentQuestion.options.map((option) => {
             const isSelected = answers[currentQuestion.id] === option.id;
             return (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={option.id}
                 style={[styles.optionItem, isSelected && styles.optionItemSelected]}
                 onPress={() => handleSelectOption(option.id)}
@@ -403,14 +422,14 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[styles.footerBtnOutline, currentIndex === 0 && { opacity: 0.5 }]} 
+        <TouchableOpacity
+          style={[styles.footerBtnOutline, currentIndex === 0 && { opacity: 0.5 }]}
           disabled={currentIndex === 0}
           onPress={() => navigateToQuestion(currentIndex - 1)}
         >
           <Text style={styles.footerBtnOutlineText}>Câu trước</Text>
         </TouchableOpacity>
-        
+
         {currentIndex === questionsList.length - 1 ? (
           <TouchableOpacity style={[styles.footerBtnPrimary, { backgroundColor: '#b91c1c' }]} onPress={handleSubmit}>
             <Text style={styles.footerBtnPrimaryText}>Nộp bài</Text>
@@ -445,7 +464,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
                 </View>
                 <View style={styles.legendItem}>
                   <View style={styles.legendDotWrapper}>
-                     <View style={styles.legendFlagIcon}><Ionicons name="flag" size={10} color="white" /></View>
+                    <View style={styles.legendFlagIcon}><Ionicons name="flag" size={10} color="white" /></View>
                   </View>
                   <Text style={styles.legendText}>Đã cắm cờ</Text>
                 </View>
@@ -456,45 +475,45 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
                   <Text style={styles.legendText}>Đang làm</Text>
                 </View>
                 <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: '#8896a9'  }]} />
+                  <View style={[styles.legendDot, { backgroundColor: '#8896a9' }]} />
                   <Text style={styles.legendText}>Chưa xem</Text>
                 </View>
               </View>
             </View>
 
             <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
-                <View style={styles.gridContainer}>
+              <View style={styles.gridContainer}>
                 {questionsList.map((q, i) => {
-                    const isCurrent = i === currentIndex;
-                    const isFlagged = flagged.includes(q.id);
-                    const isAnswered = !!answers[q.id];
+                  const isCurrent = i === currentIndex;
+                  const isFlagged = flagged.includes(q.id);
+                  const isAnswered = !!answers[q.id];
 
-                    return (
-                      <TouchableOpacity 
-                          key={q.id} 
-                          style={[
-                            styles.gridBox, 
-                            isAnswered ? styles.gridBoxAnswered : styles.gridBoxDefault,
-                            isCurrent && styles.gridBoxCurrent
-                          ]}
-                          onPress={() => navigateToQuestion(i)}
-                      >
-                          <Text style={[styles.gridText, isAnswered ? styles.gridTextAnswered : styles.gridTextDefault]}>
-                            {i + 1}
-                          </Text>
-                          {isFlagged && (
-                            <View style={styles.flagBadge}>
-                               <Ionicons name="flag" size={10} color="white" />
-                            </View>
-                          )}
-                      </TouchableOpacity>
-                    );
+                  return (
+                    <TouchableOpacity
+                      key={q.id}
+                      style={[
+                        styles.gridBox,
+                        isAnswered ? styles.gridBoxAnswered : styles.gridBoxDefault,
+                        isCurrent && styles.gridBoxCurrent
+                      ]}
+                      onPress={() => navigateToQuestion(i)}
+                    >
+                      <Text style={[styles.gridText, isAnswered ? styles.gridTextAnswered : styles.gridTextDefault]}>
+                        {i + 1}
+                      </Text>
+                      {isFlagged && (
+                        <View style={styles.flagBadge}>
+                          <Ionicons name="flag" size={10} color="white" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
                 })}
-                </View>
+              </View>
             </ScrollView>
 
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: 8, transform: [{rotate: '-90deg'}] }} />
+              <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: 8, transform: [{ rotate: '-90deg' }] }} />
               <Text style={styles.submitBtnText}>Nộp bài</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -507,7 +526,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc', paddingTop: 40, paddingBottom: 30 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 15 },
-  backBtn: { flexDirection: 'row', alignItems: 'center',flex: 1, marginRight: 10 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 },
   backText: { fontSize: 16, color: '#1e293b', marginLeft: '4%', fontWeight: 'bold' },
   avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#e2e8f0' },
   progressSection: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 15 },
@@ -551,9 +570,9 @@ const styles = StyleSheet.create({
   legendDotWrapper: { position: 'relative', marginRight: 8 },
   legendFlagIcon: { position: 'relative', top: -4, right: -0, backgroundColor: '#eab308', width: 16, height: 16, borderRadius: 6, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'white' },
   gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', marginHorizontal: -5, paddingBottom: 20 },
-  
-  gridBox: { 
-    width: '17.5%', aspectRatio: 1, margin: '1.2%', borderRadius: 8, 
+
+  gridBox: {
+    width: '17.5%', aspectRatio: 1, margin: '1.2%', borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 2, borderColor: 'transparent',
     position: 'relative'
@@ -564,14 +583,14 @@ const styles = StyleSheet.create({
   gridBoxAnswered: { backgroundColor: '#dbeafe' },
   gridTextAnswered: { color: '#1d4ed8' },
   gridBoxCurrent: { borderColor: '#3b82f6' },
-  
-  flagBadge: { 
-    position: 'absolute', top: -5, right: -5, 
-    backgroundColor: '#eab308', width: 18, height: 18, borderRadius: 9, 
-    justifyContent: 'center', alignItems: 'center', 
+
+  flagBadge: {
+    position: 'absolute', top: -5, right: -5,
+    backgroundColor: '#eab308', width: 18, height: 18, borderRadius: 9,
+    justifyContent: 'center', alignItems: 'center',
     borderWidth: 2, borderColor: 'white', zIndex: 10
   },
-  
+
   submitBtn: { backgroundColor: '#b91c1c', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 14, borderRadius: 10, marginTop: 10 },
   submitBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' }
 });
