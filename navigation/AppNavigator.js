@@ -27,6 +27,7 @@ import LoadingScreen from "../src/screens/LoadingScreen";
 import Onboarding1 from "../src/screens/Onboarding1";
 import Onboarding2 from "../src/screens/Onboarding2";
 import Onboarding3 from "../src/screens/Onboarding3";
+import Classes_Thi_Sinh from "../Screens_Duy/Classes_Thi_Sinh"
 
 // ── Import Auth của thanh niên Duy ──
 import Login from "../Screens_Duy/Login";
