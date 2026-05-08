@@ -10,29 +10,32 @@ import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+// Import các Screens chính
+import Dashboard_Thi_Sinh from "../Screens_Duy/Dashboard_Thi_Sinh";
+import Profile_Thi_Sinh from "../Screens_Duy/Profile_Thi_Sinh";
+import Man_Hinh_Lam_Bai from "../Screens_Duy/Man_Hinh_Lam_Bai";
+import Ket_Qua_Va_Phan_Tich from "../Screens_Duy/Ket_Qua_Va_Phan_Tich";
+import Tao_De_Thi_Part1 from "../Screens_Duy/Tao_De_Thi_Part1";
+import Tao_De_Thi_Part2 from "../Screens_Duy/Tao_De_Thi_Part2";
+import Lich_Su_Lam_Bai from "../Screens_Duy/Lich_Su_Lam_Bai";
+import Chi_Tiet_Dap_An from "../Screens_Duy/Chi_Tiet_Dap_An";
+import Ket_Qua_Dummy from "../Screens_Duy/Ket_Qua_Dummy";
+import AdminChartScreen from "../src/screens/AdminChartScreen";
+import AdminConfigScreen from "../src/screens/AdminConfigScreen";
+import AdminDashboardScreen from "../src/screens/AdminDashboardScreen";
+import LoadingScreen from "../src/screens/LoadingScreen";
+import Onboarding1 from "../src/screens/Onboarding1";
+import Onboarding2 from "../src/screens/Onboarding2";
+import Onboarding3 from "../src/screens/Onboarding3";
 
-// Import các Screens chính - STUDENT
-import Dashboard_Thi_Sinh from '../Screens_Duy/Dashboard_Thi_Sinh';
-import Profile_Thi_Sinh from '../Screens_Duy/Profile_Thi_Sinh';
-import Man_Hinh_Lam_Bai from '../Screens_Duy/Man_Hinh_Lam_Bai';
-import Ket_Qua_Va_Phan_Tich from '../Screens_Duy/Ket_Qua_Va_Phan_Tich';
-import Tao_De_Thi_Part1 from '../Screens_Duy/Tao_De_Thi_Part1';
-import Tao_De_Thi_Part2 from '../Screens_Duy/Tao_De_Thi_Part2';
-import Lich_Su_Lam_Bai from '../Screens_Duy/Lich_Su_Lam_Bai';
-import Chi_Tiet_Dap_An from '../Screens_Duy/Chi_Tiet_Dap_An';
-import Ket_Qua_Dummy from '../Screens_Duy/Ket_Qua_Dummy';
-import Login from '../Screens_Duy/Login';
-import Register from '../Screens_Duy/Register';
-
-// ── Import các Screens dành cho TEACHER / ADMIN từ Screens_Duc ──
-import DashboardScreen from '../Screens_Duc/DashboardScreen';
-import StudentsScreen from '../Screens_Duc/StudentsScreen';
-import ProfileScreen from '../Screens_Duc/ProfileScreen';
-import CreateExamStep1Screen from '../Screens_Duc/CreateExamStep1Screen';
-import CreateExamStep2Screen from '../Screens_Duc/CreateExamStep2Screen';
-import CreateExamStep3Screen from '../Screens_Duc/CreateExamStep3Screen';
-import CreateClass1Screen from '../Screens_Duc/CreateClass1Screen';
-import CreateClass2Screen from '../Screens_Duc/CreateClass2Screen';
+// ── Import các Screens UI Thống kê / Onboarding (Chiến) ──
+import AdminChartScreen from '../src/screens/AdminChartScreen';
+import AdminConfigScreen from '../src/screens/AdminConfigScreen';
+import AdminDashboardScreen from '../src/screens/AdminDashboardScreen';
+import LoadingScreen from '../src/screens/LoadingScreen';
+import Onboarding1 from '../src/screens/Onboarding1';
+import Onboarding2 from '../src/screens/Onboarding2';
+import Onboarding3 from '../src/screens/Onboarding3';
 
 // ── Placeholder screens cho các role chưa có màn hình riêng ──
 const ClassesScreen = () => (
