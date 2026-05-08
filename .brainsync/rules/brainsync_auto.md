@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 880 notes | Score threshold: >40
+> 37 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,60 +20,23 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes** — -   useEffect(() => {
-+ useEffect(() => {
-- 
-+   const loadUserData
-- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes** — -       setTimeout(async () => {
-+           // Reset AsyncStorage để
-- **gotcha in Dashboard_Thi_Sinh.js** — -   // 🔴 BƯỚC 3: THÊM DÒNG NÀY ĐỂ MƯỢN BIẾN TỪ KHO CHỨA CHUNG
-+   //
-- **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized GOTCHA
-+ - ⚠️ GOTCHA: Optimized Score — paral
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 868 notes | Score threshold: >40
-+ > 872 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized GOTCHA
-+ - ⚠️ GOTCHA: Optimized Score — paral
+- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
 
-## Active: `Screens_Duy`
-
-- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes**
-- **⚠️ GOTCHA: Fixed null crash in Reset — prevents null/undefined runtime crashes**
-- **gotcha in Dashboard_Thi_Sinh.js**
-- **🟢 Edited Screens_Duy/Dashboard_Thi_Sinh.js (61 changes, 5min) — confirmed 3x**
-- **what-changed in Dashboard_Thi_Sinh.js — confirmed 14x**
+Content summary (3
 
 ## Project Standards
 
-- 🟢 Edited Screens_Duy/Dashboard_Thi_Sinh.js (61 changes, 5min) — confirmed 3x
-- what-changed in Dashboard_Thi_Sinh.js — confirmed 14x
-- what-changed in Dashboard_Thi_Sinh.js — confirmed 81x
-- what-changed in Dashboard_Thi_Sinh.js — confirmed 11x
-- Fixed null crash in Async — prevents null/undefined runtime crashes — confirmed 6x
-- what-changed in Dashboard_Thi_Sinh.js — confirmed 5x
-- what-changed in Dashboard_Thi_Sinh.js — confirmed 10x
-- convention in Tao_De_Thi_Part2.js
+- Strengthened types React — improves module reusability
+- convention in .gitignore
+- Strengthened types Fixed
+- Strengthened types Fixed
+- convention in .gitignore
+- Strengthened types Patched
+- Strengthened types Patched
+- convention in .gitignore
 
-## Known Fixes
+## Verified Best Practices
 
-- ❌ - - Fixed null crash in Async — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ - - Fixed null crash in View — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ -           console.error('Failed to load user data', e); → ✅ Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes
-- ❌ - - Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ - - Fixed null crash in Ionicons — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-
-## Recent Decisions
-
-- decision in firebaseConfig.js
-- Optimized Score — parallelizes async operations for speed
-- Optimized Score — parallelizes async operations for speed
-- Optimized Score — parallelizes async operations for speed
-
-## Learned Patterns
-
-- Always: what-changed in brainsync_auto.md — confirmed 3x (seen 2x)
-- Decision: Optimized Score (seen 2x)
-- Decision: Optimized Score — parallelizes async operations for speed (seen 3x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 
@@ -314,6 +277,41 @@ Reference these guidelines when:
 - `ui-safe-area-scroll` - Handle safe areas in ScrollViews
 - `ui-scrollview-content-inset` - Use contentInset for headers
 - `ui-menus` - Use native context m...
+(truncated)
+
+
+### 📚 Core Framework Rules: [google-labs-code/react-components]
+# Stitch to React Components
+
+You are a frontend engineer focused on transforming designs into clean React code. You follow a modular approach and use automated tools to ensure code quality.
+
+## Retrieval and networking
+1. **Namespace discovery**: Run `list_tools` to find the Stitch MCP prefix. Use this prefix (e.g., `stitch:`) for all subsequent calls.
+2. **Metadata fetch**: Call `[prefix]:get_screen` to retrieve the design JSON.
+3. **Check for existing designs**: Before downloading, check if `.stitch/designs/{page}.html` and `.stitch/designs/{page}.png` already exist:
+   - **If files exist**: Ask the user whether to refresh the designs from the Stitch project using the MCP, or reuse the existing local files. Only re-download if the user confirms.
+   - **If files do not exist**: Proceed to step 4.
+4. **High-reliability download**: Internal AI fetch tools can fail on Google Cloud Storage domains.
+   - **HTML**: `bash scripts/fetch-stitch.sh "[htmlCode.downloadUrl]" ".stitch/designs/{page}.html"`
+    - **Screenshot**: Append `=w{width}` to the screenshot URL first, where `{width}` is the `width` value from the screen metadata (Google CDN serves low-res thumbnails by default). Then run: `bash scripts/fetch-stitch.sh "[screenshot.downloadUrl]=w{width}" ".stitch/designs/{page}.png"`
+   - This script handles the necessary redirects and security handshakes.
+5. **Visual audit**: Review the downloaded screenshot (`.stitch/designs/{page}.png`) to confirm design intent and layout details.
+
+## Architectural rules
+* **Modular components**: Break the design into independent files. Avoid large, single-file outputs.
+* **Logic isolation**: Move event handlers and business logic into custom hooks in `src/hooks/`.
+* **Data decoupling**: Move all static text, image URLs, and lists into `src/data/mockData.ts`.
+* **Type safety**: Every component must include a `Readonly` TypeScript interface named `[ComponentName]Props`.
+* **Project specific**: Focus on the target project's needs and constraints. Leave Google license headers out of the generated React components.
+* **Style mapping**:
+    * Extract the `tailwind.config` from the HTML `<head>`.
+    * Sync these values with `resources/style-guide.json`.
+    * Use theme-mapped Tailwind classes instead of arbitrary hex codes.
+
+## Execution steps
+1. **Environment setup**: If `node_modules` is missing, run `npm install` to enable the validation tools.
+2. **Data layer**: Create `src/data/mockData.ts` based on the design content.
+3. **...
 (truncated)
 
 
