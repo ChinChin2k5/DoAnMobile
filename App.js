@@ -153,6 +153,161 @@ function AuthHandler({ navigationRef, setConfig, recordActivityRef }) {
         ]);
         scheduleTimeout(timeoutMs);
 
+// --- Đồ nghề của Kỹ sư Chiến (UI & Đa ngôn ngữ) ---
+import { useFonts } from 'expo-font';
+import './i18n';
+
+// --- Đồ nghề của thanh niên Duy (Auth & DB) ---
+import { UserProvider, UserContext } from './context/UserContext';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from './firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// ── Import ConfigContext ──
+import { ConfigContext, DEFAULT_CONFIG } from './context/ConfigContext';
+
+
+// ─────────────────────────────────────────────
+// Hằng số key AsyncStorage
+// Tách biệt hoàn toàn với key của Firebase Auth
+// ─────────────────────────────────────────────
+const LAST_ACTIVE_KEY = 'atoza_last_active'; // timestamp lần chạm cuối
+const SESSION_UID_KEY = 'atoza_session_uid';  // uid đang đăng nhập (để verify)
+
+// ─────────────────────────────────────────────
+// Hàm lấy thông tin user từ Firestore
+// ─────────────────────────────────────────────
+async function getOrCreateUser(uid, displayName, email) {
+  const userRef = doc(db, 'users', uid);
+  const userSnap = await getDoc(userRef);
+  if (userSnap.exists()) {
+    return {
+      role: userSnap.data().role || 'Học sinh',
+      fullName: userSnap.data().fullName || displayName || 'Người dùng',
+    };
+  }
+  const newData = {
+    uid,
+    fullName: displayName || 'Người dùng',
+    email: (email || '').toLowerCase(),
+    role: 'Học sinh',
+    createdAt: serverTimestamp(),
+  };
+  await setDoc(userRef, newData);
+  return { role: newData.role, fullName: newData.fullName };
+}
+
+// ─────────────────────────────────────────────
+// Hàm điều hướng theo role
+// ─────────────────────────────────────────────
+function navigateByRole(nav, role) {
+  if (!nav || !nav.isReady()) return;
+  if (role === 'Giáo viên' || role === 'Admin') {
+    nav.reset({ index: 0, routes: [{ name: 'MainTabsAdmin' }] });
+  } else {
+    nav.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+  }
+}
+
+// ─────────────────────────────────────────────
+// Hàm điều hướng về Login — dùng chung cho mọi trường hợp đăng xuất
+// ─────────────────────────────────────────────
+function navigateToLogin(nav) {
+  if (!nav || !nav.isReady()) return;
+  nav.reset({ index: 0, routes: [{ name: 'Login' }] });
+}
+
+// ─────────────────────────────────────────────
+// AuthHandler
+// Xử lý: auth state, load config, inactivity timer
+// ─────────────────────────────────────────────
+function AuthHandler({ navigationRef, setConfig, recordActivityRef }) {
+  const { setUserName, setUserRole } = useContext(UserContext);
+  const config = useContext(ConfigContext); //biến đọc config thay đổi hệ thống có trong 'firebase'
+
+  const [checking, setChecking] = useState(true);
+
+  // ── Refs để timer không bị stale closure ──
+  const timerRef        = useRef(null);   // setTimeout handle
+  const appStateRef     = useRef(AppState.currentState); // trạng thái foreground/background
+  const isLoggedInRef   = useRef(false);  // có user đang đăng nhập không
+  const configRef       = useRef(config); // ref của config để dùng trong callback
+
+  // Đồng bộ configRef mỗi khi config thay đổi (tránh stale closure)
+  useEffect(() => { configRef.current = config; }, [config]);
+
+  // ─────────────────────────────────────────────
+  // signOutDueToInactivity()
+  // Gọi khi hết timeout — xoá storage, đăng xuất, về Login
+  // ─────────────────────────────────────────────
+  const signOutDueToInactivity = useCallback(async () => {
+    console.log(' [TIMEOUT] Phiên hết hạn — Thực hiện đăng xuất tự động');
+    clearTimeout(timerRef.current);
+    isLoggedInRef.current = false;
+    await AsyncStorage.multiRemove([LAST_ACTIVE_KEY, SESSION_UID_KEY]);
+    await signOut(auth);
+    navigateToLogin(navigationRef.current);
+  }, [navigationRef]);
+
+  // ─────────────────────────────────────────────
+  // scheduleTimeout(remainingMs)
+  // Đặt/reset timer với số ms còn lại
+  // ─────────────────────────────────────────────
+  const scheduleTimeout = useCallback((remainingMs) => {
+    clearTimeout(timerRef.current);
+    console.log(` [TIMER] Đã đặt bộ đếm: Sẽ đăng xuất sau ${Math.round(remainingMs / 1000)} giây`);
+    timerRef.current = setTimeout(signOutDueToInactivity, remainingMs);
+  }, [signOutDueToInactivity]);
+
+  // ─────────────────────────────────────────────
+  // recordActivity()
+  // Gọi mỗi khi user chạm màn hình:
+  //   1. Ghi lastActiveAt mới vào AsyncStorage
+  //   2. Reset timer về secTimeout đầy đủ
+  // ─────────────────────────────────────────────
+  const recordActivity = useCallback(async () => {
+    if (!isLoggedInRef.current) return;
+    const now = Date.now();
+    await AsyncStorage.setItem(LAST_ACTIVE_KEY, String(now));
+    const timeoutMinutes = parseInt(configRef.current.secTimeout, 10) || 30;
+    const timeoutMs = timeoutMinutes * 60 * 1000;
+    
+    console.log(` [ACTION] Thao tác chạm - Reset timer về ${timeoutMinutes} phút`);
+    scheduleTimeout(timeoutMs);
+  }, [scheduleTimeout]);
+
+  // ─────────────────────────────────────────────
+  // startSessionTimer(uid)
+  // Gọi ngay sau khi xác nhận user đăng nhập thành công.
+  // Đọc lastActiveAt từ AsyncStorage:
+  //   - Không có / uid khác, đổi tài khoản khác  → phiên mới, ghi mới, timer reset đầy đủ
+  //   - Còn hạn sau khi reload trang/ auto-login              → timer tiếp tục từ thời điểm còn lại
+  //   - Hết hạn, máy tính sập nguồn, mất điện, mất wifi              → signOut ngay
+  // ─────────────────────────────────────────────
+  const startSessionTimer = useCallback(async (uid) => {
+    const timeoutMs = (parseInt(configRef.current.secTimeout, 10) || 30) * 60 * 1000;
+    const now = Date.now();
+
+    try {
+      const [lastActiveRaw, savedUid] = await AsyncStorage.multiGet([
+        LAST_ACTIVE_KEY,
+        SESSION_UID_KEY,
+      ]).then(pairs => pairs.map(p => p[1]));
+
+      const lastActive = lastActiveRaw ? parseInt(lastActiveRaw, 10) : null;
+      const elapsed    = lastActive ? now - lastActive : null;
+      const isSameUser = savedUid === uid;
+
+      if (!lastActive || !isSameUser) {
+        // ── Phiên mới (đăng nhập thủ công hoặc đổi tài khoản) ──
+        console.log('[Timer] Phiên mới — bắt đầu đếm', timeoutMs / 60000, 'phút');
+        await AsyncStorage.multiSet([
+          [LAST_ACTIVE_KEY, String(now)],
+          [SESSION_UID_KEY, uid],
+        ]);
+        scheduleTimeout(timeoutMs);
+
       } else if (elapsed >= timeoutMs) {
         // ── Đã hết hạn khi app còn tắt (máy sập, mất điện...) ──
         console.log('[Timer] Phiên đã hết hạn khi app tắt — đăng xuất ngay');
@@ -315,43 +470,54 @@ function AuthHandler({ navigationRef, setConfig, recordActivityRef }) {
 // Root App
 // ─────────────────────────────────────────────
 export default function App() {
-  const navigationRef = React.useRef(null);
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
+// --- 1. KHAI BÁO HOOKS CỦA DUY VÀ CHIẾN Ở TRÊN CÙNG (Quy tắc React) ---
+const navigationRef = useRef(null);
+const [config, setConfig] = useState(DEFAULT_CONFIG); // *Lưu ý: Chắc chắn trên đầu file có import DEFAULT_CONFIG rồi nhé
+const recordActivityRef = useRef(null);
 
-  // ── recordActivity được tạo ở đây để truyền xuống View bắt touch ──
-  // Dùng ref để AuthHandler có thể ghi vào mà không cần prop drilling
-  const recordActivityRef = useRef(null);
+const [fontsLoaded] = useFonts({
+  'Inter-Regular': require('./src/assets/fonts/Inter_18pt-Regular.ttf'),
+  'Inter-Medium': require('./src/assets/fonts/Inter_18pt-Medium.ttf'), 
+  'Inter-ExtraBold': require('./src/assets/fonts/Inter_18pt-ExtraBold.ttf'),
+  'Inter-Italic': require('./src/assets/fonts/Inter_18pt-Italic.ttf'),
+});
 
-  return (
-    <ConfigContext.Provider value={config}>
-      <UserProvider>
-        <NavigationContainer ref={navigationRef}>
-          <StatusBar style="auto" />
-          <AuthHandler
-            navigationRef={navigationRef}
-            setConfig={setConfig}
-            recordActivityRef={recordActivityRef}
-          />
-          {/*
-            View bắt mọi thao tác chạm trong toàn app.
-            onStartShouldSetResponder trả về false → sự kiện vẫn đi xuống bình thường,
-            không ảnh hưởng UI hay các button bên dưới.
-          */}
-          <View
-            style={{ flex: 1 }}
-            onStartShouldSetResponder={() => {
-              recordActivityRef.current?.();
-              return false;
-            }}
-            onMoveShouldSetResponder={() => {
-              recordActivityRef.current?.();
-              return false;
-            }}
-          >
-            <AppNavigator />
-          </View>
-        </NavigationContainer>
-      </UserProvider>
-    </ConfigContext.Provider>
+// --- 2. CHỐT CHẶN AN TOÀN (Của Chiến) ---
+if (!fontsLoaded) {
+  return null; 
+}
+
+// --- 3. RENDER UI DUNG HỢP (Bao bọc Config của Duy và AppNavigator chung) ---
+return (
+  <ConfigContext.Provider value={config}>
+    <UserProvider>
+      <NavigationContainer ref={navigationRef}>
+        <StatusBar style="auto" />
+        
+        <AuthHandler
+          navigationRef={navigationRef}
+          setConfig={setConfig}
+          recordActivityRef={recordActivityRef}
+        />
+        
+        {/* Lớp áo bắt sự kiện touch của Duy bọc bên ngoài luồng Navigation */}
+        <View
+          style={{ flex: 1 }}
+          onStartShouldSetResponder={() => {
+            recordActivityRef.current?.();
+            return false;
+          }}
+          onMoveShouldSetResponder={() => {
+            recordActivityRef.current?.();
+            return false;
+          }}
+        >
+          <AppNavigator />
+        </View>
+        
+      </NavigationContainer>
+    </UserProvider>
+  </ConfigContext.Provider>
   );
 }
+

@@ -6,12 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 
-// ── THÊM 3 IMPORT NÀY ĐỂ XỬ LÝ ĐĂNG XUẤT VÀ XÓA DỮ LIỆU ──
+// ── IMPORT XỬ LÝ ĐĂNG XUẤT VÀ XÓA DỮ LIỆU CỦA DUY / CHIẾN ──
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 
-// Import các Screens chính - STUDENT
+// ── Import các Screens chính - STUDENT (Duy) ──
 import Dashboard_Thi_Sinh from '../Screens_Duy/Dashboard_Thi_Sinh';
 import Profile_Thi_Sinh from '../Screens_Duy/Profile_Thi_Sinh';
 import Man_Hinh_Lam_Bai from '../Screens_Duy/Man_Hinh_Lam_Bai';
@@ -24,7 +24,7 @@ import Ket_Qua_Dummy from '../Screens_Duy/Ket_Qua_Dummy';
 import Login from '../Screens_Duy/Login';
 import Register from '../Screens_Duy/Register';
 
-// ── Import các Screens dành cho TEACHER / ADMIN từ Screens_Duc ──
+// ── Import các Screens dành cho TEACHER / ADMIN (Đức) ──
 import DashboardScreen from '../Screens_Duc/DashboardScreen';
 import StudentsScreen from '../Screens_Duc/StudentsScreen';
 import ProfileScreen from '../Screens_Duc/ProfileScreen';
@@ -34,9 +34,20 @@ import CreateExamStep3Screen from '../Screens_Duc/CreateExamStep3Screen';
 import CreateClass1Screen from '../Screens_Duc/CreateClass1Screen';
 import CreateClass2Screen from '../Screens_Duc/CreateClass2Screen';
 
-// ── Placeholder screens cho các role chưa có màn hình riêng ──
+// ── Import các Screens UI Thống kê / Onboarding (Chiến) ──
+import AdminChartScreen from '../src/screens/AdminChartScreen';
+import AdminConfigScreen from '../src/screens/AdminConfigScreen';
+import AdminDashboardScreen from '../src/screens/AdminDashboardScreen';
+import LoadingScreen from '../src/screens/LoadingScreen';
+import Onboarding1 from '../src/screens/Onboarding1';
+import Onboarding2 from '../src/screens/Onboarding2';
+import Onboarding3 from '../src/screens/Onboarding3';
+
+// ── Placeholder screens ──
 const ClassesScreen = () => (
-  <View style={styles.placeholder}><Text>Classes Screen</Text></View>
+  <View style={styles.placeholder}>
+    <Text>Classes Screen</Text>
+  </View>
 );
 
 // Component rỗng để gán tạm cho tab Exams - chỉ dùng listeners để redirect
@@ -53,10 +64,7 @@ function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: [
-          styles.tabBar,
-          { bottom: insets.bottom + 1 },
-        ],
+        tabBarStyle: [styles.tabBar, { bottom: insets.bottom + 1 }],
         tabBarItemStyle: { flex: 1 },
         tabBarIcon: ({ focused }) => {
           let iconName;
@@ -108,10 +116,7 @@ function MainTabNavigatorAdmin({ navigation }) {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarStyle: [
-          styles.tabBarAdmin,
-          { bottom: insets.bottom + 1 },
-        ],
+        tabBarStyle: [styles.tabBarAdmin, { bottom: insets.bottom + 1 }],
         tabBarItemStyle: { flex: 1 },
         tabBarActiveTintColor: '#F57C00',
         tabBarInactiveTintColor: '#94a3b8',
@@ -139,6 +144,37 @@ function MainTabNavigatorAdmin({ navigation }) {
               <Text style={[styles.tabLabel, focused && styles.tabLabelActiveAdmin]}>
                 {label}
               </Text>
+
+              {/* Nút quay về Login - LOGIC XÓA DỮ LIỆU ĐỂ CHẶN AUTO LOGIN CỦA CHIẾN */}
+              {route.name === 'AdminProfile' && (
+                <TouchableOpacity
+                  onPress={async () => {
+                    try {
+                      await AsyncStorage.multiRemove([
+                        'atoza_last_active',
+                        'atoza_session_uid',
+                        'pending_login_role',
+                        'userRole',
+                        'userName',
+                      ]);
+                      await signOut(auth);
+                      navigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{ name: 'Login' }],
+                        })
+                      );
+                    } catch (error) {
+                      console.error('Lỗi đăng xuất:', error);
+                    }
+                  }}
+                  style={{ marginTop: 6 }}
+                >
+                  <Text style={{ fontSize: 11, color: '#ef4444' }}>
+                    Quay về Login
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           );
         },
@@ -147,7 +183,7 @@ function MainTabNavigatorAdmin({ navigation }) {
       <Tab.Screen name="AdminHome" component={DashboardScreen} />
       <Tab.Screen name="AdminStudents" component={StudentsScreen} />
       
-      {/* Tab "Exams" sử dụng listeners để redirect tới CreateExamStep1 */}
+      {/* Tab "Exams" sử dụng listeners để redirect tới CreateExamStep1 của Đức */}
       <Tab.Screen 
         name="AdminExams" 
         component={EmptyScreen}
@@ -167,10 +203,19 @@ function MainTabNavigatorAdmin({ navigation }) {
 export default function AppNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Login" //màn hình đầu tiên hiển thị khi chạy dự án là screen này
+      initialRouteName="Loading"
       screenOptions={{ headerShown: false }}
     >
-      {/* ── Auth ── */}
+      {/* ── Khu vực UI Loading & Onboarding (Chiến) ── */}
+      <Stack.Screen name="Loading" component={LoadingScreen} />
+      <Stack.Screen name="DashboardAdmin" component={AdminDashboardScreen} />
+      <Stack.Screen name="ChartAdmin" component={AdminChartScreen} />
+      <Stack.Screen name="ConfigAdmin" component={AdminConfigScreen} />
+      <Stack.Screen name="FirstOnboarding" component={Onboarding1} />
+      <Stack.Screen name="SecondOnboarding" component={Onboarding2} />
+      <Stack.Screen name="ThirdOnboarding" component={Onboarding3} />
+
+      {/* ── Khu vực Auth (Duy) ── */}
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Register" component={Register} />
 
@@ -184,15 +229,12 @@ export default function AppNavigator() {
       <Stack.Screen name="Chi_Tiet_Dap_An" component={Chi_Tiet_Dap_An} />
 
       {/* ── Teacher / Admin area ── */}
-      {/* Login & Register đều navigate sang 'MainTabsAdmin' cho role teacher/admin */}
       <Stack.Screen name="MainTabsAdmin" component={MainTabNavigatorAdmin} />
       
-      {/* ── Exam Creation Flow (outside Tab Navigator) ── */}
+      {/* ── Exam & Class Creation Flow (Đức) ── */}
       <Stack.Screen name="CreateExamStep1" component={CreateExamStep1Screen} />
       <Stack.Screen name="CreateExamStep2" component={CreateExamStep2Screen} />
       <Stack.Screen name="CreateExamStep3" component={CreateExamStep3Screen} />
-
-      {/* ── Class Creation Flow (outside Tab Navigator) ── */}
       <Stack.Screen name="CreateClass1" component={CreateClass1Screen} />
       <Stack.Screen name="CreateClass2" component={CreateClass2Screen} />
     </Stack.Navigator>

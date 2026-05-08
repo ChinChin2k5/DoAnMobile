@@ -1,0 +1,3 @@
+Hosting URL: https://app-atoza.web.app
+
+-Sử dụng URL đã deploy qua Firebase Hosting
