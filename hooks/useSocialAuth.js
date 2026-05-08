@@ -138,10 +138,10 @@ export function useSocialAuth({ setUserName, setUserRole, navigation, activeRole
     // Google.useAuthRequest:
     //  - Tạo config & trả về hàm gPromptAsync dùng cho Android/iOS.
     //  - gResponse hiện không dùng trực tiếp (nên để dấu , phía trước).
-    const [, gResponse, gPromptAsync] = Google.useAuthRequest({
-        webClientId: GOOGLE_WEB_CLIENT, // Client ID Web đã khai báo ở trên
-        prompt: 'select_account',       // Ép Google popup cho phép chọn lại tài khoản
-    });
+    //const [, gResponse, gPromptAsync] = Google.useAuthRequest({
+        //webClientId: GOOGLE_WEB_CLIENT, // Client ID Web đã khai báo ở trên
+        //prompt: 'select_account',       // Ép Google popup cho phép chọn lại tài khoản
+    //});
 
     // Facebook.useAuthRequest:
     //  - Tương tự Google nhưng dành cho Facebook

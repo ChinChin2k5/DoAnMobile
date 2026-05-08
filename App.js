@@ -4,6 +4,12 @@ import { Platform, View, ActivityIndicator, Text, AppState } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './navigation/AppNavigator';
 import { StatusBar } from 'expo-status-bar';
+
+// --- Đồ nghề của Kỹ sư Chiến (UI & Đa ngôn ngữ) ---
+import { useFonts } from 'expo-font';
+import './i18n';
+
+// --- Đồ nghề của thanh niên Duy (Auth & DB) ---
 import { UserProvider, UserContext } from './context/UserContext';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -12,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ── Import ConfigContext ──
 import { ConfigContext, DEFAULT_CONFIG } from './context/ConfigContext';
+
 
 // ─────────────────────────────────────────────
 // Hằng số key AsyncStorage
@@ -315,43 +322,54 @@ function AuthHandler({ navigationRef, setConfig, recordActivityRef }) {
 // Root App
 // ─────────────────────────────────────────────
 export default function App() {
-  const navigationRef = React.useRef(null);
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
+// --- 1. KHAI BÁO HOOKS CỦA DUY VÀ CHIẾN Ở TRÊN CÙNG (Quy tắc React) ---
+const navigationRef = useRef(null);
+const [config, setConfig] = useState(DEFAULT_CONFIG); // *Lưu ý: Chắc chắn trên đầu file có import DEFAULT_CONFIG rồi nhé
+const recordActivityRef = useRef(null);
 
-  // ── recordActivity được tạo ở đây để truyền xuống View bắt touch ──
-  // Dùng ref để AuthHandler có thể ghi vào mà không cần prop drilling
-  const recordActivityRef = useRef(null);
+const [fontsLoaded] = useFonts({
+  'Inter-Regular': require('./src/assets/fonts/Inter_18pt-Regular.ttf'),
+  'Inter-Medium': require('./src/assets/fonts/Inter_18pt-Medium.ttf'), 
+  'Inter-ExtraBold': require('./src/assets/fonts/Inter_18pt-ExtraBold.ttf'),
+  'Inter-Italic': require('./src/assets/fonts/Inter_18pt-Italic.ttf'),
+});
 
-  return (
-    <ConfigContext.Provider value={config}>
-      <UserProvider>
-        <NavigationContainer ref={navigationRef}>
-          <StatusBar style="auto" />
-          <AuthHandler
-            navigationRef={navigationRef}
-            setConfig={setConfig}
-            recordActivityRef={recordActivityRef}
-          />
-          {/*
-            View bắt mọi thao tác chạm trong toàn app.
-            onStartShouldSetResponder trả về false → sự kiện vẫn đi xuống bình thường,
-            không ảnh hưởng UI hay các button bên dưới.
-          */}
-          <View
-            style={{ flex: 1 }}
-            onStartShouldSetResponder={() => {
-              recordActivityRef.current?.();
-              return false;
-            }}
-            onMoveShouldSetResponder={() => {
-              recordActivityRef.current?.();
-              return false;
-            }}
-          >
-            <AppNavigator />
-          </View>
-        </NavigationContainer>
-      </UserProvider>
-    </ConfigContext.Provider>
+// --- 2. CHỐT CHẶN AN TOÀN (Của Chiến) ---
+if (!fontsLoaded) {
+  return null; 
+}
+
+// --- 3. RENDER UI DUNG HỢP (Bao bọc Config của Duy và AppNavigator chung) ---
+return (
+  <ConfigContext.Provider value={config}>
+    <UserProvider>
+      <NavigationContainer ref={navigationRef}>
+        <StatusBar style="auto" />
+        
+        <AuthHandler
+          navigationRef={navigationRef}
+          setConfig={setConfig}
+          recordActivityRef={recordActivityRef}
+        />
+        
+        {/* Lớp áo bắt sự kiện touch của Duy bọc bên ngoài luồng Navigation */}
+        <View
+          style={{ flex: 1 }}
+          onStartShouldSetResponder={() => {
+            recordActivityRef.current?.();
+            return false;
+          }}
+          onMoveShouldSetResponder={() => {
+            recordActivityRef.current?.();
+            return false;
+          }}
+        >
+          <AppNavigator />
+        </View>
+        
+      </NavigationContainer>
+    </UserProvider>
+  </ConfigContext.Provider>
   );
 }
+
