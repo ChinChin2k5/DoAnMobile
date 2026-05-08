@@ -1,26 +1,15 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Platform,
-  TouchableOpacity,
-} from "react-native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
+// navigation/AppNavigator.js
+import React from 'react';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 
-// Cơ chế của Navigation
-// Ví dụ, screen 1 khi bấm chuyển sang screen 2 thì screen 2 sẽ chồng lên screen 1
-// screen 1 không chết, nó chỉ bị che khuất thôi
-
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CommonActions } from "@react-navigation/native";
-
-// ── THÊM 3 IMPORT NÀY ĐỂ XỬ LÝ ĐĂNG XUẤT VÀ XÓA DỮ LIỆU CỦA DUY ──
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 // Import các Screens chính
 import Dashboard_Thi_Sinh from "../Screens_Duy/Dashboard_Thi_Sinh";
 import Profile_Thi_Sinh from "../Screens_Duy/Profile_Thi_Sinh";
@@ -65,7 +54,7 @@ const TeacherAdminPlaceholder = () => (
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ── Bottom Tab Navigator dành cho 'student' ──
+// ── Bottom Tab Navigator — Student ──
 function MainTabNavigator() {
   const insets = useSafeAreaInsets();
   return (
@@ -109,18 +98,17 @@ function MainTabNavigator() {
       })}
     >
       <Tab.Screen name="Dashboard" component={Dashboard_Thi_Sinh} />
-      <Tab.Screen name="Classes" component={ClassesScreen} />
+      {/* ── Classes: đã có màn hình thật thay vì placeholder ── */}
+      <Tab.Screen name="Classes" component={Classes_Thi_Sinh} />
       <Tab.Screen name="History" component={Lich_Su_Lam_Bai} />
       <Tab.Screen name="Profile" component={Profile_Thi_Sinh} />
     </Tab.Navigator>
   );
 }
 
-// ── Bottom Tab Navigator dành cho 'teacher' / 'admin' ──
-// Thay TeacherAdminPlaceholder bằng các screen thật khi sẵn sàng
+// ── Bottom Tab Navigator — Teacher / Admin ──
 function MainTabNavigatorAdmin({ navigation }) {
   const insets = useSafeAreaInsets();
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -167,7 +155,6 @@ function MainTabNavigatorAdmin({ navigation }) {
                 <TouchableOpacity
                   onPress={async () => {
                     try {
-                      // 1. Xóa các key chặn Auto-login trong AsyncStorage
                       await AsyncStorage.multiRemove([
                         "atoza_last_active",
                         "atoza_session_uid",
@@ -175,8 +162,6 @@ function MainTabNavigatorAdmin({ navigation }) {
                         "userRole",
                         "userName",
                       ]);
-
-                      // 2. Đăng xuất khỏi Firebase để clear hoàn toàn Auth session
                       await signOut(auth);
 
                       // 3. Reset stack và đưa về Login
@@ -187,7 +172,7 @@ function MainTabNavigatorAdmin({ navigation }) {
                         })
                       );
                     } catch (error) {
-                      console.error("Lỗi đăng xuất:", error);
+                      console.error('Lỗi đăng xuất:', error);
                     }
                   }}
                   style={{ marginTop: 6 }}
@@ -242,8 +227,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Ket_Qua_Dummy" component={Ket_Qua_Dummy} />
       <Stack.Screen name="Chi_Tiet_Dap_An" component={Chi_Tiet_Dap_An} />
 
-      {/* ── Teacher / Admin area ── */}
-      {/* Login & Register đều navigate sang 'MainTabsAdmin' cho role teacher/admin */}
+      {/* Teacher / Admin */}
       <Stack.Screen name="MainTabsAdmin" component={MainTabNavigatorAdmin} />
     </Stack.Navigator>
   );

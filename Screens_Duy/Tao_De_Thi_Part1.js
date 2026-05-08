@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { UserContext } from '../context/UserContext';
+import { auth } from '../firebaseConfig';
 
 const defaultQuestion = {
   text: '',
@@ -224,8 +225,9 @@ export default function Tao_De_Thi_Part1({ navigation }) {
     // Đóng gói toàn bộ dữ liệu
     const examData = {
       description: examDesc.trim(),
-      questions: questions, // Mảng các câu hỏi đã soạn/import
-      creatorName: userName, // Lấy từ UserContext
+      questions: questions,
+      creatorName: userName, // có tác dụng hiển thị trên giao diện
+      creatorUid: auth.currentUser?.uid, // Định danh duy nhất của người tạo
       createdAt: new Date().toISOString(),
     };
     // Truyền sang màn hình Part 2
