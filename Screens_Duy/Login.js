@@ -26,6 +26,9 @@ import { db, auth } from '../firebaseConfig';
 // ── Social Auth Hook ──
 // useSocialAuth: hook xử lý đăng nhập Google/Phone, nằm ở hooks/useSocialAuth.js
 import { useSocialAuth } from '../hooks/useSocialAuth';
+if (!process.env.ANDROID_CLIENT_ID) {
+    process.env.ANDROID_CLIENT_ID = "google-web-client-id-fake";
+  }
 
 const { width } = Dimensions.get('window');
 
@@ -246,9 +249,9 @@ export default function Login({ navigation }) {
 
     // Admin ẩn: giữ logo 3 giây
     const handleLogoPressIn = () => {
-        Animated.spring(logoScale, { toValue: 0.85, useNativeDriver: true }).start();
+        Animated.spring(logoScale, { toValue: 0.85, useNativeDriver: false }).start();
         logoTimer.current = setTimeout(() => {
-            Animated.spring(logoScale, { toValue: 1, useNativeDriver: true }).start();
+            Animated.spring(logoScale, { toValue: 1, useNativeDriver: false }).start();
             //  Thay vì vào thẳng Admin, mở Modal yêu cầu khóa bảo mật
             setIsAdminModalVisible(true);
             setAdminKey('');
@@ -258,7 +261,7 @@ export default function Login({ navigation }) {
 
     const handleLogoPressOut = () => {
         if (logoTimer.current) { clearTimeout(logoTimer.current); logoTimer.current = null; }
-        Animated.spring(logoScale, { toValue: 1, useNativeDriver: true }).start();
+        Animated.spring(logoScale, { toValue: 1, useNativeDriver: false }).start();
     };
 
     // Hàm xử lý kiểm tra mã bí mật của Admin
@@ -278,7 +281,7 @@ export default function Login({ navigation }) {
             await AsyncStorage.setItem('pending_login_role', 'Admin');
             setUserName('Quản trị viên (Bù nhìn)');
             setUserRole('Admin');
-            navigation.navigate('MainTabsAdmin');
+            navigation.navigate('DashboardAdmin');
         } else {
             setAdminKeyError('Khóa bảo mật không chính xác. Quyền truy cập bị từ chối!');
         }
