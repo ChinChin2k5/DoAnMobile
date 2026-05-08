@@ -10,14 +10,6 @@ import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CommonActions } from "@react-navigation/native";
-
-// ── THÊM 3 IMPORT NÀY ĐỂ XỬ LÝ ĐĂNG XUẤT VÀ XÓA DỮ LIỆU CỦA DUY ──
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
 // Import các Screens chính
 import Dashboard_Thi_Sinh from "../Screens_Duy/Dashboard_Thi_Sinh";
 import Profile_Thi_Sinh from "../Screens_Duy/Profile_Thi_Sinh";
