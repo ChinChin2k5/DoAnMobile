@@ -2,14 +2,14 @@
 import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import { 
   View, Text, StyleSheet, SafeAreaView, TouchableOpacity, 
-  ScrollView, Animated, Dimensions, Image, Alert
+  ScrollView, Animated, Dimensions, Image, Alert,Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // --- IMPORT FIREBASE VÀ CONTEXT ---
 import { db } from '../firebaseConfig';
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { UserContext } from '../context/UserContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -33,45 +33,24 @@ const SkeletonItem = ({ width, height, borderRadius = 4, style }) => {
 };
 
 export default function Man_Hinh_Lam_Bai({ navigation, route }) {
-  const { userName } = useContext(UserContext); // Lấy tên user để lưu lịch sử
+  const { userName } = useContext(UserContext); 
   
-  // --- NHẬN DỮ LIỆU TỪ ROUTE PARAMS (TỪ DASHBOARD TRUYỀN SANG) ---
-  const { 
-    examId = 'e1', 
-    title = 'Đang tải bài thi...',
-    duration = 15, // Thời gian thi (phút) nhận từ Part 2
-    questions = [] // Mảng câu hỏi thực tế tạo từ Part 1
-  } = route?.params || {};
-
-  // --- CHUYỂN ĐỔI DATA CÂU HỎI TỪ Tao_De_Thi_PART 1 SANG FORMAT CỦA MÀN LÀM BÀI ---
-  // hàm 'useMemo' để dịch mảng questions (được gửi sang từ firebase qua Dashboard thành)
-  const questionsList = useMemo(() => {
-    if (questions.length === 0) return []; // Tránh lỗi nếu không có câu hỏi
-    return questions.map((q, i) => ({
-        id: `q${i}`,
-        content: q.text || 'Câu hỏi trống',
-        correctIndex: q.correctIndex, // Lưu lại đáp án đúng (0,1,2 tương ứng A,B,C)
-        options: q.options.map((optText, optIdx) => ({
-            id: String(optIdx), // '0', '1', '2'
-            text: optText
-        }))
-    }));
-  }, [questions]);
+  // --- NHẬN DỮ LIỆU TỪ ROUTE PARAMS ---
+  const { examId, examData } = route?.params || {};
 
   // --- STATES ---
+  const [currentExam, setCurrentExam] = useState(examData || null);
+  const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false); 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [flagged, setFlagged] = useState([]);
   
-  // Tính tổng số giây dựa trên 'duration' thay vì fix cứng 40 phút
-  const initialSeconds = duration * 60;
-  const [timeLeft, setTimeLeft] = useState(initialSeconds);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [targetEndTime, setTargetEndTime] = useState(null); 
-  const [isReady, setIsReady] = useState(false); 
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
-  const currentQuestion = questionsList[currentIndex] || { content: '', options: [] };
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -79,48 +58,74 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   // 2. KHỞI TẠO BÀI THI & ĐỒNG BỘ THỜI GIAN
   // =========================================================
   useEffect(() => {
-    if (questionsList.length === 0) {
-        Alert.alert("Lỗi", "Bài thi này không có câu hỏi nào!", [{ text: "Trở về", onPress: () => navigation.goBack() }]);
-        return;
-    }
-
-    const initExam = async () => {
+    const loadExamAndQuestions = async () => {
       try {
-        const savedData = await AsyncStorage.getItem(`exam_progress_${examId}`);
-        if (savedData) {
-          const { savedAnswers, savedFlagged, endTime } = JSON.parse(savedData);
-          if (savedAnswers) setAnswers(savedAnswers);
-          if (savedFlagged) setFlagged(savedFlagged);
-          
-          if (endTime) {
-            const remaining = Math.round((endTime - Date.now()) / 1000);
-            if (remaining > 0) {
-              setTargetEndTime(endTime);
-              setTimeLeft(remaining);
-            } else {
-              setTimeLeft(0);
-              handleForceSubmit();
-              return;
-            }
-          }
-        } else {
-          const newEndTime = Date.now() + initialSeconds * 1000; 
-          setTargetEndTime(newEndTime);
-          setTimeLeft(initialSeconds);
-          await AsyncStorage.setItem(`exam_progress_${examId}`, JSON.stringify({
-            savedAnswers: {}, savedFlagged: [], endTime: newEndTime
-          }));
-        }
-        setIsReady(true); 
-      } catch (e) { console.error("Lỗi khởi tạo bài thi", e); }
-    };
-    
-    const timer = setTimeout(() => {
-      initExam().finally(() => setIsLoading(false));
-    }, 750);
-    return () => clearTimeout(timer);
-  }, [examId, questionsList]);
+        setIsLoading(true);
+        let data = examData;
 
+        // Nếu không có examData nhưng có ID, tải từ Firebase
+        if (!data && examId) {
+          const docRef = doc(db, "exams", examId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            data = { id: docSnap.id, ...docSnap.data() };
+          }
+        }
+
+        // Kiểm tra dữ liệu cuối cùng
+        if (data && data.questions && data.questions.length > 0) {
+          setCurrentExam(data);
+          setQuestions(data.questions);
+
+          // Xử lý bộ đếm thời gian
+          const initialSeconds = (data.duration || 15) * 60;
+          const savedData = await AsyncStorage.getItem(`exam_progress_${examId}`);
+          
+          if (savedData) {
+            const { savedAnswers, savedFlagged, endTime } = JSON.parse(savedData);
+            if (savedAnswers) setAnswers(savedAnswers);
+            if (savedFlagged) setFlagged(savedFlagged);
+            
+            if (endTime) {
+              const remaining = Math.round((endTime - Date.now()) / 1000);
+              if (remaining > 0) {
+                setTargetEndTime(endTime);
+                setTimeLeft(remaining);
+              } else {
+                setTimeLeft(0);
+                setIsReady(true);
+                handleForceSubmit(); // Nộp luôn nếu hết giờ
+                return;
+              }
+            }
+          } else {
+            const newEndTime = Date.now() + initialSeconds * 1000; 
+            setTargetEndTime(newEndTime);
+            setTimeLeft(initialSeconds);
+            await AsyncStorage.setItem(`exam_progress_${examId}`, JSON.stringify({
+              savedAnswers: {}, savedFlagged: [], endTime: newEndTime
+            }));
+          }
+          setIsReady(true);
+        } else {
+          Alert.alert(
+            "Thông báo", 
+            "Không tìm thấy câu hỏi trong đề thi này!",
+            [{ text: "Quay lại", onPress: () => navigation.goBack() }]
+          );
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải đề thi:", error);
+        Alert.alert("Lỗi", "Không thể tải dữ liệu đề thi. Vui lòng kiểm tra kết nối mạng.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExamAndQuestions();
+  }, [examId, examData]);
+
+  // Đồng bộ quá trình làm bài
   useEffect(() => {
     if (isReady && targetEndTime) {
       AsyncStorage.setItem(`exam_progress_${examId}`, JSON.stringify({
@@ -129,6 +134,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
     }
   }, [answers, flagged, targetEndTime, isReady]);
 
+  // Đếm ngược
   useEffect(() => {
     if (!targetEndTime || timeLeft <= 0) return;
     const timer = setInterval(() => {
@@ -136,9 +142,16 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       if (remaining <= 0) {
         clearInterval(timer);
         setTimeLeft(0);
-        Alert.alert("Hết giờ!", "Hệ thống tự động nộp bài của bạn.", [
-          { text: "Đồng ý", onPress: handleForceSubmit }
-        ]);
+        
+        // SỬA TẠI ĐÂY: Hỗ trợ nộp bài hết giờ trên Web
+        if (Platform.OS === 'web') {
+            window.alert("Hết giờ! Hệ thống tự động nộp bài của bạn.");
+            handleForceSubmit();
+        } else {
+            Alert.alert("Hết giờ!", "Hệ thống tự động nộp bài của bạn.", [
+              { text: "Đồng ý", onPress: handleForceSubmit }
+            ]);
+        }
       } else {
         setTimeLeft(remaining);
       }
@@ -147,7 +160,25 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   }, [targetEndTime]);
 
   // =========================================================
-  // 3. LOGIC LÀM BÀI VÀ NỘP BÀI
+  // 3. CHUẨN BỊ DỮ LIỆU HIỂN THỊ
+  // =========================================================
+  const questionsList = useMemo(() => {
+    if (questions.length === 0) return []; 
+    return questions.map((q, i) => ({
+        id: `q${i}`,
+        content: q.text || 'Câu hỏi trống',
+        correctIndex: q.correctIndex, 
+        options: q.options.map((optText, optIdx) => ({
+            id: String(optIdx), 
+            text: optText
+        }))
+    }));
+  }, [questions]);
+
+  const currentQuestion = questionsList[currentIndex] || { content: '', options: [] };
+
+  // =========================================================
+  // 4. LOGIC TƯƠNG TÁC
   // =========================================================
   const handleSelectOption = (optionId) => {
     setAnswers(prev => ({ ...prev, [currentQuestion.id]: optionId }));
@@ -167,13 +198,19 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   };
 
   const handleSubmit = () => {
-    Alert.alert("Nộp bài", "Bạn có chắc chắn muốn nộp bài không?", [
-      { text: "Hủy", style: "cancel" },
-      { text: "Đồng ý", onPress: handleForceSubmit }
-    ]);
+    if (Platform.OS === 'web') {
+        const isConfirm = window.confirm("Bạn có chắc chắn muốn nộp bài không?");
+        if (isConfirm) {
+            handleForceSubmit();
+        }
+    } else {
+        Alert.alert("Nộp bài", "Bạn có chắc chắn muốn nộp bài không?", [
+          { text: "Hủy", style: "cancel" },
+          { text: "Đồng ý", onPress: handleForceSubmit }
+        ]);
+    }
   };
 
-  // HÀM CHÍNH: XỬ LÝ CHẤM ĐIỂM & ĐẨY LÊN FIREBASE
   const handleForceSubmit = async () => {
     await AsyncStorage.removeItem(`exam_progress_${examId}`);
     
@@ -184,13 +221,14 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
         }
     });
     const score = ((correctCount / questionsList.length) * 10).toFixed(2);
+    
+    const initialSeconds = (currentExam?.duration || 15) * 60;
     const timeTaken = initialSeconds - timeLeft;
 
-    // GÓI DỮ LIỆU CHUẨN ĐỂ TRUYỀN SANG MÀN HÌNH KẾT QUẢ
     const resultData = {
         examId: examId,
-        examTitle: title,
-        studentName: userName, // Bổ sung tên thí sinh
+        examTitle: currentExam?.title || 'Bài thi',
+        studentName: userName,
         score: Number(score),
         correctCount: correctCount,
         totalQuestions: questionsList.length,
@@ -208,13 +246,11 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
         console.error("Lỗi khi lưu lịch sử: ", e);
     }
 
-    const allowRetake = route?.params?.rawConfig?.rules?.allowRetake || false;
+    const allowRetake = currentExam?.config?.rules?.allowRetake || false;
 
     if (allowRetake) {
-      //Nếu cho phép thi lại nhiều lần, Screen này sẽ hiện ra
-        navigation.replace('Ket_Qua_Dummy', { resultData });
+        navigation.replace('Ket_Qua_Va_Phan_Tich', { resultData });
     } else {
-        // TRUYỀN DỮ LIỆU ĐI: Đảm bảo nhận các dữ liệu của bài thi này { resultData }
         navigation.replace('Ket_Qua_Va_Phan_Tich', { resultData });
     }
   };
@@ -245,19 +281,12 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
     ]).start(() => setIsSheetVisible(false));
   };
 
-  // ... (PHẦN RENDER SKELETON)
-  // if (isLoading || !isReady) {
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //         {/* Bạn có thể paste lại toàn bộ giao diện Skeleton cũ vào đây cho gọn */}
-  //         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}><Text>Đang tải bài thi...</Text></View>
-  //     </SafeAreaView>
-  //   );
-  // }
+  // ==========================================
+  // 5. RENDER SKELETON
+  // ==========================================
   if (isLoading || !isReady) {
     return (
       <SafeAreaView style={styles.container}>
-        {/* Skeleton Header: Nút back, Tiêu đề bài thi và Avatar */}
         <View style={styles.header}>
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
             <SkeletonItem width={24} height={24} borderRadius={12} />
@@ -266,18 +295,15 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           <SkeletonItem width={36} height={36} borderRadius={18} />
         </View>
 
-        {/* Skeleton Progress Bar: Thanh tiến độ và phần trăm */}
         <View style={styles.progressSection}>
           <SkeletonItem width="85%" height={6} borderRadius={3} style={{ marginRight: 12 }} />
           <SkeletonItem width={30} height={14} />
         </View>
 
-        {/* Skeleton Timer: Khối thời gian đếm ngược */}
         <View style={styles.timerContainer}>
           <SkeletonItem width={60} height={20} />
         </View>
 
-        {/* Skeleton Question Header: Số thứ tự câu và các nút công cụ */}
         <View style={styles.questionHeader}>
           <SkeletonItem width={100} height={24} />
           <View style={styles.actionIcons}>
@@ -286,7 +312,6 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           </View>
         </View>
 
-        {/* Skeleton Content: Nội dung câu hỏi và các đáp án */}
         <ScrollView style={styles.contentArea} showsVerticalScrollIndicator={false}>
           <View style={styles.questionCard}>
             <SkeletonItem width="100%" height={20} style={{ marginBottom: 8 }} />
@@ -295,7 +320,6 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           </View>
 
           <View style={styles.optionsContainer}>
-            {/* Tạo giả 4 đáp án A, B, C, D */}
             {[1, 2, 3, 4].map((item) => (
               <View key={item} style={styles.optionItem}>
                 <SkeletonItem width={22} height={22} borderRadius={11} style={{ marginRight: 15 }} />
@@ -305,7 +329,6 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
           </View>
         </ScrollView>
 
-        {/* Skeleton Footer: 2 nút điều hướng Trái/Phải */}
         <View style={styles.footer}>
           <SkeletonItem width="48%" height={50} borderRadius={8} />
           <SkeletonItem width="48%" height={50} borderRadius={8} />
@@ -315,14 +338,14 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   }
 
   // ==========================================
-  // RENDER GIAO DIỆN LÀM BÀI THẬT
+  // 6. RENDER GIAO DIỆN LÀM BÀI
   // ==========================================
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={20} color="#1e293b" />
-          <Text style={styles.backText} numberOfLines={1}>{title}</Text>
+          <Text style={styles.backText} numberOfLines={1}>{currentExam?.title || 'Đang làm bài...'}</Text>
         </TouchableOpacity>
         <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png' }} style={styles.avatar} />
       </View>
@@ -410,7 +433,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Bảng câu hỏi</Text>
               <View style={styles.sheetBadge}>
-                <Text style={styles.sheetBadgeText}>{mockQuestions.length} câu</Text>
+                <Text style={styles.sheetBadgeText}>{questionsList.length} câu</Text>
               </View>
             </View>
 
@@ -441,7 +464,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
 
             <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
                 <View style={styles.gridContainer}>
-                {mockQuestions.map((q, i) => {
+                {questionsList.map((q, i) => {
                     const isCurrent = i === currentIndex;
                     const isFlagged = flagged.includes(q.id);
                     const isAnswered = !!answers[q.id];

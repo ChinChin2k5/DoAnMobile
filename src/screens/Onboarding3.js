@@ -29,7 +29,7 @@ export default function Onboarding3({navigation}) {
          onPress={() => navigation.reset({
           index: 0, // Chỉ định đĩa nào sẽ nằm trên cùng (thường là 0)
           routes: [
-            { name: 'DashboardAdmin' }, // Đây là danh sách các đĩa mới. 
+            { name: 'Login' }, // Đây là danh sách các đĩa mới. 
           ],
         })} 
         iconName="arrow-forward"/>

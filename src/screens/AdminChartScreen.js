@@ -85,16 +85,22 @@ export default function ChartAdminScreen() {
         });
       }
 
-      const examsSnapshot = await getDocs(collection(db, "Exams"));
+      const examsSnapshot = await getDocs(collection(db, "exams"));
       let totalExamsCount = 0;
       let domainCounts = {};
 
       examsSnapshot.forEach((examDoc) => {
         const examData = examDoc.data();
-        if (examData.domain) {
-          domainCounts[examData.domain] = (domainCounts[examData.domain] || 0) + 1;
-          totalExamsCount++;
-        }
+        
+        // 2. CHUI VÀO TRONG MẢNG QUESTIONS ĐỂ MÓC DOMAIN RA!!!
+        const questions = examData.questionsList || examData.questions || [];
+        
+        questions.forEach((q) => {
+          if (q.domain) {
+            domainCounts[q.domain] = (domainCounts[q.domain] || 0) + 1;
+            totalExamsCount++; // Đếm dựa trên số câu hỏi có domain
+          }
+        });
       });
 
       if (totalExamsCount > 0) {

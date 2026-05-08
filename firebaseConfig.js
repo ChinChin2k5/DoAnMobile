@@ -1,13 +1,9 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-//tạm ẩn Analytics để tránh lỗi trên máy ảo trên App Expo
-//import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAuth, initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBQ_xApMP9oplsXKexvlDbo9oxIIRtuTB8",
   authDomain: "app-atoza.firebaseapp.com",
@@ -18,8 +14,29 @@ const firebaseConfig = {
   measurementId: "G-QFQ4X4VY87"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-//const analytics = getAnalytics(app); //tạm ẩn để tránh lỗi trên App Expo
-//Bắt buộc phải khởi tạo và xuất ra ngoài (CẤM ĐỘNG VÀO)
-export const db=getFirestore(app);
+// Khởi tạo an toàn: Có rồi thì lấy dùng lại, chưa có thì tạo mới
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+let auth;
+
+// Phân tách lưu trữ rõ ràng giữa Web và Mobile
+if (Platform.OS === 'web') {
+  // Web đã tự động quản lý persistence, chỉ cần getAuth là đủ
+  auth = getAuth(app); 
+} else {
+  try {
+    auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch (error) {
+    if (error.code === 'auth/already-initialized') {
+      auth = getAuth(app);
+    } else {
+      console.error("Firebase Auth Error:", error);
+    }
+  }
+}
+
+const db = getFirestore(app);
+
+export { auth, db };

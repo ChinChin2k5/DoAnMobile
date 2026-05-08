@@ -89,7 +89,7 @@ export default function AdminDashboardScreen() {
       }
 
       // --- B. LẤY PHÂN BỐ ĐỘ KHÓ TỪ BẢNG EXAMS ---
-      const examsSnap = await getDocs(collection(db, "Exams"));
+      const examsSnap = await getDocs(collection(db, "exams"));
       let hardCount = 0,
         mediumCount = 0,
         easyCount = 0;
@@ -99,7 +99,7 @@ export default function AdminDashboardScreen() {
       examsSnap.forEach((doc) => {
         const data = doc.data();
         totalExams++;
-        if (data.status === "PUBLISHED") publishedExams++;
+        if (data.status === "active") publishedExams++;
 
         // Quét vào từng câu hỏi để đếm độ khó
         const questions = data.questionsList || data.questions || [];
