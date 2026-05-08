@@ -1,3 +1,4 @@
+// navigation/AppNavigator.js
 import React from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,33 +7,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 
-// ── IMPORT XỬ LÝ ĐĂNG XUẤT VÀ XÓA DỮ LIỆU CỦA DUY / CHIẾN ──
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-
-// ── Import các Screens chính - STUDENT (Duy) ──
-import Dashboard_Thi_Sinh from '../Screens_Duy/Dashboard_Thi_Sinh';
-import Profile_Thi_Sinh from '../Screens_Duy/Profile_Thi_Sinh';
-import Man_Hinh_Lam_Bai from '../Screens_Duy/Man_Hinh_Lam_Bai';
-import Ket_Qua_Va_Phan_Tich from '../Screens_Duy/Ket_Qua_Va_Phan_Tich';
-import Tao_De_Thi_Part1 from '../Screens_Duy/Tao_De_Thi_Part1';
-import Tao_De_Thi_Part2 from '../Screens_Duy/Tao_De_Thi_Part2';
-import Lich_Su_Lam_Bai from '../Screens_Duy/Lich_Su_Lam_Bai';
-import Chi_Tiet_Dap_An from '../Screens_Duy/Chi_Tiet_Dap_An';
-import Ket_Qua_Dummy from '../Screens_Duy/Ket_Qua_Dummy';
-import Login from '../Screens_Duy/Login';
-import Register from '../Screens_Duy/Register';
-
-// ── Import các Screens dành cho TEACHER / ADMIN (Đức) ──
-import DashboardScreen from '../Screens_Duc/DashboardScreen';
-import StudentsScreen from '../Screens_Duc/StudentsScreen';
-import ProfileScreen from '../Screens_Duc/ProfileScreen';
-import CreateExamStep1Screen from '../Screens_Duc/CreateExamStep1Screen';
-import CreateExamStep2Screen from '../Screens_Duc/CreateExamStep2Screen';
-import CreateExamStep3Screen from '../Screens_Duc/CreateExamStep3Screen';
-import CreateClass1Screen from '../Screens_Duc/CreateClass1Screen';
-import CreateClass2Screen from '../Screens_Duc/CreateClass2Screen';
+// Import các Screens chính
+import Dashboard_Thi_Sinh from "../Screens_Duy/Dashboard_Thi_Sinh";
+import Profile_Thi_Sinh from "../Screens_Duy/Profile_Thi_Sinh";
+import Man_Hinh_Lam_Bai from "../Screens_Duy/Man_Hinh_Lam_Bai";
+import Ket_Qua_Va_Phan_Tich from "../Screens_Duy/Ket_Qua_Va_Phan_Tich";
+import Tao_De_Thi_Part1 from "../Screens_Duy/Tao_De_Thi_Part1";
+import Tao_De_Thi_Part2 from "../Screens_Duy/Tao_De_Thi_Part2";
+import Lich_Su_Lam_Bai from "../Screens_Duy/Lich_Su_Lam_Bai";
+import Chi_Tiet_Dap_An from "../Screens_Duy/Chi_Tiet_Dap_An";
+import Ket_Qua_Dummy from "../Screens_Duy/Ket_Qua_Dummy";
+import AdminChartScreen from "../src/screens/AdminChartScreen";
+import AdminConfigScreen from "../src/screens/AdminConfigScreen";
+import AdminDashboardScreen from "../src/screens/AdminDashboardScreen";
+import LoadingScreen from "../src/screens/LoadingScreen";
+import Onboarding1 from "../src/screens/Onboarding1";
+import Onboarding2 from "../src/screens/Onboarding2";
+import Onboarding3 from "../src/screens/Onboarding3";
 
 // ── Import các Screens UI Thống kê / Onboarding (Chiến) ──
 import AdminChartScreen from '../src/screens/AdminChartScreen';
@@ -56,7 +50,7 @@ const EmptyScreen = () => <View />;
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ── Bottom Tab Navigator dành cho 'student' ──
+// ── Bottom Tab Navigator — Student ──
 function MainTabNavigator() {
   const insets = useSafeAreaInsets();
   return (
@@ -100,17 +94,17 @@ function MainTabNavigator() {
       })}
     >
       <Tab.Screen name="Dashboard" component={Dashboard_Thi_Sinh} />
-      <Tab.Screen name="Classes" component={ClassesScreen} />
+      {/* ── Classes: đã có màn hình thật thay vì placeholder ── */}
+      <Tab.Screen name="Classes" component={Classes_Thi_Sinh} />
       <Tab.Screen name="History" component={Lich_Su_Lam_Bai} />
       <Tab.Screen name="Profile" component={Profile_Thi_Sinh} />
     </Tab.Navigator>
   );
 }
 
-// ── Bottom Tab Navigator dành cho 'teacher' / 'admin' ──
+// ── Bottom Tab Navigator — Teacher / Admin ──
 function MainTabNavigatorAdmin({ navigation }) {
   const insets = useSafeAreaInsets();
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -228,7 +222,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Ket_Qua_Dummy" component={Ket_Qua_Dummy} />
       <Stack.Screen name="Chi_Tiet_Dap_An" component={Chi_Tiet_Dap_An} />
 
-      {/* ── Teacher / Admin area ── */}
+      {/* Teacher / Admin */}
       <Stack.Screen name="MainTabsAdmin" component={MainTabNavigatorAdmin} />
       
       {/* ── Exam & Class Creation Flow (Đức) ── */}
