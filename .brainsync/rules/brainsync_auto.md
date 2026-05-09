@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 1905 notes | Score threshold: >40
+> 1930 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,33 +20,31 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 1914 notes | Score threshold: >40
++ > 1916 notes | Score threshold
+- **gotcha in shared-context.json** — -     }
++     },
+-   ]
++     {
+- }
++       "id": "684668cfd7cd5518",
++
 - **⚠️ GOTCHA: problem-fix in Login.js** — -         paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, co
 - **⚠️ GOTCHA: problem-fix in Login.js** — -         backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '
 - **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowOpacity: 0.25, shadowRadius: 20, elevation: 15
 +     
 - **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25,
-- **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
-- **⚠️ GOTCHA: problem-fix in Login.js** — -         backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24,
-
-
-## Active: `Screens_Duy`
-
-- **⚠️ GOTCHA: problem-fix in Login.js**
-- **⚠️ GOTCHA: problem-fix in Login.js**
-- **⚠️ GOTCHA: problem-fix in Login.js**
-- **⚠️ GOTCHA: problem-fix in Login.js**
-- **⚠️ GOTCHA: problem-fix in Login.js**
 
 ## Project Standards
 
-- decision in Login.js — confirmed 5x
-- Replaced auth FFFFFF — confirmed 44x
-- Replaced auth StyleSheet — confirmed 19x
-- what-changed in Ket_Qua_Va_Phan_Tich.js — confirmed 45x
-- what-changed in Classes_Thi_Sinh.js — confirmed 127x
-- what-changed in Lich_Su_Lam_Bai.js — confirmed 39x
-- trade-off in Profile_Thi_Sinh.js — confirmed 6x
-- trade-off in Profile_Thi_Sinh.js — confirmed 3x
+- Optimized Score — confirmed 3x
+- Replaced auth Intellectual — confirmed 3x
+- Patched security issue ZklGBaEoAW — confirmed 3x
+- Replaced auth Score — confirmed 4x
+- what-changed in shared-context.json — confirmed 6x
+- what-changed in Man_Hinh_Lam_Bai.js — confirmed 4x
+- decision in Man_Hinh_Lam_Bai.js — confirmed 9x
+- Updated schema StyleSheet — confirmed 87x
 
 ## Known Fixes
 
@@ -58,10 +56,10 @@
 
 ## Recent Decisions
 
-- decision in Man_Hinh_Lam_Bai.js
-- decision in Man_Hinh_Lam_Bai.js
-- decision in Man_Hinh_Lam_Bai.js
-- decision in Man_Hinh_Lam_Bai.js
+- decision in Dashboard_Thi_Sinh.js
+- decision in Dashboard_Thi_Sinh.js
+- decision in Dashboard_Thi_Sinh.js
+- Optimized Score — parallelizes async operations for speed
 
 ## Learned Patterns
 

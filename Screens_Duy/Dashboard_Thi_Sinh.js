@@ -800,6 +800,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     minHeight: 260,   // luôn có không gian tối thiểu dù có nhiều filter/header
+    paddingBottom:'20%',
   },
   listHeader: {
     flexDirection: 'row', 
