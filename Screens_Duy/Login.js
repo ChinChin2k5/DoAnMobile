@@ -248,22 +248,56 @@ export default function Login({ navigation }) {
         }
     };
 
+    // ─────────────────────────────────────────────────────────────────
     // Admin ẩn: giữ logo 3 giây
-    const handleLogoPressIn = () => {
+    //
+    // Vấn đề gốc trên mobile browser:
+    //   1. iOS Safari / Android Chrome khi long-press ảnh/element sẽ
+    //      show context menu ("Save Image", "Copy", ...) và đồng thời
+    //      cancel touch sequence → onPressIn KHÔNG được gọi tiếp,
+    //      timer không bao giờ chạy đủ 3 giây.
+    //   2. onContextMenu={e.preventDefault()} chặn menu nhưng trên iOS
+    //      Safari không đủ — cần WebkitTouchCallout: 'none' trên style.
+    //   3. Dùng onTouchStart/onTouchEnd (DOM events thuần) song song với
+    //      onPressIn/onPressOut để đảm bảo mobile web luôn nhận event
+    //      ngay cả khi browser đã intercept gesture.
+    // ─────────────────────────────────────────────────────────────────
+
+    // isTimerRunning: tránh khởi động timer 2 lần nếu cả onPressIn
+    // lẫn onTouchStart cùng fire (trên một số browser chúng fire cả 2)
+    const isTimerRunning = useRef(false);
+
+    const startLogoTimer = () => {
+        if (isTimerRunning.current) return;   // đã có timer rồi → bỏ qua
+        isTimerRunning.current = true;
         Animated.spring(logoScale, { toValue: 0.85, useNativeDriver: false }).start();
         logoTimer.current = setTimeout(() => {
+            isTimerRunning.current = false;
             Animated.spring(logoScale, { toValue: 1, useNativeDriver: false }).start();
-            //  Thay vì vào thẳng Admin, mở Modal yêu cầu khóa bảo mật
             setIsAdminModalVisible(true);
             setAdminKey('');
             setAdminKeyError('');
         }, 3000);
     };
 
-    const handleLogoPressOut = () => {
+    const cancelLogoTimer = () => {
         if (logoTimer.current) { clearTimeout(logoTimer.current); logoTimer.current = null; }
+        isTimerRunning.current = false;
         Animated.spring(logoScale, { toValue: 1, useNativeDriver: false }).start();
     };
+
+    // Native (iOS app / Android app): dùng onPressIn / onPressOut
+    const handleLogoPressIn = () => startLogoTimer();
+    const handleLogoPressOut = () => cancelLogoTimer();
+
+    // Web (mobile browser): dùng onTouchStart / onTouchEnd để chắc chắn
+    // nhận event trước khi browser kịp hiện context menu
+    const handleLogoTouchStart = Platform.OS === 'web'
+        ? (e) => { e.preventDefault(); startLogoTimer(); }
+        : undefined;
+    const handleLogoTouchEnd = Platform.OS === 'web'
+        ? (e) => { e.preventDefault(); cancelLogoTimer(); }
+        : undefined;
 
     // Hàm xử lý kiểm tra mã bí mật của Admin
     const verifyAdminKeyAndLogin = async () => {
@@ -347,8 +381,7 @@ export default function Login({ navigation }) {
             </LinearGradient>
 
             <ScrollView
-                contentContainerStyle={{ ...styles.scroll, flexGrow: 1 }}
-                canCancelContentTouches={false}
+                contentContainerStyle={styles.scroll}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >
@@ -358,16 +391,19 @@ export default function Login({ navigation }) {
                         onPressIn={handleLogoPressIn}
                         onPressOut={handleLogoPressOut}
                         activeOpacity={1}
-
-                        // ── Chặn menu giữ lâu trên mobile web ──
                         delayLongPress={999999}
-
-                        // ── Chặn selection + context menu của browser ──
-                        {...(Platform.OS === 'web'
-                            ? {
-                                onContextMenu: (e) => e.preventDefault(),
-                            }
-                            : {})}
+                        // Web: thêm onTouchStart/End để nhận event trước browser
+                        onTouchStart={handleLogoTouchStart}
+                        onTouchEnd={handleLogoTouchEnd}
+                        // Chặn context menu (chuột phải desktop + long-press mobile)
+                        onContextMenu={Platform.OS === 'web' ? (e) => e.preventDefault() : undefined}
+                        style={Platform.OS === 'web' ? {
+                            WebkitTouchCallout: 'none',
+                            WebkitUserSelect: 'none',
+                            userSelect: 'none',
+                            outline: 'none',
+                            cursor: 'pointer',
+                        } : undefined}
                     >
                         <Animated.View
                             style={[
@@ -382,13 +418,9 @@ export default function Login({ navigation }) {
                                 source={require('../assets/logo.png')}
                                 style={styles.logoImage}
                                 resizeMode="contain"
-
-                                // ── Web-only props để chặn drag ảnh ──
-                                {...(Platform.OS === 'web'
-                                    ? {
-                                        draggable: false,
-                                    }
-                                    : {})}
+                                // Web: chặn drag ảnh và context menu ảnh (Save Image...)
+                                draggable={Platform.OS === 'web' ? false : undefined}
+                                onDragStart={Platform.OS === 'web' ? (e) => e.preventDefault() : undefined}
                             />
                         </Animated.View>
                     </TouchableOpacity>
@@ -657,33 +689,21 @@ const styles = StyleSheet.create({
 
     brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 28, gap: 12 },
     logoBox: {
-         width: 46,
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: '#EEF2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    overflow: 'hidden',
-    ...Platform.select({
-      web: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        WebkitTouchCallout: 'none',
-      },
-    }),
+        width: 46, height: 46, borderRadius: 12, backgroundColor: '#EEF2FF',
+        justifyContent: 'center', alignItems: 'center', borderWidth: 1.5,
+        // ── Chặn toàn bộ long-press / context menu trên mobile browser ──
+        userSelect: 'none',              // chặn bôi đen
+        WebkitUserSelect: 'none',        // Safari / Chrome mobile
+        WebkitTouchCallout: 'none',      // iOS Safari: chặn popup "Save Image / Copy"
+        WebkitTapHighlightColor: 'transparent', // bỏ flash xanh khi tap Android
     },
     logoImage: {
-        width: 30,
-        height: 30,
-        ...Platform.select({
-            web: {
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                WebkitTouchCallout: 'none',
-                WebkitUserDrag: 'none',
-            },
-        }),
+        width: 30, height: 30,
+        // ── Chặn drag + context menu ảnh trên web ──
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',      // iOS: chặn "Save to Photos" khi giữ ảnh
+        pointerEvents: 'none',           // bỏ qua pointer event trên ảnh → bubble lên TouchableOpacity
     },
     brandName: { fontSize: 22, fontWeight: '800', color: '#1A202C', letterSpacing: 0.3 },
     roleHint: { fontSize: 11, fontWeight: '600', marginTop: 2 },
