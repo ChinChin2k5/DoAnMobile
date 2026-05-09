@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 993 notes | Score threshold: >40
+> 1025 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,29 +20,39 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 947 notes | Score threshold: >40
-+ > 955 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 932 notes | Score threshold: >40
-+ > 947 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 930 notes | Score threshold: >40
-+ > 932 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 925 notes | Score threshold: >40
-+ > 930 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 914 notes | Score threshold: >40
-+ > 923 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 908 notes | Score threshold: >40
-+ > 914 notes | Score threshold: 
+- **gotcha in shared-context.json** — -     }
++     },
+-   ]
++     {
+- }
++       "id": "c2e9d65fdf760497",
++
+- **⚠️ GOTCHA: Fixed null crash in Android — fixes memory leak from uncleared timers** — -     // ─────────────────────────────────────────────────────────────
+- **⚠️ GOTCHA: Added session cookies authentication** — - # Intellectual Property & Architecture Rules
++ # Intellectual Proper
+- **gotcha in shared-context.json** — -     }
++     },
+-   ]
++     {
+- }
++       "id": "748a00bfa495f3af",
++
+- **⚠️ GOTCHA: Fixed null crash in Animated — fixes memory leak from uncleared timers** — -     //
++     // ───────────────────────────────────────────────────
+- **⚠️ GOTCHA: Fixed null crash in Animated — fixes memory leak from uncleared timers** — -     // VẤN ĐỀ CỐT LÕI trên Android Chrome:
++ 
+-     //   Khi người
 
 ## Project Standards
 
+- what-changed in shared-context.json — confirmed 5x
+- Optimized Intellectual — confirmed 3x
+- what-changed in Login.js — confirmed 8x
+- what-changed in shared-context.json — confirmed 4x
+- Optimized Intellectual — confirmed 4x
+- Fixed null crash in Animated — fixes memory leak from uncleared timers — confirmed 5x
 - what-changed in Login.js — confirmed 4x
 - discovery in shared-context.json — confirmed 3x
-- Replaced auth Platform — confirmed 4x
-- what-changed in shared-context.json — confirmed 5x
-- Replaced auth USER — confirmed 9x
-- what-changed in shared-context.json — confirmed 9x
-- Optimized Intellectual — confirmed 4x
-- Patched security issue FZxIbL — confirmed 4x
 
 ## Known Fixes
 
@@ -54,6 +64,7 @@
 
 ## Recent Decisions
 
+- Optimized Score — parallelizes async operations for speed
 - Optimized Score — parallelizes async operations for speed
 
 ## Learned Patterns
