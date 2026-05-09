@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 37 notes | Score threshold: >40
+> 955 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,23 +20,47 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
-
-Content summary (3
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 932 notes | Score threshold: >40
++ > 947 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 930 notes | Score threshold: >40
++ > 932 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 925 notes | Score threshold: >40
++ > 930 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 914 notes | Score threshold: >40
++ > 923 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 908 notes | Score threshold: >40
++ > 914 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 901 notes | Score threshold: >40
++ > 908 notes | Score threshold: 
 
 ## Project Standards
 
+- what-changed in shared-context.json — confirmed 9x
+- Optimized Intellectual — confirmed 4x
+- Patched security issue FZxIbL — confirmed 4x
+- Added session cookies authentication — confirmed 3x
+- what-changed in brainsync_auto.md — confirmed 3x
+- convention in .gitignore
 - Strengthened types React — improves module reusability
-- convention in .gitignore
 - Strengthened types Fixed
-- Strengthened types Fixed
-- convention in .gitignore
-- Strengthened types Patched
-- Strengthened types Patched
-- convention in .gitignore
 
-## Verified Best Practices
+## Known Fixes
 
+- ❌ - - Fixed null crash in Async — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ - - Fixed null crash in View — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ -           console.error('Failed to load user data', e); → ✅ Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes
+- ❌ - - Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ - - Fixed null crash in Ionicons — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+
+## Recent Decisions
+
+- Optimized Score — parallelizes async operations for speed
+
+## Learned Patterns
+
+- Decision: Optimized Score (seen 2x)
+- Decision: Optimized Score — parallelizes async operations for speed (seen 3x)
+- Avoid: ⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed (seen 3x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 

@@ -28,7 +28,7 @@ import { db, auth } from '../firebaseConfig';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 if (!process.env.ANDROID_CLIENT_ID) {
     process.env.ANDROID_CLIENT_ID = "google-web-client-id-fake";
-  }
+}
 
 const { width } = Dimensions.get('window');
 
@@ -347,7 +347,8 @@ export default function Login({ navigation }) {
             </LinearGradient>
 
             <ScrollView
-                contentContainerStyle={styles.scroll}
+                contentContainerStyle={{ ...styles.scroll, flexGrow: 1 }}
+                canCancelContentTouches={false}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >
@@ -656,15 +657,33 @@ const styles = StyleSheet.create({
 
     brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 28, gap: 12 },
     logoBox: {
-        width: 46, height: 46, borderRadius: 12, backgroundColor: '#EEF2FF',
-        justifyContent: 'center', alignItems: 'center', borderWidth: 1.5,
-        // ── Chặn select / callout trên mobile browser ──
+         width: 46,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: '#EEF2FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    ...Platform.select({
+      web: {
         userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+      },
+    }),
     },
-    logoImage: { 
-        width: 30, height: 30,    
-        // ── Chặn drag image trên web ──
-        userSelect: 'none', 
+    logoImage: {
+        width: 30,
+        height: 30,
+        ...Platform.select({
+            web: {
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                WebkitTouchCallout: 'none',
+                WebkitUserDrag: 'none',
+            },
+        }),
     },
     brandName: { fontSize: 22, fontWeight: '800', color: '#1A202C', letterSpacing: 0.3 },
     roleHint: { fontSize: 11, fontWeight: '600', marginTop: 2 },

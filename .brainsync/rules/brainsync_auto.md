@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 37 notes | Score threshold: >40
+> 955 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,23 +20,47 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
-
-Content summary (3
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 932 notes | Score threshold: >40
++ > 947 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 930 notes | Score threshold: >40
++ > 932 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 925 notes | Score threshold: >40
++ > 930 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 914 notes | Score threshold: >40
++ > 923 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 908 notes | Score threshold: >40
++ > 914 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 901 notes | Score threshold: >40
++ > 908 notes | Score threshold: 
 
 ## Project Standards
 
+- what-changed in shared-context.json — confirmed 9x
+- Optimized Intellectual — confirmed 4x
+- Patched security issue FZxIbL — confirmed 4x
+- Added session cookies authentication — confirmed 3x
+- what-changed in brainsync_auto.md — confirmed 3x
+- convention in .gitignore
 - Strengthened types React — improves module reusability
-- convention in .gitignore
 - Strengthened types Fixed
-- Strengthened types Fixed
-- convention in .gitignore
-- Strengthened types Patched
-- Strengthened types Patched
-- convention in .gitignore
 
-## Verified Best Practices
+## Known Fixes
 
+- ❌ - - Fixed null crash in Async — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ - - Fixed null crash in View — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ -           console.error('Failed to load user data', e); → ✅ Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes
+- ❌ - - Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ - - Fixed null crash in Ionicons — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+
+## Recent Decisions
+
+- Optimized Score — parallelizes async operations for speed
+
+## Learned Patterns
+
+- Decision: Optimized Score (seen 2x)
+- Decision: Optimized Score — parallelizes async operations for speed (seen 3x)
+- Avoid: ⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed (seen 3x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 
@@ -277,41 +301,6 @@ Reference these guidelines when:
 - `ui-safe-area-scroll` - Handle safe areas in ScrollViews
 - `ui-scrollview-content-inset` - Use contentInset for headers
 - `ui-menus` - Use native context m...
-(truncated)
-
-
-### 📚 Core Framework Rules: [google-labs-code/react-components]
-# Stitch to React Components
-
-You are a frontend engineer focused on transforming designs into clean React code. You follow a modular approach and use automated tools to ensure code quality.
-
-## Retrieval and networking
-1. **Namespace discovery**: Run `list_tools` to find the Stitch MCP prefix. Use this prefix (e.g., `stitch:`) for all subsequent calls.
-2. **Metadata fetch**: Call `[prefix]:get_screen` to retrieve the design JSON.
-3. **Check for existing designs**: Before downloading, check if `.stitch/designs/{page}.html` and `.stitch/designs/{page}.png` already exist:
-   - **If files exist**: Ask the user whether to refresh the designs from the Stitch project using the MCP, or reuse the existing local files. Only re-download if the user confirms.
-   - **If files do not exist**: Proceed to step 4.
-4. **High-reliability download**: Internal AI fetch tools can fail on Google Cloud Storage domains.
-   - **HTML**: `bash scripts/fetch-stitch.sh "[htmlCode.downloadUrl]" ".stitch/designs/{page}.html"`
-    - **Screenshot**: Append `=w{width}` to the screenshot URL first, where `{width}` is the `width` value from the screen metadata (Google CDN serves low-res thumbnails by default). Then run: `bash scripts/fetch-stitch.sh "[screenshot.downloadUrl]=w{width}" ".stitch/designs/{page}.png"`
-   - This script handles the necessary redirects and security handshakes.
-5. **Visual audit**: Review the downloaded screenshot (`.stitch/designs/{page}.png`) to confirm design intent and layout details.
-
-## Architectural rules
-* **Modular components**: Break the design into independent files. Avoid large, single-file outputs.
-* **Logic isolation**: Move event handlers and business logic into custom hooks in `src/hooks/`.
-* **Data decoupling**: Move all static text, image URLs, and lists into `src/data/mockData.ts`.
-* **Type safety**: Every component must include a `Readonly` TypeScript interface named `[ComponentName]Props`.
-* **Project specific**: Focus on the target project's needs and constraints. Leave Google license headers out of the generated React components.
-* **Style mapping**:
-    * Extract the `tailwind.config` from the HTML `<head>`.
-    * Sync these values with `resources/style-guide.json`.
-    * Use theme-mapped Tailwind classes instead of arbitrary hex codes.
-
-## Execution steps
-1. **Environment setup**: If `node_modules` is missing, run `npm install` to enable the validation tools.
-2. **Data layer**: Create `src/data/mockData.ts` based on the design content.
-3. **...
 (truncated)
 
 
