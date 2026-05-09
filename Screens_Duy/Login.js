@@ -28,7 +28,7 @@ import { db, auth } from '../firebaseConfig';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 if (!process.env.ANDROID_CLIENT_ID) {
     process.env.ANDROID_CLIENT_ID = "google-web-client-id-fake";
-  }
+}
 
 const { width } = Dimensions.get('window');
 
@@ -248,29 +248,9 @@ export default function Login({ navigation }) {
         }
     };
 
-    // ─────────────────────────────────────────────────────────────────
+    //
     // Admin ẩn: giữ logo 3 giây
     //
-    // VẤN ĐỀ CỐT LÕI trên Android Chrome:
-    //   Khi người dùng long-press, Chrome:
-    //     1. Rung haptic (~500ms) để báo hiệu "long press recognized"
-    //     2. Steal (cancel) toàn bộ touch sequence khỏi React
-    //     3. Chuẩn bị hiện context menu
-    //   → onTouchEnd / onPressOut bị fire giả dù tay vẫn đang giữ
-    //   → Timer bị cancelLogoTimer() gọi → không bao giờ đủ 3 giây
-    //
-    // TẠI SAO CÁC FIX TRƯỚC KHÔNG ĐỦ:
-    //   - onContextMenu={e.preventDefault()}: chỉ chặn MENU, không chặn
-    //     haptic và touch-cancel xảy ra TRƯỚC khi contextmenu event dispatch
-    //   - React synthetic onTouchStart với e.preventDefault(): React đăng ký
-    //     tất cả event listener với { passive: true } → preventDefault() bị
-    //     ignore hoàn toàn bởi browser (Chrome 55+)
-    //
-    // GIẢI PHÁP ĐÚNG:
-    //   Dùng useRef để attach native DOM addEventListener với { passive: false }
-    //   → mới có thể gọi preventDefault() để ngăn browser steal touch sequence
-    //   → kết hợp CSS touch-action: none để tắt hẳn browser gesture recognition
-    // ─────────────────────────────────────────────────────────────────
     const logoRef = useRef(null);          // ref gắn vào element bọc logo
     const isTimerRunning = useRef(false);  // guard chống double-start
 
@@ -294,7 +274,7 @@ export default function Login({ navigation }) {
     };
 
     // Native app (iOS / Android): onPressIn/Out hoạt động hoàn toàn bình thường
-    const handleLogoPressIn  = () => { if (Platform.OS !== 'web') startLogoTimer(); };
+    const handleLogoPressIn = () => { if (Platform.OS !== 'web') startLogoTimer(); };
     const handleLogoPressOut = () => { if (Platform.OS !== 'web') cancelLogoTimer(); };
 
     // Web: attach native DOM listeners với { passive: false } sau khi mount
@@ -323,18 +303,18 @@ export default function Login({ navigation }) {
         const onContextMenu = (e) => e.preventDefault();
 
         const opts = { passive: false };
-        el.addEventListener('touchstart',   onTouchStart,  opts);
-        el.addEventListener('touchend',     onTouchEnd,    opts);
-        el.addEventListener('touchcancel',  onTouchCancel, opts);
-        el.addEventListener('contextmenu',  onContextMenu, opts);
+        el.addEventListener('touchstart', onTouchStart, opts);
+        el.addEventListener('touchend', onTouchEnd, opts);
+        el.addEventListener('touchcancel', onTouchCancel, opts);
+        el.addEventListener('contextmenu', onContextMenu, opts);
 
         return () => {
-            el.removeEventListener('touchstart',  onTouchStart,  opts);
-            el.removeEventListener('touchend',    onTouchEnd,    opts);
+            el.removeEventListener('touchstart', onTouchStart, opts);
+            el.removeEventListener('touchend', onTouchEnd, opts);
             el.removeEventListener('touchcancel', onTouchCancel, opts);
             el.removeEventListener('contextmenu', onContextMenu, opts);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Hàm xử lý kiểm tra mã bí mật của Admin
@@ -402,52 +382,75 @@ export default function Login({ navigation }) {
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1 }}
-        >
-            <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill}>
-                {BG_DOTS.map((dot, i) => (
-                    <Animated.View key={i} style={{
-                        position: 'absolute', top: dot.top, left: dot.left,
-                        width: dot.size, height: dot.size,
-                        borderRadius: dot.size / 2,
-                        backgroundColor: dotColor, opacity: dot.opacity,
-                    }} />
-                ))}
-                <Animated.View style={[styles.bgCircleLarge, { backgroundColor: dotColor, opacity: 0.06 }]} />
-            </LinearGradient>
-
-            <ScrollView
-                contentContainerStyle={styles.scroll}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
+        // Fragment bọc ngoài cùng: Modal phải nằm NGANG HÀNG với KeyboardAvoidingView
+        // Nếu Modal nằm BÊN TRONG KeyboardAvoidingView, khi Modal mount thì KAV
+        // tính toán lại chiều cao layout → đẩy ScrollView / shift toàn bộ screen.
+        <>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
             >
-                {/* ── Logo + Brand ── */}
-                <View style={styles.brandRow}>
-                    {/*
+                <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill}>
+                    {BG_DOTS.map((dot, i) => (
+                        <Animated.View key={i} style={{
+                            position: 'absolute', top: dot.top, left: dot.left,
+                            width: dot.size, height: dot.size,
+                            borderRadius: dot.size / 2,
+                            backgroundColor: dotColor, opacity: dot.opacity,
+                        }} />
+                    ))}
+                    <Animated.View style={[styles.bgCircleLarge, { backgroundColor: dotColor, opacity: 0.06 }]} />
+                </LinearGradient>
+
+                <ScrollView
+                    contentContainerStyle={styles.scroll}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {/* ── Logo + Brand ── */}
+                    <View style={styles.brandRow}>
+                        {/*
                       * Web: bọc trong <div ref={logoRef}> để attach native DOM listeners.
                       * Native app: <div> không tồn tại nên dùng View thay thế (không có ref).
                       * Cả hai đều bọc TouchableOpacity để animation scale vẫn hoạt động.
                       */}
-                    {Platform.OS === 'web' ? (
-                        // ── WEB: div thật với ref để useEffect attach { passive: false } ──
-                        <div
-                            ref={logoRef}
-                            style={{
-                                // touch-action: none → tắt hẳn browser pan/zoom/long-press gesture
-                                // Đây là cách NHANH NHẤT để browser không steal touch
-                                touchAction: 'none',
-                                WebkitTouchCallout: 'none',
-                                WebkitUserSelect: 'none',
-                                userSelect: 'none',
-                                outline: 'none',
-                                cursor: 'pointer',
-                                // reset box-model để không ảnh hưởng layout
-                                display: 'inline-block',
-                                WebkitTapHighlightColor: 'transparent',
-                            }}
-                        >
+                        {Platform.OS === 'web' ? (
+                            // ── WEB: div thật với ref để useEffect attach { passive: false } ──
+                            <div
+                                ref={logoRef}
+                                style={{
+                                    // touch-action: none → tắt hẳn browser pan/zoom/long-press gesture
+                                    // Đây là cách NHANH NHẤT để browser không steal touch
+                                    touchAction: 'none',
+                                    WebkitTouchCallout: 'none',
+                                    WebkitUserSelect: 'none',
+                                    userSelect: 'none',
+                                    outline: 'none',
+                                    cursor: 'pointer',
+                                    // reset box-model để không ảnh hưởng layout
+                                    display: 'inline-block',
+                                    WebkitTapHighlightColor: 'transparent',
+                                }}
+                            >
+                                <TouchableOpacity
+                                    onPressIn={handleLogoPressIn}
+                                    onPressOut={handleLogoPressOut}
+                                    activeOpacity={1}
+                                    delayLongPress={999999}
+                                >
+                                    <Animated.View style={[styles.logoBox, { borderColor: dotColor, transform: [{ scale: logoScale }] }]}>
+                                        <Image
+                                            source={require('../assets/logo.png')}
+                                            style={styles.logoImage}
+                                            resizeMode="contain"
+                                            draggable={false}
+                                            onDragStart={(e) => e.preventDefault()}
+                                        />
+                                    </Animated.View>
+                                </TouchableOpacity>
+                            </div>
+                        ) : (
+                            // ── NATIVE APP: TouchableOpacity hoạt động bình thường ──
                             <TouchableOpacity
                                 onPressIn={handleLogoPressIn}
                                 onPressOut={handleLogoPressOut}
@@ -459,237 +462,224 @@ export default function Login({ navigation }) {
                                         source={require('../assets/logo.png')}
                                         style={styles.logoImage}
                                         resizeMode="contain"
-                                        draggable={false}
-                                        onDragStart={(e) => e.preventDefault()}
                                     />
                                 </Animated.View>
                             </TouchableOpacity>
-                        </div>
-                    ) : (
-                        // ── NATIVE APP: TouchableOpacity hoạt động bình thường ──
-                        <TouchableOpacity
-                            onPressIn={handleLogoPressIn}
-                            onPressOut={handleLogoPressOut}
-                            activeOpacity={1}
-                            delayLongPress={999999}
-                        >
-                            <Animated.View style={[styles.logoBox, { borderColor: dotColor, transform: [{ scale: logoScale }] }]}>
-                                <Image
-                                    source={require('../assets/logo.png')}
-                                    style={styles.logoImage}
-                                    resizeMode="contain"
+                        )}
+
+                        <View>
+                            <Text style={styles.brandName}>Atoza</Text>
+
+                            <Animated.Text style={[styles.roleHint, { color: dotColor }]}>
+                                Đăng nhập DƯỚI DẠNG ROLE: {isTeacher ? 'Giáo viên' : 'Học sinh'}
+                            </Animated.Text>
+                        </View>
+                    </View>
+
+                    {/* ── Card ── */}
+                    <Animated.View style={[styles.contentCard, { backgroundColor: cardBgColor }]}>
+                        <Text style={styles.title}>Đăng nhập</Text>
+                        <Text style={styles.subtitle}>
+                            Vui lòng nhập thông tin để truy cập vào tài khoản của bạn.
+                        </Text>
+
+                        {/* ── Tab Role ── */}
+                        <View style={styles.tabRow}>
+                            <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveRole('Học sinh')} activeOpacity={0.8}>
+                                <Animated.View style={[
+                                    styles.tabBtn, !isTeacher && styles.tabBtnActive,
+                                    studentTabStyle, !isTeacher && { borderColor: '#3B5BDB' },
+                                ]}>
+                                    <FontAwesome5 name="user-graduate" size={13}
+                                        color={!isTeacher ? '#3B5BDB' : '#A0AEC0'} style={{ marginBottom: 3 }} />
+                                    <Text style={[styles.tabText, !isTeacher && styles.tabTextBlue]}>Học sinh</Text>
+                                </Animated.View>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveRole('Giáo viên')} activeOpacity={0.8}>
+                                <Animated.View style={[
+                                    styles.tabBtn, isTeacher && styles.tabBtnActive,
+                                    teacherTabStyle, isTeacher && { borderColor: '#F57C00' },
+                                ]}>
+                                    <FontAwesome5 name="chalkboard-teacher" size={13}
+                                        color={isTeacher ? '#F57C00' : '#A0AEC0'} style={{ marginBottom: 3 }} />
+                                    <Text style={[styles.tabText, isTeacher && styles.tabTextOrange]}>Giáo viên</Text>
+                                </Animated.View>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* ── Firebase error banner ── */}
+                        {firebaseError ? (
+                            <View style={[
+                                styles.errorBanner,
+                                // đổi màu banner thành cam đậm khi form bị khóa
+                                isLocked && { backgroundColor: '#FFF3E0', borderColor: '#F57C00', borderWidth: 1 }
+                            ]}>
+                                <Feather
+                                    name={isLocked ? 'lock' : 'alert-circle'}
+                                    size={14}
+                                    color={isLocked ? '#F57C00' : '#E53935'}
                                 />
-                            </Animated.View>
-                        </TouchableOpacity>
-                    )}
+                                <Text style={[
+                                    styles.errorBannerText,
+                                    isLocked && { color: '#F57C00' }
+                                ]}>
+                                    {firebaseError}
+                                </Text>
+                            </View>
+                        ) : null}
 
-                    <View>
-                        <Text style={styles.brandName}>Atoza</Text>
-
-                        <Animated.Text style={[styles.roleHint, { color: dotColor }]}>
-                            Đăng nhập DƯỚI DẠNG ROLE: {isTeacher ? 'Giáo viên' : 'Học sinh'}
-                        </Animated.Text>
-                    </View>
-                </View>
-
-                {/* ── Card ── */}
-                <Animated.View style={[styles.contentCard, { backgroundColor: cardBgColor }]}>
-                    <Text style={styles.title}>Đăng nhập</Text>
-                    <Text style={styles.subtitle}>
-                        Vui lòng nhập thông tin để truy cập vào tài khoản của bạn.
-                    </Text>
-
-                    {/* ── Tab Role ── */}
-                    <View style={styles.tabRow}>
-                        <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveRole('Học sinh')} activeOpacity={0.8}>
-                            <Animated.View style={[
-                                styles.tabBtn, !isTeacher && styles.tabBtnActive,
-                                studentTabStyle, !isTeacher && { borderColor: '#3B5BDB' },
-                            ]}>
-                                <FontAwesome5 name="user-graduate" size={13}
-                                    color={!isTeacher ? '#3B5BDB' : '#A0AEC0'} style={{ marginBottom: 3 }} />
-                                <Text style={[styles.tabText, !isTeacher && styles.tabTextBlue]}>Học sinh</Text>
-                            </Animated.View>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveRole('Giáo viên')} activeOpacity={0.8}>
-                            <Animated.View style={[
-                                styles.tabBtn, isTeacher && styles.tabBtnActive,
-                                teacherTabStyle, isTeacher && { borderColor: '#F57C00' },
-                            ]}>
-                                <FontAwesome5 name="chalkboard-teacher" size={13}
-                                    color={isTeacher ? '#F57C00' : '#A0AEC0'} style={{ marginBottom: 3 }} />
-                                <Text style={[styles.tabText, isTeacher && styles.tabTextOrange]}>Giáo viên</Text>
-                            </Animated.View>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* ── Firebase error banner ── */}
-                    {firebaseError ? (
-                        <View style={[
-                            styles.errorBanner,
-                            // đổi màu banner thành cam đậm khi form bị khóa
-                            isLocked && { backgroundColor: '#FFF3E0', borderColor: '#F57C00', borderWidth: 1 }
-                        ]}>
-                            <Feather
-                                name={isLocked ? 'lock' : 'alert-circle'}
-                                size={14}
-                                color={isLocked ? '#F57C00' : '#E53935'}
+                        {/* ── Email ── */}
+                        <Text style={styles.label}>EMAIL</Text>
+                        <Animated.View style={[styles.inputBox, {
+                            transform: [{ translateX: shakeEmail }],
+                            borderColor: (errors.email && touched.email) ? '#E53935'
+                                : email ? accentColor + '55' : '#E8ECF4',
+                        }]}>
+                            <Feather name="mail" size={18} color={email ? accentColor : '#A0AEC0'} style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="example@atoza.vn"
+                                placeholderTextColor="#C0C9D8"
+                                value={email}
+                                onChangeText={(t) => { setEmail(t); setFirebaseError(''); if (touched.email) validate(); }}
+                                onBlur={() => { setTouched(p => ({ ...p, email: true })); validate(); }}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                //  disable input khi form bị khóa
+                                editable={!isLocked}
                             />
-                            <Text style={[
-                                styles.errorBannerText,
-                                isLocked && { color: '#F57C00' }
-                            ]}>
-                                {firebaseError}
-                            </Text>
+                        </Animated.View>
+                        {touched.email && errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+
+                        {/* ── Mật khẩu ── */}
+                        <View style={styles.labelRow}>
+                            <Text style={styles.label}>MẬT KHẨU</Text>
+                            <TouchableOpacity
+                                onPress={handleForgotPassword}
+                                style={{ alignSelf: 'flex-end', marginTop: 10, marginBottom: 20 }}
+                            >
+                                <Text style={{ color: '#3B5BDB', fontWeight: '600' }}>Quên mật khẩu?</Text>
+                            </TouchableOpacity>
                         </View>
-                    ) : null}
+                        <Animated.View style={[styles.inputBox, {
+                            transform: [{ translateX: shakePassword }],
+                            borderColor: (errors.password && touched.password) ? '#E53935'
+                                : password ? accentColor + '55' : '#E8ECF4',
+                        }]}>
+                            <Feather name="lock" size={18} color={password ? accentColor : '#A0AEC0'} style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="••••••••"
+                                placeholderTextColor="#C0C9D8"
+                                value={password}
+                                onChangeText={(t) => { setPassword(t); setFirebaseError(''); if (touched.password) validate(); }}
+                                onBlur={() => { setTouched(p => ({ ...p, password: true })); validate(); }}
+                                secureTextEntry={!showPassword}
+                                editable={!isLocked}
+                            />
+                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                <Feather name={showPassword ? 'eye' : 'eye-off'} size={18} color="#A0AEC0" />
+                            </TouchableOpacity>
+                        </Animated.View>
+                        {touched.password && errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-                    {/* ── Email ── */}
-                    <Text style={styles.label}>EMAIL</Text>
-                    <Animated.View style={[styles.inputBox, {
-                        transform: [{ translateX: shakeEmail }],
-                        borderColor: (errors.email && touched.email) ? '#E53935'
-                            : email ? accentColor + '55' : '#E8ECF4',
-                    }]}>
-                        <Feather name="mail" size={18} color={email ? accentColor : '#A0AEC0'} style={styles.inputIcon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="example@atoza.vn"
-                            placeholderTextColor="#C0C9D8"
-                            value={email}
-                            onChangeText={(t) => { setEmail(t); setFirebaseError(''); if (touched.email) validate(); }}
-                            onBlur={() => { setTouched(p => ({ ...p, email: true })); validate(); }}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            //  disable input khi form bị khóa
-                            editable={!isLocked}
-                        />
-                    </Animated.View>
-                    {touched.email && errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
-
-                    {/* ── Mật khẩu ── */}
-                    <View style={styles.labelRow}>
-                        <Text style={styles.label}>MẬT KHẨU</Text>
+                        {/* ── Nút Đăng nhập ── */}
+                        {/* Chức năng gắn cờ khóa đăng nhập tạm thời: thêm isLocked vào disabled */}
                         <TouchableOpacity
-                            onPress={handleForgotPassword}
-                            style={{ alignSelf: 'flex-end', marginTop: 10, marginBottom: 20 }}
+                            onPress={handleLogin}
+                            activeOpacity={0.85}
+                            disabled={loading || isLocked}
+                            style={{ marginTop: 8, marginBottom: 28 }}
                         >
-                            <Text style={{ color: '#3B5BDB', fontWeight: '600' }}>Quên mật khẩu?</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <Animated.View style={[styles.inputBox, {
-                        transform: [{ translateX: shakePassword }],
-                        borderColor: (errors.password && touched.password) ? '#E53935'
-                            : password ? accentColor + '55' : '#E8ECF4',
-                    }]}>
-                        <Feather name="lock" size={18} color={password ? accentColor : '#A0AEC0'} style={styles.inputIcon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="••••••••"
-                            placeholderTextColor="#C0C9D8"
-                            value={password}
-                            onChangeText={(t) => { setPassword(t); setFirebaseError(''); if (touched.password) validate(); }}
-                            onBlur={() => { setTouched(p => ({ ...p, password: true })); validate(); }}
-                            secureTextEntry={!showPassword}
-                            editable={!isLocked}
-                        />
-                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                            <Feather name={showPassword ? 'eye' : 'eye-off'} size={18} color="#A0AEC0" />
-                        </TouchableOpacity>
-                    </Animated.View>
-                    {touched.password && errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
-
-                    {/* ── Nút Đăng nhập ── */}
-                    {/* Chức năng gắn cờ khóa đăng nhập tạm thời: thêm isLocked vào disabled */}
-                    <TouchableOpacity
-                        onPress={handleLogin}
-                        activeOpacity={0.85}
-                        disabled={loading || isLocked}
-                        style={{ marginTop: 8, marginBottom: 28 }}
-                    >
-                        <LinearGradient
-                            colors={isLocked ? ['#CBD5E0', '#A0AEC0'] : loginGradient}
-                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                            style={styles.loginBtn}
-                        >
-                            {loading ? <ActivityIndicator color="#fff" /> : (
-                                <>
-                                    <View style={styles.loginIconLeft}>
-                                        <FontAwesome5
-                                            name={isLocked ? 'lock' : (isTeacher ? 'chalkboard-teacher' : 'user-graduate')}
-                                            size={16} color="rgba(255,255,255,0.85)" />
-                                    </View>
-                                    <Text style={styles.loginBtnText}>
-                                        {isLocked ? 'Tài khoản tạm khóa' : 'Đăng nhập'}
-                                    </Text>
-                                    {!isLocked && (
-                                        <View style={styles.loginIconRight}>
-                                            <Feather name="arrow-right" size={18} color="rgba(255,255,255,0.85)" />
+                            <LinearGradient
+                                colors={isLocked ? ['#CBD5E0', '#A0AEC0'] : loginGradient}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                style={styles.loginBtn}
+                            >
+                                {loading ? <ActivityIndicator color="#fff" /> : (
+                                    <>
+                                        <View style={styles.loginIconLeft}>
+                                            <FontAwesome5
+                                                name={isLocked ? 'lock' : (isTeacher ? 'chalkboard-teacher' : 'user-graduate')}
+                                                size={16} color="rgba(255,255,255,0.85)" />
                                         </View>
-                                    )}
-                                </>
-                            )}
-                        </LinearGradient>
-                    </TouchableOpacity>
+                                        <Text style={styles.loginBtnText}>
+                                            {isLocked ? 'Tài khoản tạm khóa' : 'Đăng nhập'}
+                                        </Text>
+                                        {!isLocked && (
+                                            <View style={styles.loginIconRight}>
+                                                <Feather name="arrow-right" size={18} color="rgba(255,255,255,0.85)" />
+                                            </View>
+                                        )}
+                                    </>
+                                )}
+                            </LinearGradient>
+                        </TouchableOpacity>
 
-                    {/* ── Divider ── */}
-                    <View style={styles.dividerRow}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>HOẶC TIẾP TỤC VỚI</Text>
-                        <View style={styles.dividerLine} />
-                    </View>
-
-                    {/* Social error banner */}
-                    {socialError ? (
-                        <View style={styles.errorBanner}>
-                            <Feather name="alert-circle" size={14} color="#E53935" />
-                            <Text style={styles.errorBannerText}>{socialError}</Text>
+                        {/* ── Divider ── */}
+                        <View style={styles.dividerRow}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>HOẶC TIẾP TỤC VỚI</Text>
+                            <View style={styles.dividerLine} />
                         </View>
-                    ) : null}
 
-                    {/* ── Social ── */}
-                    <View style={styles.socialRow}>
-                        <TouchableOpacity
-                            style={[styles.socialPill, socialLoading === 'google' && styles.socialPillLoading]}
-                            activeOpacity={0.8} onPress={handleGoogle} disabled={!!socialLoading || isLocked}
-                        >
-                            {socialLoading === 'google'
-                                ? <ActivityIndicator size="small" color="#EA4335" />
-                                : <>
-                                    <FontAwesome5 name="google" size={17} color="#EA4335" solid />
-                                    <Text style={styles.socialPillText}>Google</Text>
-                                </>
-                            }
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.socialPill, socialLoading === 'facebook' && styles.socialPillLoading]}
-                            activeOpacity={0.8} onPress={handleFacebook} disabled={!!socialLoading || isLocked}
-                        >
-                            {socialLoading === 'facebook'
-                                ? <ActivityIndicator size="small" color="#1877F2" />
-                                : <>
-                                    <FontAwesome5 name="facebook" size={17} color="#1877F2" solid />
-                                    <Text style={styles.socialPillText}>Facebook</Text>
-                                </>
-                            }
+                        {/* Social error banner */}
+                        {socialError ? (
+                            <View style={styles.errorBanner}>
+                                <Feather name="alert-circle" size={14} color="#E53935" />
+                                <Text style={styles.errorBannerText}>{socialError}</Text>
+                            </View>
+                        ) : null}
+
+                        {/* ── Social ── */}
+                        <View style={styles.socialRow}>
+                            <TouchableOpacity
+                                style={[styles.socialPill, socialLoading === 'google' && styles.socialPillLoading]}
+                                activeOpacity={0.8} onPress={handleGoogle} disabled={!!socialLoading || isLocked}
+                            >
+                                {socialLoading === 'google'
+                                    ? <ActivityIndicator size="small" color="#EA4335" />
+                                    : <>
+                                        <FontAwesome5 name="google" size={17} color="#EA4335" solid />
+                                        <Text style={styles.socialPillText}>Google</Text>
+                                    </>
+                                }
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.socialPill, socialLoading === 'facebook' && styles.socialPillLoading]}
+                                activeOpacity={0.8} onPress={handleFacebook} disabled={!!socialLoading || isLocked}
+                            >
+                                {socialLoading === 'facebook'
+                                    ? <ActivityIndicator size="small" color="#1877F2" />
+                                    : <>
+                                        <FontAwesome5 name="facebook" size={17} color="#1877F2" solid />
+                                        <Text style={styles.socialPillText}>Facebook</Text>
+                                    </>
+                                }
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
+
+                    {/* ── Footer ── */}
+                    <View style={styles.registerRow}>
+                        <Text style={styles.registerHint}>Bạn mới biết đến Atoza? </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                            <Text style={[styles.registerLink, { color: accentColor }]}>Đăng ký ngay</Text>
                         </TouchableOpacity>
                     </View>
-                </Animated.View>
+                    <Text style={styles.adminHint}>Giữ logo ATOZA 3 giây để vào Admin</Text>
+                </ScrollView>
 
-                {/* ── Footer ── */}
-                <View style={styles.registerRow}>
-                    <Text style={styles.registerHint}>Bạn mới biết đến Atoza? </Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                        <Text style={[styles.registerLink, { color: accentColor }]}>Đăng ký ngay</Text>
-                    </TouchableOpacity>
-                </View>
-                <Text style={styles.adminHint}>Giữ logo ATOZA 3 giây để vào Admin</Text>
-            </ScrollView>
+            </KeyboardAvoidingView>
 
-            {/* ──  MODAL ẨN DÀNH CHO ADMIN ── */}
+            {/* ── MODAL ADMIN — nằm NGOÀI KeyboardAvoidingView ─────────────────
+                statusBarTranslucent: overlay phủ đúng toàn màn hình Android
+                (không có prop này, Modal bị đẩy xuống dưới status bar ~24dp)
+            ─────────────────────────────────────────────────────────────────── */}
             <Modal
                 animationType="fade"
                 transparent={true}
+                statusBarTranslucent={true}
                 visible={isAdminModalVisible}
                 onRequestClose={() => setIsAdminModalVisible(false)}
             >
@@ -712,11 +702,10 @@ export default function Login({ navigation }) {
                             value={adminKey}
                             onChangeText={(text) => {
                                 setAdminKey(text);
-                                setAdminKeyError(''); // Xóa lỗi khi gõ phím
+                                setAdminKeyError('');
                             }}
                         />
 
-                        {/* Hiện thông báo lỗi nếu nhập sai */}
                         {adminKeyError ? <Text style={styles.errorTextModal}>{adminKeyError}</Text> : null}
 
                         <View style={styles.modalActions}>
@@ -736,8 +725,7 @@ export default function Login({ navigation }) {
                     </View>
                 </View>
             </Modal>
-
-        </KeyboardAvoidingView>
+        </>
     );
 }
 

@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 971 notes | Score threshold: >40
+> 993 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -58,9 +58,9 @@
 
 ## Learned Patterns
 
-- Decision: Optimized Score (seen 2x)
 - Decision: Optimized Score — parallelizes async operations for speed (seen 3x)
 - Avoid: ⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed (seen 3x)
+- Avoid: ⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed (seen 5x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 
