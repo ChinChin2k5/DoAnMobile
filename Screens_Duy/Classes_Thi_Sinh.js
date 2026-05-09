@@ -2,10 +2,10 @@
 // Tab "Lớp học" trong MainTabNavigator
 // Hiện tại: UI placeholder đẹp, sẵn sàng kết nối Firestore sau
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, StyleSheet, SafeAreaView, ScrollView,
-    TouchableOpacity, Platform,
+    TouchableOpacity, Platform, Animated
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -47,8 +47,54 @@ const COMING_SOON_FEATURES = [
     { icon: 'trophy-outline', label: 'Bảng xếp hạng lớp' },
 ];
 
+// Component Skeleton Loading cho Card Lớp học
+const SkeletonCard = () => {
+    const pulseAnim = useRef(new Animated.Value(0.5)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.5, duration: 800, useNativeDriver: true })
+            ])
+        ).start();
+    }, [pulseAnim]);
+
+    return (
+        <Animated.View style={[styles.classCard, { opacity: pulseAnim }]}>
+            <View style={[styles.classIcon, { backgroundColor: '#e2e8f0' }]} />
+            <View style={{ flex: 1, justifyContent: 'center' }}>
+                <View style={{ height: 16, backgroundColor: '#e2e8f0', borderRadius: 4, width: '70%', marginBottom: 8 }} />
+                <View style={{ height: 12, backgroundColor: '#e2e8f0', borderRadius: 4, width: '40%', marginBottom: 8 }} />
+                <View style={{ height: 12, backgroundColor: '#e2e8f0', borderRadius: 4, width: '30%' }} />
+            </View>
+        </Animated.View>
+    );
+};
+
 export default function Classes_Thi_Sinh({ navigation }) {
     const [activeTab, setActiveTab] = useState('classes'); // 'classes' | 'upcoming'
+    const [isLoading, setIsLoading] = useState(true);
+    const [classesData, setClassesData] = useState([]);
+
+    useEffect(() => {
+        const init = async () => {
+            const MIN_LOADING = 1000;
+            const startTime = Date.now();      // ← chốt mốc thời gian
+            
+            // Giả lập gọi API (loadLocalData, fetchStats, etc.)
+            await new Promise(resolve => setTimeout(resolve, 300)); // Call DB mất khoảng 300ms
+            setClassesData(MOCK_CLASSES);      // Gán dữ liệu sau khi "fetch" xong
+
+            const elapsed = Date.now() - startTime;
+            const remain = Math.max(0, MIN_LOADING - elapsed);
+            
+            // ← đợi đủ phần thời gian còn thiếu của 1 giây rồi mới tắt Skeleton
+            setTimeout(() => setIsLoading(false), remain); 
+        };
+
+        init();
+    }, []);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -83,30 +129,38 @@ export default function Classes_Thi_Sinh({ navigation }) {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {activeTab === 'classes' ? (
                     <>
-                        {/* Danh sách lớp mẫu */}
-                        {MOCK_CLASSES.map(cls => (
-                            <TouchableOpacity
-                                key={cls.id}
-                                style={styles.classCard}
-                                activeOpacity={0.8}
-                                onPress={() => {
-                                    // TODO: navigate sang chi tiết lớp khi có screen
-                                }}
-                            >
-                                <View style={[styles.classIcon, { backgroundColor: cls.color }]}>
-                                    <Ionicons name={cls.icon} size={26} color={cls.iconColor} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.className}>{cls.name}</Text>
-                                    <Text style={styles.classTeacher}>{cls.teacher}</Text>
-                                    <View style={styles.classMetaRow}>
-                                        <Ionicons name="document-text-outline" size={13} color="#94a3b8" />
-                                        <Text style={styles.classMeta}>{cls.totalExams} đề thi</Text>
+                        {/* Hiển thị Skeleton nếu đang loading, ngược lại hiển thị danh sách lớp */}
+                        {isLoading ? (
+                            <>
+                                <SkeletonCard />
+                                <SkeletonCard />
+                                <SkeletonCard />
+                            </>
+                        ) : (
+                            classesData.map(cls => (
+                                <TouchableOpacity
+                                    key={cls.id}
+                                    style={styles.classCard}
+                                    activeOpacity={0.8}
+                                    onPress={() => {
+                                        // TODO: navigate sang chi tiết lớp khi có screen
+                                    }}
+                                >
+                                    <View style={[styles.classIcon, { backgroundColor: cls.color }]}>
+                                        <Ionicons name={cls.icon} size={26} color={cls.iconColor} />
                                     </View>
-                                </View>
-                                <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
-                            </TouchableOpacity>
-                        ))}
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.className}>{cls.name}</Text>
+                                        <Text style={styles.classTeacher}>{cls.teacher}</Text>
+                                        <View style={styles.classMetaRow}>
+                                            <Ionicons name="document-text-outline" size={13} color="#94a3b8" />
+                                            <Text style={styles.classMeta}>{cls.totalExams} đề thi</Text>
+                                        </View>
+                                    </View>
+                                    <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
+                                </TouchableOpacity>
+                            ))
+                        )}
 
                         {/* Banner tham gia lớp */}
                         <TouchableOpacity style={styles.joinBanner} activeOpacity={0.8}>
@@ -149,38 +203,168 @@ export default function Classes_Thi_Sinh({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc', paddingTop: Platform.OS === 'android' ? 60 : 60, paddingBottom: 60 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 15 },
-    headerTitle: { fontSize: 20, fontWeight: '800', color: '#1e3a8a' },
-    addBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center' },
+    container: { 
+        flex: 1, 
+        backgroundColor: '#f8fafc', 
+        paddingTop: Platform.OS === 'android' ? 60 : 60, 
+        paddingBottom: 60 
+    },
+    header: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        paddingHorizontal: 20, 
+        paddingVertical: 15 
+    },
+    headerTitle: { 
+        fontSize: 20, 
+        fontWeight: '800', 
+        color: '#1e3a8a' 
+    },
+    addBtn: { 
+        width: 38, 
+        height: 38, 
+        borderRadius: 19, 
+        backgroundColor: '#eff6ff', 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
 
-    tabRow: { flexDirection: 'row', marginHorizontal: 20, backgroundColor: '#f1f5f9', borderRadius: 14, padding: 4, marginBottom: 16 },
-    tabBtn: { flex: 1, paddingVertical: 9, borderRadius: 11, alignItems: 'center' },
-    tabBtnActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
-    tabBtnText: { fontSize: 14, fontWeight: '600', color: '#94a3b8' },
+    tabRow: { 
+        flexDirection: 'row',
+         marginHorizontal: 20, 
+         backgroundColor: '#f1f5f9', 
+         borderRadius: 14, 
+         padding: 4, 
+         marginBottom: 16 
+        },
+    tabBtn: { 
+        flex: 1, 
+        paddingVertical: 9, 
+        borderRadius: 11, 
+        alignItems: 'center' 
+    },
+    tabBtnActive: { 
+        backgroundColor: '#fff', 
+        shadowColor: '#000', 
+        shadowOpacity: 0.06, 
+        shadowRadius: 4, 
+        elevation: 2 },
+    tabBtnText: { 
+        fontSize: 14, 
+        fontWeight: '600', 
+        color: '#94a3b8' 
+    },
     tabBtnTextActive: { color: '#1d4ed8' },
 
     scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
 
-    classCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 18, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 },
-    classIcon: { width: 52, height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
-    className: { fontSize: 16, fontWeight: '700', color: '#1e293b', marginBottom: 3 },
-    classTeacher: { fontSize: 13, color: '#64748b', marginBottom: 4 },
+    classCard: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#fff', 
+        borderRadius: 18, 
+        padding: 16, 
+        marginBottom: 12, 
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 2 }, 
+        shadowOpacity: 0.05, 
+        shadowRadius: 6, 
+        elevation: 2 
+    },
+    classIcon: { 
+        width: 52, 
+        height: 52, 
+        borderRadius: 16, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        marginRight: 14 
+    },
+    className: { 
+        fontSize: 16, 
+        fontWeight: '700', 
+        color: '#1e293b', 
+        marginBottom: 3 
+    },
+    classTeacher: { 
+        fontSize: 13, 
+        color: '#64748b', 
+        marginBottom: 4 
+    },
     classMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     classMeta: { fontSize: 12, color: '#94a3b8' },
 
-    joinBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#eff6ff', borderRadius: 18, padding: 18, marginTop: 4, borderWidth: 1.5, borderColor: '#bfdbfe', borderStyle: 'dashed' },
+    joinBanner: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        backgroundColor: '#eff6ff', 
+        borderRadius: 18, 
+        padding: 18, 
+        marginTop: 4, 
+        borderWidth: 1.5, 
+        borderColor: '#bfdbfe', 
+        borderStyle: 'dashed' 
+    },
     joinBannerLeft: { flexDirection: 'row', alignItems: 'center' },
     joinTitle: { fontSize: 15, fontWeight: '700', color: '#1d4ed8' },
     joinSub: { fontSize: 12, color: '#64748b', marginTop: 2 },
 
-    comingSoonCard: { backgroundColor: '#fff', borderRadius: 20, padding: 28, alignItems: 'center', marginBottom: 16, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
-    comingSoonTitle: { fontSize: 17, fontWeight: '700', color: '#1e293b', marginBottom: 8 },
-    comingSoonSub: { fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 20 },
+    comingSoonCard: { 
+        backgroundColor: '#fff', 
+        borderRadius: 20, 
+        padding: 28, 
+        alignItems: 'center', 
+        marginBottom: 16, 
+        shadowColor: '#000', 
+        shadowOpacity: 0.04, 
+        shadowRadius: 6, 
+        elevation: 1 
+    },
+    comingSoonTitle: { 
+        fontSize: 17,
+         fontWeight: '700', 
+         color: '#1e293b', 
+         marginBottom: 8 
+        },
+    comingSoonSub: { 
+        fontSize: 14, 
+        color: '#64748b', 
+        textAlign: 'center', 
+        lineHeight: 20 
+    },
 
-    featureRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10 },
-    featureIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center', marginRight: 14 },
-    featureLabel: { flex: 1, fontSize: 14, fontWeight: '500', color: '#1e293b' },
-    soonBadge: { backgroundColor: '#fef3c7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-    soonText: { fontSize: 11, fontWeight: '700', color: '#d97706' },
+    featureRow: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#fff', 
+        borderRadius: 14, 
+        padding: 14, 
+        marginBottom: 10 
+    },
+    featureIcon: {
+         width: 38, 
+         height: 38, 
+         borderRadius: 12, 
+         backgroundColor: '#eff6ff', 
+         justifyContent: 'center', 
+         alignItems: 'center', 
+         marginRight: 14 
+        },
+    featureLabel: { 
+        flex: 1, 
+        fontSize: 14, 
+        fontWeight: '500', 
+        color: '#1e293b' 
+    },
+    soonBadge: { 
+        backgroundColor: '#fef3c7', 
+        paddingHorizontal: 10, 
+        paddingVertical: 4, 
+        borderRadius: 10 },
+    soonText: { 
+        fontSize: 11, 
+        fontWeight: '700', 
+        color: '#d97706' 
+    },
 });

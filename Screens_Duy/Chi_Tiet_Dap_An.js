@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, StyleSheet, SafeAreaView, ScrollView,
-    TouchableOpacity, Animated
+    TouchableOpacity, Animated, Alert, Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+// Import Firebase để thực hiện chức năng xóa
+import { db } from '../firebaseConfig';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 // ==========================================
 // 1. COMPONENT SKELETON CHỚP TẮT
@@ -33,6 +37,7 @@ export default function Chi_Tiet_Dap_An({ navigation, route }) {
 
     // Dữ liệu mặc định nếu chưa có
     const data = resultData || {
+        id: '', // Để trống mặc định, khi lấy từ History sẽ có id document
         examId: 'AZ-992841',
         score: 8.75,
         correctCount: 35,
@@ -53,6 +58,81 @@ export default function Chi_Tiet_Dap_An({ navigation, route }) {
         }, 800);
         return () => clearTimeout(timer);
     }, []);
+
+    // ==========================================
+    // HÀM XÓA BÀI THI KHỎI LỊCH SỬ FIREBASE
+    // ==========================================
+    const handleDeleteResult = () => {
+        // Nếu chạy trên web → dùng confirm của trình duyệt
+        if (Platform.OS === 'web') {
+            const ok = window.confirm(
+                'Bạn có chắc chắn muốn xóa lịch sử làm bài này không? Hành động này không thể hoàn tác.'
+            );
+            if (!ok) return;
+
+            // Người dùng bấm OK → tiến hành xóa giống onPress trong Alert
+            (async () => {
+                const docId = data.id || resultData?.id;
+
+                if (!docId) {
+                    window.alert('Không tìm thấy ID của bài thi này để xóa.');
+                    return;
+                }
+
+                try {
+                    setIsLoading(true);
+
+                    const docRef = doc(db, 'History', docId);
+                    await deleteDoc(docRef);
+
+                    navigation.goBack();
+                } catch (error) {
+                    console.error('Lỗi khi xóa bài thi:', error);
+                    window.alert('Không thể xóa bài thi lúc này. Vui lòng thử lại sau.');
+                    setIsLoading(false);
+                }
+            })();
+
+            return;
+        }
+
+        // Mobile (Android/iOS) → giữ Alert.alert như cũ
+        Alert.alert(
+            'Xóa kết quả bài thi',
+            'Bạn có chắc chắn muốn xóa lịch sử làm bài này không? Hành động này không thể hoàn tác.',
+            [
+                { text: 'Hủy', style: 'cancel' },
+                {
+                    text: 'Xóa',
+                    style: 'destructive',
+                    onPress: async () => {
+                        const docId = data.id || resultData?.id;
+
+                        if (!docId) {
+                            Alert.alert('Lỗi', 'Không tìm thấy ID của bài thi này để xóa.');
+                            return;
+                        }
+
+                        try {
+                            setIsLoading(true);
+
+                            const docRef = doc(db, 'History', docId);
+                            await deleteDoc(docRef);
+
+                            navigation.goBack();
+                        } catch (error) {
+                            console.error('Lỗi khi xóa bài thi:', error);
+                            Alert.alert(
+                                'Lỗi',
+                                'Không thể xóa bài thi lúc này. Vui lòng thử lại sau.'
+                            );
+                            setIsLoading(false);
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     // ==========================================
     // RENDER GIAO DIỆN SKELETON (KHI ĐANG LOAD)
@@ -309,13 +389,21 @@ export default function Chi_Tiet_Dap_An({ navigation, route }) {
                     );
                 })}
 
+                {/* ========================================== */}
+                {/* NÚT XÓA BÀI THI Ở DƯỚI CÙNG GIAO DIỆN */}
+                {/* ========================================== */}
+                <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteResult} activeOpacity={0.7}>
+                    <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                    <Text style={styles.deleteBtnText}>Xóa lịch sử bài thi này</Text>
+                </TouchableOpacity>
+
             </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8fafc',paddingTop:40, paddingBottom:60, },
+    container: { flex: 1, backgroundColor: '#f8fafc', paddingTop: 40, paddingBottom: 60, },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
     headerTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e3a8a' },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
@@ -366,5 +454,25 @@ const styles = StyleSheet.create({
     tagCorrectAnswerText: { fontSize: 11, fontWeight: 'bold', color: '#166534', marginRight: 8 },
 
     explanationBox: { flexDirection: 'row', backgroundColor: '#f8fafc', padding: 12, borderRadius: 10, marginTop: 15, borderWidth: 1, borderColor: '#e2e8f0' },
-    explanationText: { flex: 1, fontSize: 12, color: '#475569', lineHeight: 18, marginLeft: 8 }
+    explanationText: { flex: 1, fontSize: 12, color: '#475569', lineHeight: 18, marginLeft: 8 },
+
+    // CSS CHO NÚT XÓA BÀI THI
+    deleteBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fef2f2',
+        borderWidth: 1.5,
+        borderColor: '#fca5a5',
+        paddingVertical: 14,
+        borderRadius: 14,
+        marginTop: 20,
+        marginBottom: 20,
+        gap: 8,
+    },
+    deleteBtnText: {
+        color: '#ef4444',
+        fontSize: 15,
+        fontWeight: 'bold'
+    }
 });

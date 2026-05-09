@@ -525,40 +525,151 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc', paddingTop: 40, paddingBottom: 30 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 15 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 },
-  backText: { fontSize: 16, color: '#1e293b', marginLeft: '4%', fontWeight: 'bold' },
-  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#e2e8f0' },
-  progressSection: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 15 },
-  progressBarBg: { flex: 1, height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, marginRight: 12 },
-  progressBarFill: { height: 6, backgroundColor: '#2563eb', borderRadius: 3 },
-  progressText: { fontSize: 14, fontWeight: 'bold', color: '#1e293b', width: 35, textAlign: 'right' },
-  timerContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
-  timerText: { fontSize: 16, fontWeight: 'bold', color: '#1d4ed8', marginLeft: 6 },
-  questionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 16 },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingHorizontal: 16, 
+    paddingTop: 10, 
+    paddingBottom: 15 },
+  backBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    flex: 1, 
+    marginRight: 10 },
+  backText: { 
+    fontSize: 16, 
+    color: '#1e293b', 
+    marginLeft: '4%', 
+    fontWeight: 'bold' 
+  },
+  avatar: { 
+    width: 36, 
+    height: 36, 
+    borderRadius: 18, 
+    backgroundColor: '#e2e8f0' 
+  },
+  progressSection: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 16, 
+    marginBottom: 15 
+  },
+  progressBarBg: {
+     flex: 1, 
+     height: 6, 
+     backgroundColor: '#e2e8f0', 
+     borderRadius: 3, 
+     marginRight: 12 },
+  progressBarFill: { 
+    height: 6, 
+    backgroundColor: '#2563eb', 
+    borderRadius: 3 
+  },
+  progressText: { 
+    fontSize: 14,
+     fontWeight: 'bold', 
+     color: '#1e293b', 
+     width: 35, 
+     textAlign: 'right' 
+    },
+  timerContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: 20 
+  },
+  timerText: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: '#1d4ed8', 
+    marginLeft: 6 
+  },
+  questionHeader: {
+     flexDirection: 'row', 
+     justifyContent: 'space-between', 
+     alignItems: 'center', 
+     paddingHorizontal: 16, 
+     marginBottom: 16 
+    },
   questionNumber: { fontSize: 18, fontWeight: 'bold', color: '#0f172a' },
   actionIcons: { flexDirection: 'row' },
   iconBtn: { padding: 8, backgroundColor: '#f1f5f9', borderRadius: 8, marginLeft: 10 },
   contentArea: { flex: 1, paddingHorizontal: 16, height: 0 },
-  questionCard: { backgroundColor: 'white', padding: 20, borderRadius: 12, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
+  questionCard: { 
+    backgroundColor: 'white', 
+    padding: 20, 
+    borderRadius: 12, 
+    marginBottom: 20, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 1 }, 
+    shadowOpacity: 0.05, 
+    shadowRadius: 2,
+     elevation: 2 },
   questionText: { fontSize: 16, lineHeight: 24, fontWeight: '600', color: '#0f172a' },
   optionsContainer: { paddingBottom: 20 },
-  optionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#f1f5f9' },
+  optionItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'white', 
+    padding: 16, 
+    borderRadius: 12, 
+    marginBottom: 12, 
+    borderWidth: 1, 
+    borderColor: '#f1f5f9' 
+  },
   optionItemSelected: { backgroundColor: '#e0e7ff', borderColor: '#818cf8' },
-  radioCircle: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#cbd5e1', alignItems: 'center', justifyContent: 'center', marginRight: 15 },
+  radioCircle: { 
+    width: 22, height: 22, 
+    borderRadius: 11, 
+    borderWidth: 2, 
+    borderColor: '#cbd5e1', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginRight: 15 },
   radioCircleSelected: { borderColor: '#4f46e5' },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#4f46e5' },
   optionText: { flex: 1, fontSize: 15, color: '#334155', lineHeight: 22 },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, backgroundColor: 'white', borderTopWidth: 1, borderColor: '#f1f5f9' },
-  footerBtnOutline: { flex: 1, paddingVertical: 14, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', alignItems: 'center', marginRight: 8 },
+  footer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    padding: 16, 
+    backgroundColor: 'white', 
+    borderTopWidth: 1, 
+    borderColor: '#f1f5f9' },
+  footerBtnOutline: { 
+    flex: 1, 
+    paddingVertical: 14, 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    borderColor: '#e2e8f0', 
+    alignItems: 'center', 
+    marginRight: 8 },
   footerBtnOutlineText: { fontSize: 16, fontWeight: '600', color: '#0f172a' },
-  footerBtnPrimary: { flex: 1, paddingVertical: 14, borderRadius: 8, backgroundColor: '#2563eb', alignItems: 'center', marginLeft: 8 },
+  footerBtnPrimary: { 
+    flex: 1, 
+    paddingVertical: 14, 
+    borderRadius: 8, 
+    backgroundColor: '#2563eb', 
+    alignItems: 'center', 
+    marginLeft: 8 },
   footerBtnPrimaryText: { fontSize: 16, fontWeight: '600', color: 'white' },
 
-  overlayContainer: { ...StyleSheet.absoluteFillObject, zIndex: 999, justifyContent: 'flex-end' },
-  overlayBg: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
+  overlayContainer: { 
+    ...StyleSheet.absoluteFillObject, 
+    zIndex: 999, 
+    justifyContent: 'flex-end' },
+  overlayBg: { 
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: 'rgba(0,0,0,0.4)' 
+  },
   bottomSheet: { backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
-  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  sheetHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 20 
+  },
   sheetTitle: { fontSize: 18, fontWeight: 'bold', color: '#0f172a' },
   sheetBadge: { backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
   sheetBadgeText: { fontSize: 12, fontWeight: '600', color: '#475569' },

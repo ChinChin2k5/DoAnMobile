@@ -422,9 +422,15 @@ export default function Profile_Thi_Sinh({ navigation, route }) {
   //  Gộp các logic khởi tạo vào một khu vực
   useEffect(() => {
     const init = async () => {
+      const MIN_LOADING = 1000;
+      const startTime = Date.now();      // ← chốt mốc thời gian
+
       await loadLocalData();
       await fetchStats();
-      setIsLoading(false);
+
+      const elapsed = Date.now() - startTime;
+      const remain = Math.max(0, MIN_LOADING - elapsed);
+      setTimeout(() => setIsLoading(false), remain); // ← đợi đủ 1 giây rồi mới tắt
     };
     init();
   }, []);
@@ -1202,13 +1208,43 @@ function ContactRow({ icon, label, value, onPress }) {
 // Styles
 // ─────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc', paddingTop: Platform.OS === 'android' ? 40 : 40, paddingBottom: 60 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 15 },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1e3a8a' },
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    paddingTop: Platform.OS === 'android' ? 40 : 40,
+    paddingBottom: 60
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 15
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e3a8a'
+  },
   iconBtn: { padding: 4 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fef2f2', borderRadius: 12, padding: 12, marginBottom: 12, gap: 8 },
-  errorText: { color: '#b91c1c', fontSize: 13, flex: 1 },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    gap: 8
+  },
+  errorText: {
+    color: '#b91c1c',
+    fontSize: 13,
+    flex: 1
+  },
 
   profileSection: {
     alignItems: 'center',       // Căn giữa theo chiều ngang
@@ -1223,27 +1259,126 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatar: { width: 104, height: 104, borderRadius: 52, backgroundColor: 'transparent', borderWidth: 3, borderColor: '#bfdbfe' },
-  cameraBadge: { position: 'absolute', bottom: 2, right: 2, width: 26, height: 26, borderRadius: 13, backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
-  userNameRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  userName: { fontSize: 20, fontWeight: 'bold', color: '#0f172a' },
-  roleBadge: { backgroundColor: '#bfdbfe', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, marginBottom: 12, alignSelf: 'center' },
-  roleText: { fontSize: 12, fontWeight: 'bold', color: '#1e3a8a' },
-  mottoContainer: { alignItems: 'center', paddingHorizontal: 10, marginTop: 4 },
-  mottoText: { fontSize: 13, color: '#475569', textAlign: 'center', lineHeight: 20, fontStyle: 'italic' },
+  avatar: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    backgroundColor: 'transparent',
+    borderWidth: 3,
+    borderColor: '#bfdbfe'
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff'
+  },
+  userNameRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 6 
+  },
+  userName: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: '#0f172a' 
+  },
+  roleBadge: { 
+    backgroundColor: '#bfdbfe', 
+    paddingHorizontal: 16, 
+    paddingVertical: 6, 
+    borderRadius: 20, 
+    marginBottom: 12, 
+    alignSelf: 'center' 
+  },
+  roleText: { 
+    fontSize: 12, 
+    fontWeight: 'bold', 
+    color: '#1e3a8a' 
+  },
+  mottoContainer: { 
+    alignItems: 'center', 
+    paddingHorizontal: 10, 
+    marginTop: 4 
+  },
+  mottoText: { 
+    fontSize: 13, 
+    color: '#475569', 
+    textAlign: 'center', 
+    lineHeight: 20, 
+    fontStyle: 'italic' 
+  },
 
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 24, gap: 12 },
-  statCard: { flex: 1, backgroundColor: '#dbeafe', borderRadius: 16, padding: 16 },
-  statCardFull: { flex: undefined, marginTop: 12 },
-  statLabel: { fontSize: 11, fontWeight: '700', color: '#1e40af', marginBottom: 4 },
-  statValue: { fontSize: 28, fontWeight: '800', color: '#1d4ed8' },
-  statSub: { fontSize: 12, color: '#3b82f6', fontWeight: '500', marginTop: 2 },
-  progressBg: { height: 6, backgroundColor: '#bfdbfe', borderRadius: 3, marginTop: 10, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#3b82f6', borderRadius: 3 },
+  statsRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginTop: 24, 
+    gap: 12 
+  },
+  statCard: { 
+    flex: 1, 
+    backgroundColor: '#dbeafe', 
+    borderRadius: 16, 
+    padding: 16 
+  },
+  statCardFull: { 
+    flex: undefined, 
+    marginTop: 12 
+  },
+  statLabel: { 
+    fontSize: 11, 
+    fontWeight: '700', 
+    color: '#1e40af', 
+    marginBottom: 4 
+  },
+  statValue: { 
+    fontSize: 28, 
+    fontWeight: '800', 
+    color: '#1d4ed8' 
+  },
+  statSub: { 
+    fontSize: 12, 
+    color: '#3b82f6', 
+    fontWeight: '500', 
+    marginTop: 2 
+  },
+  progressBg: { 
+    height: 6, 
+    backgroundColor: '#bfdbfe', 
+    borderRadius: 3, 
+    marginTop: 10, 
+    overflow: 'hidden' 
+  },
+  progressFill: { 
+    height: '100%', 
+    backgroundColor: '#3b82f6', 
+    borderRadius: 3 
+  },
 
   settingsSection: { marginTop: 28 },
-  sectionTitle: { fontSize: 13, fontWeight: 'bold', color: '#64748b', marginBottom: 15 },
-  settingItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white', padding: 16, borderRadius: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+  sectionTitle: { 
+    fontSize: 13, 
+    fontWeight: 'bold', 
+    color: '#64748b', 
+    marginBottom: 15 
+  },
+  settingItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    backgroundColor: 'white', 
+    padding: 16, 
+    borderRadius: 16, 
+    marginBottom: 12, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 1 }, 
+    shadowOpacity: 0.04, 
+    shadowRadius: 4, 
+    elevation: 1 
+  },
   settingItemLeft: { flexDirection: 'row', alignItems: 'center' },
   settingIconWrapper: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   settingItemTitle: { fontSize: 16, fontWeight: '600', color: '#1e293b' },
@@ -1315,17 +1450,80 @@ const styles = StyleSheet.create({
 });
 
 const modalStyles = StyleSheet.create({
-  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: Platform.OS === 'ios' ? 34 : 20, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 20 },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#e2e8f0', alignSelf: 'center', marginTop: 12, marginBottom: 4 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
+  backdrop: { 
+    position: 'absolute', 
+    top: 0, left: 0, right: 0, bottom: 0, 
+    backgroundColor: 'rgba(0,0,0,0.4)' 
+  },
+  sheet: { 
+    position: 'absolute', bottom: 0, left: 0, right: 0, 
+    backgroundColor: '#fff', 
+    borderTopLeftRadius: 28, 
+    borderTopRightRadius: 28, 
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: -4 }, 
+    shadowOpacity: 0.1, 
+    shadowRadius: 12, 
+    elevation: 20 
+  },
+  handle: { 
+    width: 40, 
+    height: 4, 
+    borderRadius: 2, 
+    backgroundColor: '#e2e8f0', 
+    alignSelf: 'center', 
+    marginTop: 12, 
+    marginBottom: 4 
+  },
+  sheetHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 20, 
+    paddingVertical: 12, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#f1f5f9' 
+  },
+  sheetTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: '#1e293b' 
+  },
   closeBtn: { padding: 4 },
   centeredOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  mottoBox: { backgroundColor: '#fff', borderRadius: 20, padding: 20, width: '100%', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 20, elevation: 10 },
-  mottoBoxTitle: { fontSize: 15, fontWeight: '700', color: '#1e293b', marginBottom: 12 },
-  mottoInput: { borderWidth: 1.5, borderColor: '#bfdbfe', borderRadius: 12, padding: 12, fontSize: 14, color: '#1e293b', minHeight: 100, textAlignVertical: 'top', lineHeight: 22 },
-  charCount: { fontSize: 12, color: '#94a3b8', textAlign: 'right', marginTop: 4 },
+  mottoBox: { 
+    backgroundColor: '#fff', 
+    borderRadius: 20, 
+    padding: 20, 
+    width: '100%', 
+    shadowColor: '#000', 
+    shadowOpacity: 0.15, 
+    shadowRadius: 20, 
+    elevation: 10 
+  },
+  mottoBoxTitle: { 
+    fontSize: 15, 
+    fontWeight: '700', 
+    color: '#1e293b', 
+    marginBottom: 12 
+  },
+  mottoInput: { 
+    borderWidth: 1.5,
+     borderColor: '#bfdbfe', 
+     borderRadius: 12, 
+     padding: 12, 
+     fontSize: 14, 
+     color: '#1e293b', 
+     minHeight: 100, 
+     textAlignVertical: 'top',
+     lineHeight: 22
+     },
+  charCount: { 
+    fontSize: 12, 
+    color: '#94a3b8', 
+    textAlign: 'right', 
+    marginTop: 4 },
   mottoActions: { flexDirection: 'row', gap: 10, marginTop: 16 },
   mottoBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
 });
@@ -1350,7 +1548,17 @@ const resultNavBtnText = {
 };
 
 const resultStyles = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#e2e8f0', cursor: Platform.OS === 'web' ? 'pointer' : undefined },
+  card: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#f8fafc', 
+    borderRadius: 14, 
+    padding: 14, 
+    marginBottom: 10, 
+    borderWidth: 1, 
+    borderColor: '#e2e8f0', 
+    cursor: Platform.OS === 'web' ? 'pointer' : undefined 
+  },
   examTitle: { fontSize: 14, fontWeight: '700', color: '#1e293b', marginBottom: 3 },
   examDate: { fontSize: 12, color: '#94a3b8', marginBottom: 2 },
   examSub: { fontSize: 12, color: '#64748b' },

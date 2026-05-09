@@ -155,12 +155,42 @@ export default function Ket_Qua_Va_Phan_Tich({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 15 },
-  backBtn: { flexDirection: 'row', alignItems: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: 'bold', color: '#1d4ed8', marginLeft: 8 },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingHorizontal: 16, 
+    paddingVertical: 15 
+  },
+  backBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  headerTitle: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: '#1d4ed8', 
+    marginLeft: 8 
+  },
   scrollContent: { padding: 16, paddingBottom: 40 },
-  card: { backgroundColor: 'white', borderRadius: 24, padding: 24, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  cardSubtitle: { fontSize: 12, fontWeight: '700', color: '#64748b', letterSpacing: 1, marginBottom: 20 },
+  card: { 
+    backgroundColor: 'white', 
+    borderRadius: 24, 
+    padding: 24, 
+    marginBottom: 16, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.05, 
+    shadowRadius: 8, 
+    elevation: 2 
+  },
+  cardSubtitle: { 
+    fontSize: 12, 
+    fontWeight: '700', 
+    color: '#64748b', 
+    letterSpacing: 1, 
+    marginBottom: 20 
+  },
   scoreCircleContainer: { alignItems: 'center', marginBottom: 24 },
   scoreCircle: { width: 160, height: 160, borderRadius: 80, borderWidth: 14, borderColor: '#4338ca', justifyContent: 'center', alignItems: 'center' },
   scoreText: { fontSize: 26, fontWeight: 'bold', color: '#0f172a' },
@@ -168,9 +198,28 @@ const styles = StyleSheet.create({
   greetingText: { fontSize: 20, fontWeight: 'bold', color: '#0f172a', textAlign: 'center', marginBottom: 8 },
   descText: { fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 20 },
   accuracyRow: { flexDirection: 'row', alignItems: 'center' },
-  donutChartPlaceholder: { width: 80, height: 80, position: 'relative', justifyContent: 'center', alignItems: 'center', marginRight: 30 },
-  chartSegment: { position: 'absolute', width: 80, height: 80, borderRadius: 40, borderWidth: 12 },
-  innerCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'white', position: 'absolute' },
+  donutChartPlaceholder: { 
+    width: 80, 
+    height: 80, 
+    position: 'relative', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginRight: 30 
+  },
+  chartSegment: { 
+    position: 'absolute', 
+    width: 80, 
+    height: 80, 
+    borderRadius: 40, 
+    borderWidth: 12 
+  },
+  innerCircle: { 
+    width: 56, 
+    height: 56, 
+    borderRadius: 28, 
+    backgroundColor: 'white', 
+    position: 'absolute' 
+  },
   legendContainer: { flex: 1, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   legendDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
@@ -181,6 +230,13 @@ const styles = StyleSheet.create({
   actionCard: { position: 'relative', overflow: 'hidden', paddingLeft: 28, alignItems: 'center' },
   accentBorder: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: '#2563eb' },
   actionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1d4ed8', marginBottom: 15 },
-  primaryBtn: { backgroundColor: '#2563eb', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 30, width: '100%', alignItems: 'center' },
+  primaryBtn: { 
+    backgroundColor: '#2563eb', 
+    paddingVertical: 14, 
+    paddingHorizontal: 32, 
+    borderRadius: 30, 
+    width: '100%', 
+    alignItems: 'center' 
+  },
   primaryBtnText: { color: 'white', fontSize: 14, fontWeight: '600' }
 });

@@ -821,18 +821,52 @@ const styles = StyleSheet.create({
     roleHint: { fontSize: 11, fontWeight: '600', marginTop: 2 },
 
     contentCard: {
-        borderRadius: 24, paddingHorizontal: 22, paddingVertical: 28,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.1, shadowRadius: 16, elevation: 5, marginBottom: 24,
+        borderRadius: 24, 
+        paddingHorizontal: 22, 
+        paddingVertical: 28,
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1, 
+        shadowRadius: 16, 
+        elevation: 5,
+        marginBottom: 24,
     },
-    title: { fontSize: 22, fontWeight: '800', color: '#1A202C', marginBottom: 6, textAlign: 'center' },
-    subtitle: { fontSize: 13, color: '#718096', lineHeight: 20, marginBottom: 24, textAlign: 'center' },
+    title: { 
+        fontSize: 22, 
+        fontWeight: '800', 
+        color: '#1A202C', 
+        marginBottom: 6, 
+        textAlign: 'center' 
+    },
+    subtitle: { 
+        fontSize: 13, 
+        color: '#718096', 
+        lineHeight: 20, 
+        marginBottom: 24, 
+        textAlign: 'center' 
+    },
 
-    tabRow: { flexDirection: 'row', backgroundColor: '#F0F2F8', borderRadius: 16, padding: 5, marginBottom: 24, gap: 4 },
-    tabBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center' },
+    tabRow: { 
+        flexDirection: 'row', 
+        backgroundColor: '#F0F2F8', 
+        borderRadius: 16, 
+        padding: 5, 
+        marginBottom: 24, 
+        gap: 4 
+    },
+    tabBtn: { 
+        flex: 1, 
+        paddingVertical: 10, 
+        borderRadius: 12, 
+        alignItems: 'center' 
+    },
     tabBtnActive: {
-        backgroundColor: '#FFFFFF', borderWidth: 1.5,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6,
+        backgroundColor: '#FFFFFF', 
+        borderWidth: 1.5,
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 2 }, 
+        shadowOpacity: 0.08, 
+        shadowRadius: 6,
     },
     tabText: { fontSize: 13, fontWeight: '600', color: '#A0AEC0' },
     tabTextBlue: { color: '#3B5BDB' },
@@ -845,12 +879,29 @@ const styles = StyleSheet.create({
     },
     errorBannerText: { color: '#E53935', fontSize: 12, fontWeight: '600', flex: 1 },
 
-    label: { fontSize: 11, fontWeight: '700', color: '#718096', letterSpacing: 1, marginBottom: 8 },
-    labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, marginBottom: 8 },
+    label: { 
+        fontSize: 11, 
+        fontWeight: '700', 
+        color: '#718096', 
+        letterSpacing: 1, 
+        marginBottom: 8 },
+    labelRow: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginTop: 4, 
+        marginBottom: 8 
+    },
     forgotText: { fontSize: 12, fontWeight: '700' },
     inputBox: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F8FC',
-        borderRadius: 14, paddingHorizontal: 16, paddingVertical: 13, marginBottom: 14, borderWidth: 1.5,
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#F7F8FC',
+        borderRadius: 14, 
+        paddingHorizontal: 16, 
+        paddingVertical: 13, 
+        marginBottom: 14, 
+        borderWidth: 1.5,
     },
     inputIcon: { marginRight: 12 },
     input: {
@@ -862,9 +913,18 @@ const styles = StyleSheet.create({
     errorText: { color: '#E53935', fontSize: 11, marginTop: -10, marginBottom: 10, marginLeft: 4 },
 
     loginBtn: {
-        borderRadius: 50, paddingVertical: 16, flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'center', position: 'relative', minHeight: 54,
-        shadowColor: '#3B5BDB', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
+        borderRadius: 50, 
+        paddingVertical: 16, 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        justifyContent: 'center',
+         position: 'relative', 
+         minHeight: 54,
+        shadowColor: '#3B5BDB', 
+        shadowOffset: { width: 0, height: 6 }, 
+        shadowOpacity: 0.35, 
+        shadowRadius: 12, 
+        elevation: 6,
     },
     loginIconLeft: { position: 'absolute', left: 22 },
     loginBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 0.3 },
@@ -876,10 +936,21 @@ const styles = StyleSheet.create({
 
     socialRow: { flexDirection: 'row', gap: 12 },
     socialPill: {
-        flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: '#FFFFFF', borderRadius: 50, paddingVertical: 13, gap: 8,
-        borderWidth: 1.5, borderColor: '#E8ECF4',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#FFFFFF', 
+        borderRadius: 50, 
+        paddingVertical: 13, 
+        gap: 8,
+        borderWidth: 1.5, 
+        borderColor: '#E8ECF4',
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 1 }, 
+        shadowOpacity: 0.06, 
+        shadowRadius: 4, 
+        elevation: 2,
     },
     socialPillText: { fontSize: 13, fontWeight: '700', color: '#2D3748' },
     socialPillLoading: { opacity: 0.6 },
@@ -891,18 +962,34 @@ const styles = StyleSheet.create({
 
     // ──  CSS CHO MODAL ADMIN ──
     modalOverlay: {
-        flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.75)',
-        justifyContent: 'center', alignItems: 'center'
+        flex: 1, 
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        justifyContent: 'center', 
+        alignItems: 'center'
     },
     modalContent: {
-        width: '85%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 15
+        width: '85%', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: 20, 
+        padding: 24,
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 10 }, 
+        shadowOpacity: 0.25, 
+        shadowRadius: 20, 
+        elevation: 15
     },
     modalTitle: { fontSize: 20, fontWeight: '800', color: '#1A202C', marginBottom: 8, textAlign: 'center' },
     modalSubtitle: { fontSize: 13, color: '#718096', marginBottom: 20, textAlign: 'center', lineHeight: 20 },
     modalInput: {
-        backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12,
-        paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', marginBottom: 8
+        backgroundColor: '#F8FAFC', 
+        borderWidth: 1.5, 
+        borderColor: '#E2E8F0', 
+        borderRadius: 12,
+        paddingHorizontal: 16, 
+        paddingVertical: 14, 
+        fontSize: 15, 
+        color: '#1E293B', 
+        marginBottom: 8
     },
     errorTextModal: { color: '#E53E3E', fontSize: 12, marginBottom: 16, textAlign: 'center', fontWeight: '600' },
     modalActions: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 12 },

@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 1025 notes | Score threshold: >40
+> 1905 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,58 +20,54 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **gotcha in shared-context.json** — -     }
-+     },
--   ]
-+     {
-- }
-+       "id": "c2e9d65fdf760497",
-+
-- **⚠️ GOTCHA: Fixed null crash in Android — fixes memory leak from uncleared timers** — -     // ─────────────────────────────────────────────────────────────
-- **⚠️ GOTCHA: Added session cookies authentication** — - # Intellectual Property & Architecture Rules
-+ # Intellectual Proper
-- **gotcha in shared-context.json** — -     }
-+     },
--   ]
-+     {
-- }
-+       "id": "748a00bfa495f3af",
-+
-- **⚠️ GOTCHA: Fixed null crash in Animated — fixes memory leak from uncleared timers** — -     //
-+     // ───────────────────────────────────────────────────
-- **⚠️ GOTCHA: Fixed null crash in Animated — fixes memory leak from uncleared timers** — -     // VẤN ĐỀ CỐT LÕI trên Android Chrome:
-+ 
--     //   Khi người
+- **⚠️ GOTCHA: problem-fix in Login.js** — -         paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, co
+- **⚠️ GOTCHA: problem-fix in Login.js** — -         backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '
+- **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowOpacity: 0.25, shadowRadius: 20, elevation: 15
++     
+- **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25,
+- **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
+- **⚠️ GOTCHA: problem-fix in Login.js** — -         backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24,
+
+
+## Active: `Screens_Duy`
+
+- **⚠️ GOTCHA: problem-fix in Login.js**
+- **⚠️ GOTCHA: problem-fix in Login.js**
+- **⚠️ GOTCHA: problem-fix in Login.js**
+- **⚠️ GOTCHA: problem-fix in Login.js**
+- **⚠️ GOTCHA: problem-fix in Login.js**
 
 ## Project Standards
 
-- what-changed in shared-context.json — confirmed 5x
-- Optimized Intellectual — confirmed 3x
-- what-changed in Login.js — confirmed 8x
-- what-changed in shared-context.json — confirmed 4x
-- Optimized Intellectual — confirmed 4x
-- Fixed null crash in Animated — fixes memory leak from uncleared timers — confirmed 5x
-- what-changed in Login.js — confirmed 4x
-- discovery in shared-context.json — confirmed 3x
+- decision in Login.js — confirmed 5x
+- Replaced auth FFFFFF — confirmed 44x
+- Replaced auth StyleSheet — confirmed 19x
+- what-changed in Ket_Qua_Va_Phan_Tich.js — confirmed 45x
+- what-changed in Classes_Thi_Sinh.js — confirmed 127x
+- what-changed in Lich_Su_Lam_Bai.js — confirmed 39x
+- trade-off in Profile_Thi_Sinh.js — confirmed 6x
+- trade-off in Profile_Thi_Sinh.js — confirmed 3x
 
 ## Known Fixes
 
 - ❌ - - Fixed null crash in Async — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ - - Fixed null crash in View — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ -           console.error('Failed to load user data', e); → ✅ Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes
-- ❌ - - Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
 - ❌ - - Fixed null crash in Ionicons — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ - - Fixed null crash in View — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
+- ❌ -       console.error('[Dashboard] Firestore error:', err.message); → ✅ Fixed null crash in Firestore — avoids unnecessary re-renders in React
+- ❌ -           console.error('Failed to load user data', e); → ✅ Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes
 
 ## Recent Decisions
 
-- Optimized Score — parallelizes async operations for speed
-- Optimized Score — parallelizes async operations for speed
+- decision in Man_Hinh_Lam_Bai.js
+- decision in Man_Hinh_Lam_Bai.js
+- decision in Man_Hinh_Lam_Bai.js
+- decision in Man_Hinh_Lam_Bai.js
 
 ## Learned Patterns
 
 - Decision: Optimized Score — parallelizes async operations for speed (seen 3x)
 - Avoid: ⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed (seen 3x)
-- Avoid: ⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed (seen 5x)
+- Avoid: gotcha in agent-rules.md (seen 2x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 
