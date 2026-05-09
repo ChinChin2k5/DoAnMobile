@@ -5,7 +5,6 @@ import { Dropdown } from 'react-native-element-dropdown';
 const AppDropdown = ({ label, data, value, onChange }) => {
   return (
     <View style={styles.container}>
-      {/* Label chuẩn UI: In hoa, Xanh, Đậm, Khoảng cách rộng */}
       <Text style={styles.label}>{label}</Text>
       
       <Dropdown
@@ -13,16 +12,15 @@ const AppDropdown = ({ label, data, value, onChange }) => {
         placeholderStyle={styles.placeholderStyle}
         selectedTextStyle={styles.selectedTextStyle}
         iconStyle={styles.iconStyle}
-        // Style cho cái menu khi xổ xuống cho đồng bộ
         containerStyle={styles.dropdownContainer} 
         itemTextStyle={styles.itemText}
-        activeColor="#E8EFFB" // Màu nền nhẹ khi bấm chọn item
+        activeColor="#E8EFFB" 
 
         data={data}
         maxHeight={300}
         labelField="label"
         valueField="value"
-        placeholder="Chọn..." // Chuyển sang Tiếng Việt
+        placeholder="Chọn..." 
         value={value}
         onChange={onChange}
       />
@@ -34,43 +32,41 @@ export default AppDropdown;
 
 const styles = StyleSheet.create({
   container: { 
-    marginBottom: 20 // Tăng khoảng cách giữa các trường cho thoáng
+    marginBottom: 20 
   },
   label: {
-    fontSize: 10, // Chữ nhỏ nhắn, tinh tế hơn xíu
-    color: '#084CCB', // Màu xanh dương đậm chuẩn Figma (Xanh hơn màu cũ của em)
-    marginBottom: 10, // Tăng khoảng cách label xuống ô input
-    fontWeight: '700', // Rất đậm
-    textTransform: 'uppercase', // Ép in hoa
-    letterSpacing: 1.5, // Kéo dãn khoảng cách chữ, cực kỳ quan trọng
+    fontSize: 10, 
+    color: '#084CCB', 
+    marginBottom: 10, 
+    fontWeight: '700', 
+    textTransform: 'uppercase', 
+    letterSpacing: 1.5, 
   },
   dropdown: {
-    height: 56, // Hộp to, bự, tạo cảm giác chắc chắn
-    backgroundColor: '#EEF2F9', // Màu nền xanh xám nhạt chuẩn Figma (Tươi hơn màu của em)
-    borderRadius: 16, // Bo góc tròn xoe bự hơn (Figma xài bo góc lớn)
-    paddingHorizontal: 20, // Tăng padding bên trong cho thoáng
-    // Đã xóa borderWidth hoàn toàn
+    height: 56, 
+    backgroundColor: '#EEF2F9', 
+    borderRadius: 16, 
+    paddingHorizontal: 20, 
   },
   placeholderStyle: { 
     fontSize: 15, 
-    color: '#6F7F91' // Màu placeholder xám nhẹ, không quá đậm
+    color: '#6F7F91' 
   },
   selectedTextStyle: { 
     fontSize: 15, 
-    color: '#1A2134', // Màu chữ chọn đậm, sắc nét
+    color: '#1A2134', 
     fontWeight: '500',
   },
   iconStyle: { 
     width: 22, 
     height: 22,
-    tintColor: '#5F6368', // Màu mũi tên xám nhẹ
+    tintColor: '#5F6368', 
   },
-  // Style bổ sung cho menu xổ xuống
   dropdownContainer: {
     borderRadius: 12,
     marginTop: 5,
-    elevation: 4, // Đổ bóng cho Android nhìn xịn hơn
-    shadowColor: '#000', // Đổ bóng cho iOS
+    elevation: 4, 
+    shadowColor: '#000', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

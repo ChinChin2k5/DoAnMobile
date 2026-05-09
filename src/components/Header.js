@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from "react-native"; // 🔴 Import thêm Alert
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from "react-native"; 
 import { MaterialIcons, Feather } from "@expo/vector-icons"; 
 import { useNavigation } from "@react-navigation/native";
 
@@ -11,7 +11,6 @@ export default function Header({
 }) {
   const navigation = useNavigation();
 
-  // Xử lý luồng bấm nút trái
   const handlePress = () => {
     if (onLeftPress) {
       onLeftPress(); 
@@ -20,23 +19,21 @@ export default function Header({
     }
   };
 
-  // 🔴 Xử lý luồng bấm vào Avatar (Đăng xuất)
   const handleAvatarPress = () => {
     Alert.alert(
-      "Xác nhận", // Tiêu đề của hộp thoại
-      "Bạn có chắc chắn muốn đăng xuất không?", // Lời nhắn
+      "Xác nhận",
+      "Bạn có chắc chắn muốn đăng xuất không?", 
       [
         {
           text: "Hủy",
-          style: "cancel", // Nút Hủy sẽ có màu mặc định và tắt hộp thoại
+          style: "cancel", 
         },
         {
           text: "Đăng xuất",
-          style: "destructive", // style destructive sẽ làm chữ trên iOS biến thành màu ĐỎ cảnh báo
+          style: "destructive", 
           onPress: () => {
             console.log("Đã bấm đăng xuất!");
-            // Về sau em nhét code xóa Token và chuyển hướng về màn hình Đăng Nhập ở đây nhé!
-            // navigation.navigate("LoginScreen");
+            navigation.navigate("Login");
           },
         },
       ]
@@ -64,7 +61,6 @@ export default function Header({
           </TouchableOpacity>
         )}
         
-        {/* 🔴 Đổi <View> thành <TouchableOpacity> để bấm được */}
         <TouchableOpacity style={styles.avatarBorder} onPress={handleAvatarPress}>
           <Image 
             source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' }} 

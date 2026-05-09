@@ -31,15 +31,15 @@ import ButtonNice from "../components/Button";
 import Svg, { Circle } from "react-native-svg";
 import StatCard from "../components/StatCard";
 // Đặt cái này ở trên cùng, ngoài tầm quản lý của Component chính
-const formatTimeAgo = (timestamp) => {
+const formatTimeAgo = (timestamp, t) => {
   if (!timestamp) return "";
   const date = timestamp.toDate();
   const diffMins = Math.floor((Date.now() - date.getTime()) / 60000);
 
-  if (diffMins < 60) return `${diffMins}m\nago`;
+  if (diffMins < 60) return t("dashboard.minsAgo", { count: diffMins });
   const diffHrs = Math.floor(diffMins / 60);
-  if (diffHrs < 24) return `${diffHrs}h\nago`;
-  return `${Math.floor(diffHrs / 24)}d\nago`;
+  if (diffHrs < 24) return t("dashboard.hoursAgo", { count: diffHrs });
+  return t("dashboard.daysAgo", { count: Math.floor(diffHrs / 24) });
 };
 
 export default function AdminDashboardScreen() {
@@ -68,13 +68,12 @@ export default function AdminDashboardScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // HÀM GỌI HỒN DATA TỪ FIREBASE
+  // HÀM GỌI DATA TỪ FIREBASE
   const fetchDashboardStats = async () => {
     try {
       setIsLoading(true);
 
       // --- A. LẤY 4 THẺ TỔNG QUAN (CŨ) ---
-      //Khởi tạo 1 biến docRef định vị ??? (chưa rõ định vị cái gì lắm)
       const docRef = doc(db, "SystemSettings", "DashboardStats");
 
       const docSnap = await getDoc(docRef);
@@ -140,9 +139,12 @@ export default function AdminDashboardScreen() {
 
         return {
           id: index,
-          title: `${log.studentName} nộp bài`,
-          desc: `${log.examTitle} - Đạt ${log.score}đ`,
-          timeStr: formatTimeAgo(log.completedAt),
+          title: t("dashboard.logSubmitted", { name: log.studentName }),
+          desc: t("dashboard.logScore", {
+            title: log.examTitle,
+            score: log.score,
+          }),
+          timeStr: formatTimeAgo(log.completedAt, t),
           icon: isHigh ? (
             <CheckCircle2 color="#10B981" size={22} />
           ) : (
@@ -225,6 +227,7 @@ export default function AdminDashboardScreen() {
           leftIcon="grid-view"
           showBell={false}
         />
+        <View style={styles.headerDivider} />
 
         <View style={styles.body}>
           {/* ========================================== */}
@@ -261,9 +264,7 @@ export default function AdminDashboardScreen() {
             <StatCard key={item.id} item={item} />
           ))}
 
-          {/* ========================================== */}
-          {/* PHẦN 2: ACTIVE QUESTION DISTRIBUTION (BẺ LÁI) */}
-          {/* ========================================== */}
+          {/* PHẦN 2: ACTIVE QUESTION DISTRIBUTION*/}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>
@@ -275,9 +276,7 @@ export default function AdminDashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* ========================================== */}
-            {/* TUYỆT KỸ SVG: BIỂU ĐỒ CHẠY BẰNG DATA THẬT */}
-            {/* ========================================== */}
+            {/*SVG: BIỂU ĐỒ CHẠY BẰNG DATA THẬT */}
             <View style={styles.chartContainer}>
               <View
                 style={{
@@ -315,11 +314,11 @@ export default function AdminDashboardScreen() {
                     strokeWidth="16"
                     fill="none"
                     strokeDasharray={452.389} // Trọng số Toán Học: Chu vi hình tròn = 2 * Pi * Bán kính (72)
-                    // CÔNG THỨC ĂN TIỀN: Data thay đổi -> Thuật toán này tự tính toán độ dài nét vẽ!
+                    //Data thay đổi -> Thuật toán này tự tính toán độ dài nét vẽ!
                     strokeDashoffset={
                       452.389 - (examDist.publishedPercent / 100) * 452.389
                     }
-                    strokeLinecap="butt" // QUAN TRỌNG NHẤT: Cắt phẳng 2 đầu mút chuẩn 100% Figma!
+                    strokeLinecap="butt" // QUAN TRỌNG NHẤT: Cắt phẳng 2 đầu!
                   />
                 </Svg>
 
@@ -329,7 +328,9 @@ export default function AdminDashboardScreen() {
                   <Text style={styles.donutPercent}>
                     {examDist.publishedPercent}%
                   </Text>
-                  <Text style={styles.donutSubText}>UTILIZATION</Text>
+                  <Text style={styles.donutSubText}>
+                    {t("dashboard.utilization")}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -370,9 +371,7 @@ export default function AdminDashboardScreen() {
             </View>
           </View>
 
-          {/* ========================================== */}
-          {/* PHẦN 3: HOẠT ĐỘNG GẦN ĐÂY (BẺ LÁI LOGS) */}
-          {/* ========================================== */}
+          {/* PHẦN 3: HOẠT ĐỘNG GẦN ĐÂY */}
           <View style={styles.transparentSection}>
             <Text style={styles.sectionTitle}>{t("dashboard.logTitle")}</Text>
 
@@ -398,9 +397,7 @@ export default function AdminDashboardScreen() {
             )}
           </View>
 
-          {/* ========================================== */}
           {/* PHẦN 4: QUICK CONFIG */}
-          {/* ========================================== */}
           <View style={styles.quickConfigCard}>
             <Text style={styles.qcTitle}>
               {t("dashboard.quickConfigTitle")}
@@ -436,7 +433,6 @@ export default function AdminDashboardScreen() {
   );
 }
 
-// BẢNG STYLE GIỮ NGUYÊN HOÀN TOÀN TỪ CŨ
 const styles = StyleSheet.create({
   body: { paddingHorizontal: 16, paddingTop: 10 },
   headerTextContainer: { marginBottom: 20 },
@@ -574,4 +570,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   qcButtonText: { fontSize: 12, fontFamily: "Inter-Bold", color: "#FFFFFF" },
+  headerDivider: {
+    height: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.08)",
+    marginHorizontal: 15,
+    marginTop: 5,
+    marginBottom: 15,
+  },
 });
