@@ -28,7 +28,7 @@ import { db, auth } from '../firebaseConfig';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 if (!process.env.ANDROID_CLIENT_ID) {
     process.env.ANDROID_CLIENT_ID = "google-web-client-id-fake";
-}
+  }
 
 const { width } = Dimensions.get('window');
 
@@ -251,24 +251,31 @@ export default function Login({ navigation }) {
     // ─────────────────────────────────────────────────────────────────
     // Admin ẩn: giữ logo 3 giây
     //
-    // Vấn đề gốc trên mobile browser:
-    //   1. iOS Safari / Android Chrome khi long-press ảnh/element sẽ
-    //      show context menu ("Save Image", "Copy", ...) và đồng thời
-    //      cancel touch sequence → onPressIn KHÔNG được gọi tiếp,
-    //      timer không bao giờ chạy đủ 3 giây.
-    //   2. onContextMenu={e.preventDefault()} chặn menu nhưng trên iOS
-    //      Safari không đủ — cần WebkitTouchCallout: 'none' trên style.
-    //   3. Dùng onTouchStart/onTouchEnd (DOM events thuần) song song với
-    //      onPressIn/onPressOut để đảm bảo mobile web luôn nhận event
-    //      ngay cả khi browser đã intercept gesture.
+    // VẤN ĐỀ CỐT LÕI trên Android Chrome:
+    //   Khi người dùng long-press, Chrome:
+    //     1. Rung haptic (~500ms) để báo hiệu "long press recognized"
+    //     2. Steal (cancel) toàn bộ touch sequence khỏi React
+    //     3. Chuẩn bị hiện context menu
+    //   → onTouchEnd / onPressOut bị fire giả dù tay vẫn đang giữ
+    //   → Timer bị cancelLogoTimer() gọi → không bao giờ đủ 3 giây
+    //
+    // TẠI SAO CÁC FIX TRƯỚC KHÔNG ĐỦ:
+    //   - onContextMenu={e.preventDefault()}: chỉ chặn MENU, không chặn
+    //     haptic và touch-cancel xảy ra TRƯỚC khi contextmenu event dispatch
+    //   - React synthetic onTouchStart với e.preventDefault(): React đăng ký
+    //     tất cả event listener với { passive: true } → preventDefault() bị
+    //     ignore hoàn toàn bởi browser (Chrome 55+)
+    //
+    // GIẢI PHÁP ĐÚNG:
+    //   Dùng useRef để attach native DOM addEventListener với { passive: false }
+    //   → mới có thể gọi preventDefault() để ngăn browser steal touch sequence
+    //   → kết hợp CSS touch-action: none để tắt hẳn browser gesture recognition
     // ─────────────────────────────────────────────────────────────────
-
-    // isTimerRunning: tránh khởi động timer 2 lần nếu cả onPressIn
-    // lẫn onTouchStart cùng fire (trên một số browser chúng fire cả 2)
-    const isTimerRunning = useRef(false);
+    const logoRef = useRef(null);          // ref gắn vào element bọc logo
+    const isTimerRunning = useRef(false);  // guard chống double-start
 
     const startLogoTimer = () => {
-        if (isTimerRunning.current) return;   // đã có timer rồi → bỏ qua
+        if (isTimerRunning.current) return;
         isTimerRunning.current = true;
         Animated.spring(logoScale, { toValue: 0.85, useNativeDriver: false }).start();
         logoTimer.current = setTimeout(() => {
@@ -286,18 +293,49 @@ export default function Login({ navigation }) {
         Animated.spring(logoScale, { toValue: 1, useNativeDriver: false }).start();
     };
 
-    // Native (iOS app / Android app): dùng onPressIn / onPressOut
-    const handleLogoPressIn = () => startLogoTimer();
-    const handleLogoPressOut = () => cancelLogoTimer();
+    // Native app (iOS / Android): onPressIn/Out hoạt động hoàn toàn bình thường
+    const handleLogoPressIn  = () => { if (Platform.OS !== 'web') startLogoTimer(); };
+    const handleLogoPressOut = () => { if (Platform.OS !== 'web') cancelLogoTimer(); };
 
-    // Web (mobile browser): dùng onTouchStart / onTouchEnd để chắc chắn
-    // nhận event trước khi browser kịp hiện context menu
-    const handleLogoTouchStart = Platform.OS === 'web'
-        ? (e) => { e.preventDefault(); startLogoTimer(); }
-        : undefined;
-    const handleLogoTouchEnd = Platform.OS === 'web'
-        ? (e) => { e.preventDefault(); cancelLogoTimer(); }
-        : undefined;
+    // Web: attach native DOM listeners với { passive: false } sau khi mount
+    // Đây là cách DUY NHẤT để preventDefault() hoạt động trên Chrome mobile
+    useEffect(() => {
+        if (Platform.OS !== 'web') return;
+        const el = logoRef.current;
+        if (!el) return;
+
+        const onTouchStart = (e) => {
+            // preventDefault() chặn browser khỏi stealing touch sequence
+            // Chỉ hoạt động khi listener được đăng ký với { passive: false }
+            e.preventDefault();
+            startLogoTimer();
+        };
+        const onTouchEnd = (e) => {
+            e.preventDefault();
+            cancelLogoTimer();
+        };
+        const onTouchCancel = (e) => {
+            // touchcancel fire khi browser steal touch (chính là lúc haptic xảy ra)
+            // Với preventDefault() ở onTouchStart, touchcancel sẽ KHÔNG fire nữa
+            // Giữ lại để phòng trường hợp các browser khác handle khác
+            cancelLogoTimer();
+        };
+        const onContextMenu = (e) => e.preventDefault();
+
+        const opts = { passive: false };
+        el.addEventListener('touchstart',   onTouchStart,  opts);
+        el.addEventListener('touchend',     onTouchEnd,    opts);
+        el.addEventListener('touchcancel',  onTouchCancel, opts);
+        el.addEventListener('contextmenu',  onContextMenu, opts);
+
+        return () => {
+            el.removeEventListener('touchstart',  onTouchStart,  opts);
+            el.removeEventListener('touchend',    onTouchEnd,    opts);
+            el.removeEventListener('touchcancel', onTouchCancel, opts);
+            el.removeEventListener('contextmenu', onContextMenu, opts);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Hàm xử lý kiểm tra mã bí mật của Admin
     const verifyAdminKeyAndLogin = async () => {
@@ -387,43 +425,63 @@ export default function Login({ navigation }) {
             >
                 {/* ── Logo + Brand ── */}
                 <View style={styles.brandRow}>
-                    <TouchableOpacity
-                        onPressIn={handleLogoPressIn}
-                        onPressOut={handleLogoPressOut}
-                        activeOpacity={1}
-                        delayLongPress={999999}
-                        // Web: thêm onTouchStart/End để nhận event trước browser
-                        onTouchStart={handleLogoTouchStart}
-                        onTouchEnd={handleLogoTouchEnd}
-                        // Chặn context menu (chuột phải desktop + long-press mobile)
-                        onContextMenu={Platform.OS === 'web' ? (e) => e.preventDefault() : undefined}
-                        style={Platform.OS === 'web' ? {
-                            WebkitTouchCallout: 'none',
-                            WebkitUserSelect: 'none',
-                            userSelect: 'none',
-                            outline: 'none',
-                            cursor: 'pointer',
-                        } : undefined}
-                    >
-                        <Animated.View
-                            style={[
-                                styles.logoBox,
-                                {
-                                    borderColor: dotColor,
-                                    transform: [{ scale: logoScale }],
-                                }
-                            ]}
+                    {/*
+                      * Web: bọc trong <div ref={logoRef}> để attach native DOM listeners.
+                      * Native app: <div> không tồn tại nên dùng View thay thế (không có ref).
+                      * Cả hai đều bọc TouchableOpacity để animation scale vẫn hoạt động.
+                      */}
+                    {Platform.OS === 'web' ? (
+                        // ── WEB: div thật với ref để useEffect attach { passive: false } ──
+                        <div
+                            ref={logoRef}
+                            style={{
+                                // touch-action: none → tắt hẳn browser pan/zoom/long-press gesture
+                                // Đây là cách NHANH NHẤT để browser không steal touch
+                                touchAction: 'none',
+                                WebkitTouchCallout: 'none',
+                                WebkitUserSelect: 'none',
+                                userSelect: 'none',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                // reset box-model để không ảnh hưởng layout
+                                display: 'inline-block',
+                                WebkitTapHighlightColor: 'transparent',
+                            }}
                         >
-                            <Image
-                                source={require('../assets/logo.png')}
-                                style={styles.logoImage}
-                                resizeMode="contain"
-                                // Web: chặn drag ảnh và context menu ảnh (Save Image...)
-                                draggable={Platform.OS === 'web' ? false : undefined}
-                                onDragStart={Platform.OS === 'web' ? (e) => e.preventDefault() : undefined}
-                            />
-                        </Animated.View>
-                    </TouchableOpacity>
+                            <TouchableOpacity
+                                onPressIn={handleLogoPressIn}
+                                onPressOut={handleLogoPressOut}
+                                activeOpacity={1}
+                                delayLongPress={999999}
+                            >
+                                <Animated.View style={[styles.logoBox, { borderColor: dotColor, transform: [{ scale: logoScale }] }]}>
+                                    <Image
+                                        source={require('../assets/logo.png')}
+                                        style={styles.logoImage}
+                                        resizeMode="contain"
+                                        draggable={false}
+                                        onDragStart={(e) => e.preventDefault()}
+                                    />
+                                </Animated.View>
+                            </TouchableOpacity>
+                        </div>
+                    ) : (
+                        // ── NATIVE APP: TouchableOpacity hoạt động bình thường ──
+                        <TouchableOpacity
+                            onPressIn={handleLogoPressIn}
+                            onPressOut={handleLogoPressOut}
+                            activeOpacity={1}
+                            delayLongPress={999999}
+                        >
+                            <Animated.View style={[styles.logoBox, { borderColor: dotColor, transform: [{ scale: logoScale }] }]}>
+                                <Image
+                                    source={require('../assets/logo.png')}
+                                    style={styles.logoImage}
+                                    resizeMode="contain"
+                                />
+                            </Animated.View>
+                        </TouchableOpacity>
+                    )}
 
                     <View>
                         <Text style={styles.brandName}>Atoza</Text>
@@ -702,8 +760,13 @@ const styles = StyleSheet.create({
         // ── Chặn drag + context menu ảnh trên web ──
         userSelect: 'none',
         WebkitUserSelect: 'none',
-        WebkitTouchCallout: 'none',      // iOS: chặn "Save to Photos" khi giữ ảnh
-        pointerEvents: 'none',           // bỏ qua pointer event trên ảnh → bubble lên TouchableOpacity
+        WebkitTouchCallout: 'none',
+        // pointerEvents none: mọi touch/click đều xuyên qua ảnh lên div wrapper
+        // → native DOM listener trên div nhận event, không bị intercept bởi Image
+        pointerEvents: 'none',
+        // Không cho ảnh được chọn hay kéo
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
     },
     brandName: { fontSize: 22, fontWeight: '800', color: '#1A202C', letterSpacing: 0.3 },
     roleHint: { fontSize: 11, fontWeight: '600', marginTop: 2 },

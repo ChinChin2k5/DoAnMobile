@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 967 notes | Score threshold: >40
+> 971 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -35,14 +35,14 @@
 
 ## Project Standards
 
+- what-changed in Login.js — confirmed 4x
+- discovery in shared-context.json — confirmed 3x
 - Replaced auth Platform — confirmed 4x
 - what-changed in shared-context.json — confirmed 5x
 - Replaced auth USER — confirmed 9x
 - what-changed in shared-context.json — confirmed 9x
 - Optimized Intellectual — confirmed 4x
 - Patched security issue FZxIbL — confirmed 4x
-- Added session cookies authentication — confirmed 3x
-- what-changed in brainsync_auto.md — confirmed 3x
 
 ## Known Fixes
 
