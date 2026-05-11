@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 262 notes | Score threshold: >40
+> 268 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -24,6 +24,10 @@
 +         ...doc.data() 
 - 
 +       })
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 262 notes | Score threshold: >40
++ > 266 notes | Score threshold: 
+- **⚠️ GOTCHA: Added API key auth authentication** — - > 260 notes | Score threshold: >40
++ > 262 notes | Score threshold: 
 - **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 229 notes | Score threshold: >40
 + > 256 notes | Score threshold: 
 - **⚠️ GOTCHA: Optimized Intellectual** — - # Intellectual Property & Architecture Rules
@@ -31,11 +35,6 @@
 - **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized Intellectual
 + - gotcha in agent-rules.md
 - -
-- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
-
-Content summary (8
-- **⚠️ GOTCHA: Optimized Intellectual** — - # Intellectual Property & Architecture Rules
-+ # Intellectual Proper
 
 ## Active: `navigation`
 
