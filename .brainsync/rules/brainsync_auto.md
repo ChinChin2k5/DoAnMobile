@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 1930 notes | Score threshold: >40
+> 262 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,52 +20,59 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 1914 notes | Score threshold: >40
-+ > 1916 notes | Score threshold
-- **gotcha in shared-context.json** — -     }
-+     },
--   ]
-+     {
-- }
-+       "id": "684668cfd7cd5518",
-+
-- **⚠️ GOTCHA: problem-fix in Login.js** — -         paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, co
-- **⚠️ GOTCHA: problem-fix in Login.js** — -         backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '
-- **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowOpacity: 0.25, shadowRadius: 20, elevation: 15
-+     
-- **⚠️ GOTCHA: problem-fix in Login.js** — -         shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25,
+- **⚠️ GOTCHA: Fixed null crash in Date — avoids unnecessary re-renders in React** — -         ...doc.data() }));
++         ...doc.data() 
+- 
++       })
+- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 229 notes | Score threshold: >40
++ > 256 notes | Score threshold: 
+- **⚠️ GOTCHA: Optimized Intellectual** — - # Intellectual Property & Architecture Rules
++ # Intellectual Proper
+- **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized Intellectual
++ - gotcha in agent-rules.md
+- -
+- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
+
+Content summary (8
+- **⚠️ GOTCHA: Optimized Intellectual** — - # Intellectual Property & Architecture Rules
++ # Intellectual Proper
+
+## Active: `navigation`
+
+- **what-changed in AppNavigator.js — confirmed 11x**
+- **what-changed in AppNavigator.js**
+- **Updated API endpoint Loading**
+- **Updated API endpoint LoadingScreen**
+- **Replaced dependency Classes_Thi_Sinh**
 
 ## Project Standards
 
-- Optimized Score — confirmed 3x
-- Replaced auth Intellectual — confirmed 3x
-- Patched security issue ZklGBaEoAW — confirmed 3x
-- Replaced auth Score — confirmed 4x
-- what-changed in shared-context.json — confirmed 6x
-- what-changed in Man_Hinh_Lam_Bai.js — confirmed 4x
-- decision in Man_Hinh_Lam_Bai.js — confirmed 9x
-- Updated schema StyleSheet — confirmed 87x
+- what-changed in AppNavigator.js — confirmed 11x
+- Fixed null crash in Date — avoids unnecessary re-renders in React — confirmed 4x
+- what-changed in shared-context.json — confirmed 3x
+- Optimized Intellectual — confirmed 3x
+- what-changed in shared-context.json — confirmed 4x
+- Added API key auth authentication — confirmed 3x
+- what-changed in shared-context.json — confirmed 8x
+- Optimized Intellectual — confirmed 3x
 
 ## Known Fixes
 
-- ❌ - - Fixed null crash in Async — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ - - Fixed null crash in Ionicons — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ - - Fixed null crash in View — prevents null/undefined runtime crashes → ✅ problem-fix in agent-rules.md
-- ❌ -       console.error('[Dashboard] Firestore error:', err.message); → ✅ Fixed null crash in Firestore — avoids unnecessary re-renders in React
-- ❌ -           console.error('Failed to load user data', e); → ✅ Fixed null crash in AsyncStorage — prevents null/undefined runtime crashes
+- ❌ - - **⚠️ GOTCHA: Fixed null crash in Date — avoids unnecessary re-renders in React** — -         ... → ✅ problem-fix in brainsync_auto.md
+- ❌ -       console.error('[Dashboard] Firestore error:', err.message); → ✅ Fixed null crash in Date — avoids unnecessary re-renders in React
 
 ## Recent Decisions
 
+- decision in Dropdown.js
+- decision in CreateClass1Screen.js
 - decision in Dashboard_Thi_Sinh.js
 - decision in Dashboard_Thi_Sinh.js
-- decision in Dashboard_Thi_Sinh.js
-- Optimized Score — parallelizes async operations for speed
 
 ## Learned Patterns
 
-- Decision: Optimized Score — parallelizes async operations for speed (seen 3x)
-- Avoid: ⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed (seen 3x)
-- Avoid: gotcha in agent-rules.md (seen 2x)
+- Decision: Optimized Intellectual (seen 5x)
+- Avoid: ⚠️ GOTCHA: Optimized Intellectual (seen 2x)
+- Decision: Optimized Score — parallelizes async operations for speed (seen 2x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 
