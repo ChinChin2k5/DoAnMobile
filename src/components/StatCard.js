@@ -22,7 +22,6 @@ export default function StatCard({ item }) {
   );
 }
 
-// Chuyển toàn bộ Style của thẻ Thống kê sang đây
 const styles = StyleSheet.create({
   card: { width: "100%", backgroundColor: "#FFFFFF", padding: 20, marginBottom: 20, borderRadius: 16, shadowColor: "#1A2134", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.04, shadowRadius: 16, elevation: 4 },
   cardDark: { backgroundColor: '#0A1128' },

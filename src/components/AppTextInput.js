@@ -21,24 +21,23 @@ export default AppTextInput;
 
 const styles = StyleSheet.create({
   container: { 
-    marginBottom: 20 // Khoảng cách đều tăm tắp với các ô khác
+    marginBottom: 20 
   },
   label: {
     fontSize: 11, 
-    color: '#084CCB', // Xanh dương đậm chuẩn Figma
+    color: '#084CCB', 
     marginBottom: 8, 
     fontWeight: '700', 
     textTransform: 'uppercase', 
     letterSpacing: 1.2, 
   },
   input: {
-    height: 56, // Cao bằng chính xác Dropdown
-    backgroundColor: '#F3F6FA', // Nền xám xanh
-    borderRadius: 12, // Bo góc bằng Dropdown
+    height: 56, 
+    backgroundColor: '#F3F6FA', 
+    borderRadius: 12, 
     paddingHorizontal: 16,
     fontSize: 15,
     color: '#1A2134',
     fontWeight: '500',
-    // TUYỆT ĐỐI KHÔNG CÓ VIỀN
   },
 });
