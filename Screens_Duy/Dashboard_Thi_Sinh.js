@@ -336,7 +336,10 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
     // Client sẽ tự lọc status + duration + totalQuestions + allowRetake
     const q = query(collection(db, 'exams'));
     const unsubscribe = onSnapshot(q, (snap) => {
-      const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const list = snap.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() //phanh thây và liệt kê các cột dữ liệu để dễ dàng kiểm soát kiểu dữ liệu
+      }));
 
       // Chỉ giữ exam thuộc về user này (theo uid ưu tiên, fallback creatorName)
       // hoặc exam được giao cho lớp của user
