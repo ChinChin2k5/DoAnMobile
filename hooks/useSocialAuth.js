@@ -44,7 +44,7 @@ const FACEBOOK_APP_ID = '2078204966089322';
 const GOOGLE_WEB_CLIENT = '832551425671-spk2j9c26cnv5gf8lf4tb1t4hms2nu7k.apps.googleusercontent.com';
 
 /**
- * getOrCreateUser
+ * getOrCreateUser (chức năng đăng nhập từ tài khoản có sẵn hoặc tạo mới)
  * ----------------
  * Trách nhiệm:
  *  - Nhận thông tin user từ Firebase Auth (uid, displayName, email) + role đang chọn trên Tab (selectedRole).
@@ -69,7 +69,7 @@ async function getOrCreateUser(uid, displayName, email, selectedRole) {
 
         // Nếu có ít nhất 1 document trùng email → lấy document đầu tiên (theo design hiện tại)
         if (!querySnapshot.empty) {
-            existingUser = querySnapshot.docs[0].data();
+            existingUser = querySnapshot.docs[0].data();//lấy data của document đầu tiên (nếu có nhiều hơn 1 thì coi như trùng lặp dữ liệu trong DB (điều đáng ra hệ thống validation phải chặn từ đầu), nhưng ta vẫn xử lý bình thường)
         }
     }
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Modal, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Flag, Clock, LayoutGrid, X, ArrowLeft, Bold } from 'lucide-react-native'; // <-- THÊM ICON ĐỒNG HỒ VÀ CỜ
-
+//Dữ liệu giả lập cho 10 câu hỏi trắc nghiệm (Thực chất đây là file tạm để test giao diện, đến khi deploy trên Firebase thì sẽ không cần dùng file này nữa)
 const DUMMY_QUESTIONS = [
   { id: 1, text: 'Thủ đô của Việt Nam là gì?', options: ['Hà Nội', 'TP.HCM', 'Đà Nẵng', 'Huế'] },
   { id: 2, text: '1 + 1 bằng mấy?', options: ['1', '2', '3', '4'] },

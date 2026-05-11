@@ -243,7 +243,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
     if (!currentUid) {
       console.error("Không tìm thấy UID người dùng!");
     }
-
+    // lưu kết quả vào Firebase (dùng để đối chiếu câu đúng để chấm điểm + lưu lịch sử làm bài của thí sinh)
     const resultData = {
       uid: currentUid,
       examId: examId,
@@ -256,16 +256,16 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       answersMap: answers,
       questionsList: questionsList
     };
-
+    //chờ và nhận kết quả lưu vào Firebase xong rồi mới chuyển sang màn hình kết quả để đảm bảo tính nhất quán dữ liệu, tránh trường hợp chuyển sang màn hình kết quả mà dữ liệu chưa kịp lưu xong dẫn đến lỗi không hiển thị được kết quả hoặc hiển thị sai kết quả do dữ liệu chưa được cập nhật kịp thời trên Firebase.
     try {
       await addDoc(collection(db, "History"), {
         ...resultData,
         completedAt: serverTimestamp(),
       });
 
-      // XÓA ĐÚNG KEY "exam_progress_..."
+      // XÓA ĐÚNG KEY "exam_progress_..." (xóa và reset trạng thái làm bài trong AsyncStorage sau khi nộp bài)
       await clearExamProgress();
-
+      //chuyển hướng đến Ket_Qua_Va_Phan_Tích (dùng để xem chi tiết bài làm, kết quả và đáp án) và truyền resultData qua params để hiển thị kết quả và phân tích chi tiết sau khi đã chắc chắn lưu xong kết quả vào Firebase
       navigation.replace('Ket_Qua_Va_Phan_Tich', { resultData });
 
     } catch (e) {
@@ -284,7 +284,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
     const s = seconds % 60;
     return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   };
-
+  //mở Modal Bottom Sheet các câu hỏi để dễ dàng điều hướng khi làm bài
   const openBottomSheet = () => {
     setIsSheetVisible(true);
     Animated.parallel([
@@ -292,7 +292,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
       Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true })
     ]).start();
   };
-
+  //đóng Modal Bottom Sheet khi nhấn ra ngoài hoặc chọn câu hỏi để điều hướng
   const closeBottomSheet = () => {
     Animated.parallel([
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }),
@@ -301,7 +301,7 @@ export default function Man_Hinh_Lam_Bai({ navigation, route }) {
   };
 
   // ==========================================
-  // 5. RENDER SKELETON
+  // 5. RENDER SKELETON (Skeleton loading)
   // ==========================================
   if (isLoading || !isReady) {
     return (

@@ -392,6 +392,7 @@ export default function Login({ navigation }) {
     };
 
     // hàm xử lý quên mật khẩu, khôi phục mật khẩu
+    //Xử lý khi nhấn nút "Quên mật khẩu"
     const showAlert = (message) => {
         if (Platform.OS === 'web') {
             // alert mặc định của trình duyệt
@@ -407,7 +408,8 @@ export default function Login({ navigation }) {
             showAlert('Vui lòng nhập địa chỉ email của bạn vào ô đăng nhập trước.');
             return;
         }
-
+        //firebase hỗ trợ khôi phục mật khẩu qua email, khi gọi sendPasswordResetEmail sẽ gửi một email chứa liên kết đặt lại mật khẩu đến địa chỉ email đã đăng ký của người dùng. Người dùng chỉ cần nhấp vào liên kết trong email để tạo mật khẩu mới cho tài khoản của họ. Đây là cách phổ biến và an toàn để xử lý quên mật khẩu mà không cần phải xác thực thêm thông tin nhạy cảm nào khác trong app.
+        // 1 kinh nghiệm thực tế: khi email khôi phục mật khẩu được gửi đi, tài khoản chứa email cần khôi phục sẽ tạm thời bị khóa (kể cả khi đã nhập đúng mật khẩu TRONG QUÁ TRÌNH EMAIL KHÔI PHỤC ĐƯỢC GỬI) → người dùng sẽ không thể đăng nhập được cho đến khi họ click vào link trong email để đặt lại mật khẩu mới → đây là cơ chế bảo mật của Firebase
         try {
             await sendPasswordResetEmail(auth, email.trim());
             showAlert(

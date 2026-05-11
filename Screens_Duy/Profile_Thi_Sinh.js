@@ -1,6 +1,6 @@
 // Screens_Duy/Profile_Thi_Sinh.js
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
-import { UserContext } from '../context/UserContext';
+import { UserContext } from '../context/UserContext';// Import UserContext để lấy thông tin userName và setUserName, setUserRole phục vụ cho việc hiển thị tên người dùng và xử lý đăng xuất hoặc xóa tài khoản
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
   TouchableOpacity, Image, Animated, Alert, Platform,

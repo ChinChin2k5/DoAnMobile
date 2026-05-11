@@ -569,7 +569,7 @@ export default function Dashboard_Thi_Sinh({ navigation }) {
       <View style={styles.listContainer}>
         <View style={styles.listHeader}>
           <Text style={styles.listTitle}>
-            Đề thi cá nhân ({displayExams.length})
+            Đề thi ({displayExams.length})
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {activeFilterCount > 0 && (

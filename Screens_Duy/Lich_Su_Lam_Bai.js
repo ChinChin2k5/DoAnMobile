@@ -6,7 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../firebaseConfig';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-
+//file này có tác dụng hiển thị lịch sử làm bài của thí sinh, lấy dữ liệu từ Firestore dựa trên uid của người dùng hiện tại, sắp xếp theo thời gian hoàn thành (completedAt) giảm dần để hiển thị bài làm mới nhất lên đầu, và cung cấp giao diện đẹp mắt với thông tin chi tiết về từng bài làm như tên đề thi, điểm số, số câu đúng/sai, thời gian làm bài, và ngày nộp bài. Ngoài ra còn có tính năng xem chi tiết đáp án của từng bài làm thông qua nút "Xem chi tiết đáp án"-truy cập vào Chi_Tiet_Dap_An và truyền dữ liệu kết quả qua params để hiển thị chi tiết đáp án và phân tích bài làm.
 // ─────────────────────────────────────────────
 // Skeleton Component cho Lịch Sử Làm Bài
 // ─────────────────────────────────────────────

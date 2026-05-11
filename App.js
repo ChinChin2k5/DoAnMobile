@@ -216,7 +216,7 @@ function AuthHandler({ navigationRef, setConfig, recordActivityRef }) {
   // ─────────────────────────────────────────────
   // useEffect chính: load config + lắng nghe auth
   // ─────────────────────────────────────────────
-  //useEffect([], ...) có nghĩa là: "Chỉ chạy đoạn code này ĐÚNG MỘT LẦN duy nhất khi Component này (ở đây là toàn bộ App) được khởi tạo (Mount) vào bộ nhớ (RAM)".
+  //useEffect([], ...) có nghĩa là: "Chỉ chạy đoạn code đọc config trên Firestore ĐÚNG MỘT LẦN duy nhất khi Component này (ở đây là toàn bộ App) được khởi tạo (Mount) vào bộ nhớ (RAM)".
   useEffect(() => {
     // Đọc config từ Firestore song song, không chờ auth
     const loadConfig = async () => {
@@ -233,6 +233,7 @@ function AuthHandler({ navigationRef, setConfig, recordActivityRef }) {
           setConfig({ ...DEFAULT_CONFIG, ...configSnap.data(), isLoaded: true });
         } 
         else {
+          //Nếu không tìm thấy document AppConfigs trong collection SystemSettings → dùng config mặc định đã định nghĩa sẵn trong DEFAULT_CONFIG được import từ 'ConfigContext'
           console.log('[Config] Không tìm thấy SystemSettings, dùng mặc định');
           setConfig({ ...DEFAULT_CONFIG, isLoaded: true });
         }
@@ -324,7 +325,7 @@ function AuthHandler({ navigationRef, setConfig, recordActivityRef }) {
 export default function App() {
 // --- 1. KHAI BÁO HOOKS CỦA DUY VÀ CHIẾN Ở TRÊN CÙNG (Quy tắc React) ---
 const navigationRef = useRef(null);
-const [config, setConfig] = useState(DEFAULT_CONFIG); // *Lưu ý: Chắc chắn trên đầu file có import DEFAULT_CONFIG rồi nhé
+const [config, setConfig] = useState(DEFAULT_CONFIG); // *Lưu ý: Chắc chắn trên đầu file có import DEFAULT_CONFIG từ file  'ConfigContext'
 const recordActivityRef = useRef(null);
 
 const [fontsLoaded] = useFonts({
