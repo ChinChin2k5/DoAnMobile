@@ -25,7 +25,7 @@ const SkeletonItem = ({ width, height, borderRadius = 4, style }) => {
     );
 };
 
-export default function Ket_Qua_Va_Phan_Tich({ navigation, route }) {
+export default function Chi_Tiet_Dap_An({ navigation, route }) {
     const [isLoading, setIsLoading] = useState(true);
 
     // Lấy dữ liệu từ màn hình trước truyền sang
