@@ -144,6 +144,11 @@ export default function CreateExamStep1Screen({ navigation }) {
           </LinearGradient>
         </TouchableOpacity>
 
+        {/* Back Button */}
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButtonContainer}>
+          <Text style={styles.backButtonText}>Back to Dashboard</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -180,5 +185,7 @@ const styles = StyleSheet.create({
   noteDesc: { fontSize: 14, color: '#424656', lineHeight: 22 },
   noteTextContainer: { flex: 1 },
   nextButton: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 20, borderRadius: 9999, gap: 8 },
-  nextButtonText: { fontWeight: '700', fontSize: 18, color: '#FFFFFF' }
+  nextButtonText: { fontWeight: '700', fontSize: 18, color: '#FFFFFF' },
+  backButtonContainer: { marginTop: 16, paddingVertical: 16, borderRadius: 9999, backgroundColor: '#DCE9FF', alignItems: 'center' },
+  backButtonText: { fontWeight: '700', fontSize: 16, color: '#003FA4' }
 });

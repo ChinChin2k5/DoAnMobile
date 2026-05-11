@@ -33,6 +33,7 @@ import CreateExamStep2Screen from '../Screens_Duc/CreateExamStep2Screen';
 import CreateExamStep3Screen from '../Screens_Duc/CreateExamStep3Screen';
 import CreateClass1Screen from '../Screens_Duc/CreateClass1Screen';
 import CreateClass2Screen from '../Screens_Duc/CreateClass2Screen';
+import ClassDashboardScreen from '../Screens_Duc/ClassDashboardScreen';
 
 // ── Placeholder screens cho các role chưa có màn hình riêng ──
 const ClassesScreen = () => (
@@ -195,6 +196,7 @@ export default function AppNavigator() {
       {/* ── Class Creation Flow (outside Tab Navigator) ── */}
       <Stack.Screen name="CreateClass1" component={CreateClass1Screen} />
       <Stack.Screen name="CreateClass2" component={CreateClass2Screen} />
+      <Stack.Screen name="ClassDashboard" component={ClassDashboardScreen} />
     </Stack.Navigator>
   );
 }

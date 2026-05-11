@@ -1,5 +1,5 @@
 // screens/ProfileScreen.js
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   View, 
   Text, 
@@ -7,11 +7,111 @@ import {
   ScrollView, 
   TouchableOpacity, 
   Image, 
-  SafeAreaView 
+  SafeAreaView,
+  ActivityIndicator,
+  Alert,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { UserContext } from '../context/UserContext';
+import { db } from '../firebaseConfig';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth } from '../firebaseConfig';
+import { signOut } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen({ navigation }) {
+  const userContext = useContext(UserContext);
+  const userName = userContext?.userName;
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      
+      // Get current user's uid from Firebase auth
+      const currentUser = auth.currentUser;
+      
+      if (!currentUser?.uid) {
+        console.warn('No authenticated user found');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Fetching user data for uid:', currentUser.uid);
+      
+      const q = query(
+        collection(db, 'users'),
+        where('uid', '==', currentUser.uid)
+      );
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        console.log('User data found:', data);
+        setUserData({
+          name: data.fullName || 'User',
+          role: data.role || 'Unknown',
+          email: data.email || '',
+          id: snapshot.docs[0].id
+        });
+      } else {
+        console.warn('No user found with uid:', currentUser.uid);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRoleDisplay = (role) => {
+    const roleMap = {
+      'teacher': 'GIÁO VIÊN',
+      'admin': 'QUẢN TRỊ VIÊN',
+      'Giáo viên': 'GIÁO VIÊN',
+      'Học sinh': 'HỌC SINH',
+      'Admin': 'QUẢN TRỊ VIÊN'
+    };
+    return roleMap[role] || role?.toUpperCase() || 'NGƯỜI DÙNG';
+  };
+
+  const handleLogout = async () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to logout?')) {
+        await performLogout();
+      }
+    } else {
+      Alert.alert('Logout', 'Are you sure you want to logout?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: performLogout }
+      ]);
+    }
+  };
+
+  const performLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut(auth);
+      await AsyncStorage.removeItem('userRole');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }]
+      });
+    } catch (error) {
+      console.error('Error logging out:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   // Cấu trúc mảng menu giúp code gọn gàng (DRY)
   const menuItems = [
     { id: 'profile', title: 'Hồ sơ cá nhân', icon: 'person', color: '#2563EB', bg: '#EFF6FF' },
@@ -41,63 +141,78 @@ export default function ProfileScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* Profile Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.avatarContainer}>
-            <Image 
-              source={{ uri: 'https://i.pravatar.cc/300?u=teacher' }} 
-              style={styles.avatar} 
-            />
-            {/* Badge Edit/Camera */}
-            <TouchableOpacity style={styles.avatarBadge} activeOpacity={0.8}>
-              <Ionicons name="camera" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0050CB" />
           </View>
+        ) : userData ? (
+          <>
+            <View style={styles.heroSection}>
+              <View style={styles.avatarContainer}>
+                <Image 
+                  source={{ uri: `https://i.pravatar.cc/300?u=${userData.id}` }} 
+                  style={styles.avatar} 
+                />
+                {/* Badge Edit/Camera */}
+                <TouchableOpacity style={styles.avatarBadge} activeOpacity={0.8}>
+                  <Ionicons name="camera" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
 
-          <View style={styles.infoContainer}>
-            <Text style={styles.userName}>Nguyễn Đình Duy</Text>
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>GIÁO VIÊN</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Settings List */}
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>CÀI ĐẶT TÀI KHOẢN</Text>
-
-          <View style={styles.menuList}>
-            {menuItems.map((item) => (
-              <TouchableOpacity 
-                key={item.id} 
-                style={[
-                  styles.menuItem, 
-                  item.isDestructive && styles.menuItemDestructive
-                ]}
-                activeOpacity={0.7}
-                onPress={() => {
-                  if (item.id === 'logout') {
-                    // Xử lý logic đăng xuất tại đây (clear token, navigate to Auth stack...)
-                    alert('Đăng xuất thành công!');
-                  }
-                }}
-              >
-                <View style={styles.menuItemLeft}>
-                  <View style={[styles.iconWrapper, { backgroundColor: item.bg }]}>
-                    <Ionicons name={item.icon} size={20} color={item.color} />
-                  </View>
-                  <Text style={[styles.menuItemTitle, { color: item.color }]}>
-                    {item.title}
-                  </Text>
+              <View style={styles.infoContainer}>
+                <Text style={styles.userName}>{userData.name}</Text>
+                <View style={styles.roleBadge}>
+                  <Text style={styles.roleText}>{getRoleDisplay(userData.role)}</Text>
                 </View>
-                
-                {/* Chỉ hiện mũi tên nếu không phải nút đăng xuất */}
-                {!item.isDestructive && (
-                  <Ionicons name="chevron-forward" size={16} color="#C2C6D8" />
+                {userData.email && (
+                  <Text style={styles.userEmail}>{userData.email}</Text>
                 )}
-              </TouchableOpacity>
-            ))}
+              </View>
+            </View>
+
+            {/* Settings List */}
+            <View style={styles.settingsSection}>
+              <Text style={styles.sectionTitle}>CÀI ĐẶT TÀI KHOẢN</Text>
+
+              <View style={styles.menuList}>
+                {menuItems.map((item) => (
+                  <TouchableOpacity 
+                    key={item.id} 
+                    style={[
+                      styles.menuItem, 
+                      item.isDestructive && styles.menuItemDestructive
+                    ]}
+                    activeOpacity={0.7}
+                    disabled={isLoggingOut}
+                    onPress={() => {
+                      if (item.id === 'logout') {
+                        handleLogout();
+                      }
+                    }}
+                  >
+                    <View style={styles.menuItemLeft}>
+                      <View style={[styles.iconWrapper, { backgroundColor: item.bg }]}>
+                        <Ionicons name={item.icon} size={20} color={item.color} />
+                      </View>
+                      <Text style={[styles.menuItemTitle, { color: item.color }]}>
+                        {item.title}
+                      </Text>
+                    </View>
+                    
+                    {/* Chỉ hiện mũi tên nếu không phải nút đăng xuất */}
+                    {!item.isDestructive && (
+                      <Ionicons name="chevron-forward" size={16} color="#C2C6D8" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </>
+        ) : (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Unable to load profile data</Text>
           </View>
-        </View>
+        )}
 
         {/* Spacer cho Bottom Tab */}
         <View style={{ height: 120 }} />
@@ -246,4 +361,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 100,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 100,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#727687',
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#727687',
+    marginTop: 4,
+  }
 });
