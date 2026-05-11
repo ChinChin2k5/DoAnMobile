@@ -33,6 +33,15 @@ import CreateExamStep2Screen from '../Screens_Duc/CreateExamStep2Screen';
 import CreateExamStep3Screen from '../Screens_Duc/CreateExamStep3Screen';
 import CreateClass1Screen from '../Screens_Duc/CreateClass1Screen';
 import CreateClass2Screen from '../Screens_Duc/CreateClass2Screen';
+import ClassDashboardScreen from '../Screens_Duc/ClassDashboardScreen';
+
+import Onboarding1 from '../src/screens/Onboarding1';
+import Onboarding2 from '../src/screens/Onboarding2';
+import Onboarding3 from '../src/screens/Onboarding3';
+import LoadingScreen from '../src/screens/LoadingScreen';
+import AdminDashboardScreen from '../src/screens/AdminDashboardScreen';
+import AdminChartScreen from '../src/screens/AdminChartScreen';
+import AdminConfigScreen from '../src/screens/AdminConfigScreen';
 
 // ── Placeholder screens cho các role chưa có màn hình riêng ──
 const ClassesScreen = () => (
@@ -167,9 +176,16 @@ function MainTabNavigatorAdmin({ navigation }) {
 export default function AppNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Login" //màn hình đầu tiên hiển thị khi chạy dự án là screen này
+      initialRouteName="Loading" //màn hình đầu tiên hiển thị khi chạy dự án là screen này
       screenOptions={{ headerShown: false }}
     >
+      <Stack.Screen name="Loading" component={LoadingScreen} />
+      <Stack.Screen name="FirstOnboarding" component={Onboarding1} />
+      <Stack.Screen name="SecondOnboarding" component={Onboarding2} />
+      <Stack.Screen name="ThirdOnboarding" component={Onboarding3} />
+      <Stack.Screen name="DashboardAdmin" component={AdminDashboardScreen} />
+      <Stack.Screen name="ChartAdmin" component={AdminChartScreen} />
+      <Stack.Screen name="ConfigAdmin" component={AdminConfigScreen} />
       {/* ── Auth ── */}
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Register" component={Register} />
@@ -195,6 +211,7 @@ export default function AppNavigator() {
       {/* ── Class Creation Flow (outside Tab Navigator) ── */}
       <Stack.Screen name="CreateClass1" component={CreateClass1Screen} />
       <Stack.Screen name="CreateClass2" component={CreateClass2Screen} />
+      <Stack.Screen name="ClassDashboard" component={ClassDashboardScreen} />
     </Stack.Navigator>
   );
 }

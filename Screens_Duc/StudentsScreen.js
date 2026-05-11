@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -7,36 +7,42 @@ import {
   TextInput, 
   TouchableOpacity, 
   Image, 
-  SafeAreaView 
+  SafeAreaView,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const suggestedStudents = [
-  {
-    id: '1',
-    name: 'Julian Vance',
-    email: 'julian.v@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=4492',
-    isActive: true,
-  },
-  {
-    id: '2',
-    name: 'Elena Moretti',
-    email: 'elena.m@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=5103',
-    isActive: false,
-  },
-  {
-    id: '3',
-    name: 'Amara Okafor',
-    email: 'amara.o@example.com',
-    avatar: 'https://i.pravatar.cc/150?u=6220',
-    isActive: false,
-  }
-];
+import { db } from '../firebaseConfig';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function StudentsScreen({ navigation }) {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const q = query(
+      collection(db, 'users'),
+      where('role', '==', 'Học sinh')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const studentData = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.fullName || 'Unknown',
+          email: data.email || '',
+          avatar: `https://i.pravatar.cc/150?u=${doc.id}`,
+          isActive: data.isActive || false,
+        };
+      });
+      setStudents(studentData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       {/* Top App Bar */}
@@ -97,34 +103,44 @@ export default function StudentsScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.listContainer}>
-            {suggestedStudents.map((student) => (
-              <View key={student.id} style={styles.studentCard}>
-                <View style={styles.cardLeft}>
-                  <View style={styles.avatarWrapper}>
-                    <Image source={{ uri: student.avatar }} style={styles.avatar} />
-                    {student.isActive && <View style={styles.activeDot} />}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#0050CB" />
+            </View>
+          ) : students.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No students found</Text>
+            </View>
+          ) : (
+            <View style={styles.listContainer}>
+              {students.map((student) => (
+                <View key={student.id} style={styles.studentCard}>
+                  <View style={styles.cardLeft}>
+                    <View style={styles.avatarWrapper}>
+                      <Image source={{ uri: student.avatar }} style={styles.avatar} />
+                      {student.isActive && <View style={styles.activeDot} />}
+                    </View>
+                    <View style={styles.studentInfo}>
+                      <Text style={styles.studentName}>{student.name}</Text>
+                      <Text style={styles.studentEmail}>{student.email}</Text>
+                    </View>
                   </View>
-                  <View style={styles.studentInfo}>
-                    <Text style={styles.studentName}>{student.name}</Text>
-                    <Text style={styles.studentEmail}>{student.email}</Text>
-                  </View>
-                </View>
 
-                {/* Nút Add Student Gradient */}
-                <TouchableOpacity activeOpacity={0.8}>
-                  <LinearGradient
-                    colors={['#0050CB', '#0066FF']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.addButton}
-                  >
-                    <Ionicons name="add" size={16} color="#FFFFFF" />
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
+                  {/* Nút Add Student Gradient */}
+                  <TouchableOpacity activeOpacity={0.8}>
+                    <LinearGradient
+                      colors={['#0050CB', '#0066FF']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.addButton}
+                    >
+                      <Ionicons name="add" size={16} color="#FFFFFF" />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Spacer cho Bottom Tab & FAB */}
@@ -375,5 +391,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
     color: '#FFFFFF',
+  },
+  loadingContainer: {
+    paddingVertical: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#727687',
   }
 });

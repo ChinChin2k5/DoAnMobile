@@ -30,7 +30,8 @@ export default function Onboarding2({ navigation }) {
         iconName="arrow-forward"/>
       </View>
       <View style={styles.mrInvisible}>
-        <TouchableOpacity>
+        <TouchableOpacity
+        onPress={() => navigation.navigate("Login")}>
           <Text style={styles.textInvisible}>{t("onboarding2.buttonSkip")}</Text>
         </TouchableOpacity>
       </View>

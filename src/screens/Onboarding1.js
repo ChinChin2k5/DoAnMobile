@@ -23,7 +23,7 @@ export default function Onboarding1({ navigation }) {
           }}
         />
         <Text style={styles.bigText}>
-          {t("onboarding1.welcome")}
+          {t("onboarding1.welcome")}{" "}
           <Text style={styles.colorText}>Atoza.</Text>
         </Text>
         <Text style={styles.smallText}>{t("onboarding1.smallText")}</Text>
@@ -39,7 +39,9 @@ export default function Onboarding1({ navigation }) {
           />
         </View>
         <View style={styles.mrInvisible}>
-          <TouchableOpacity>
+          <TouchableOpacity
+           onPress={() => navigation.navigate("Login")}
+           >
             <Text style={styles.textInvisible}>
               {t("onboarding1.buttonSkip")}
             </Text>

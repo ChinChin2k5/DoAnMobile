@@ -7,10 +7,7 @@ import {
   FileText,
   Users,
   MoreHorizontal,
-  Globe,
   Code,
-  PenTool,
-  BookOpen,
 } from "lucide-react-native";
 import Header from "../components/Header";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
@@ -19,29 +16,45 @@ import { useTranslation } from "react-i18next";
 import StatCard from "../components/StatCard";
 import Svg, { Circle } from "react-native-svg";
 
-// ========================================================
-// 1. CÁC HÀM TIỆN ÍCH & SUB-COMPONENTS
-// ========================================================
 const getIconForDomain = (domainName) => {
   switch (domainName) {
-    case "Molecular Biology": return <Globe color="#084CCB" size={20} />;
-    case "Literature": return <PenTool color="#084CCB" size={20} />;
-    case "History": return <BookOpen color="#084CCB" size={20} />;
-    default: return <Code color="#084CCB" size={20} />;
+    default:
+      return <Code color="#084CCB" size={20} />;
   }
 };
 
-// ĐẠI CA BÓC THẰNG DONUT NÀY RA CHO FILE RENDER CHÍNH NHẸ NHÀNG
 const AccuracyDonut = ({ rate, labelText }) => {
   const strokeDashoffset = 395.84 - (rate / 100) * 395.84;
   return (
     <View style={styles.donutContainer}>
-      <View style={{ width: 140, height: 140, justifyContent: "center", alignItems: "center" }}>
-        <Svg width="140" height="140" style={{ position: "absolute", transform: [{ rotate: "-90deg" }] }}>
-          <Circle cx="70" cy="70" r="63" stroke="#F3F4F6" strokeWidth="14" fill="none" />
+      <View
+        style={{
+          width: 140,
+          height: 140,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Svg
+          width="140"
+          height="140"
+          style={{ position: "absolute", transform: [{ rotate: "-90deg" }] }}
+        >
           <Circle
-            cx="70" cy="70" r="63"
-            stroke="#084CCB" strokeWidth="14" fill="none"
+            cx="70"
+            cy="70"
+            r="63"
+            stroke="#F3F4F6"
+            strokeWidth="14"
+            fill="none"
+          />
+          <Circle
+            cx="70"
+            cy="70"
+            r="63"
+            stroke="#084CCB"
+            strokeWidth="14"
+            fill="none"
             strokeDasharray={395.84}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="butt"
@@ -56,12 +69,10 @@ const AccuracyDonut = ({ rate, labelText }) => {
   );
 };
 
-// ========================================================
 // 2. COMPONENT CHÍNH QUẢN LÝ LOGIC
-// ========================================================
 export default function ChartAdminScreen() {
   const { t } = useTranslation();
-  
+
   const [chartData, setChartData] = useState({
     totalUsers: "0",
     totalExams: "0",
@@ -91,10 +102,10 @@ export default function ChartAdminScreen() {
 
       examsSnapshot.forEach((examDoc) => {
         const examData = examDoc.data();
-        
-        // 2. CHUI VÀO TRONG MẢNG QUESTIONS ĐỂ MÓC DOMAIN RA!!!
+
+        // 2. CHUI VÀO TRONG MẢNG QUESTIONS ĐỂ LẤY DOMAIN RA!!!
         const questions = examData.questionsList || examData.questions || [];
-        
+
         questions.forEach((q) => {
           if (q.domain) {
             domainCounts[q.domain] = (domainCounts[q.domain] || 0) + 1;
@@ -131,14 +142,19 @@ export default function ChartAdminScreen() {
 
       historySnapshot.forEach((doc) => {
         const historyData = doc.data();
-        if (typeof historyData.correctCount === "number" && typeof historyData.totalQuestions === "number") {
+        if (
+          typeof historyData.correctCount === "number" &&
+          typeof historyData.totalQuestions === "number"
+        ) {
           totalCorrectAll += historyData.correctCount;
           totalQuestionsAll += historyData.totalQuestions;
         }
       });
 
       if (totalQuestionsAll > 0) {
-        const avgAccuracy = Math.round((totalCorrectAll / totalQuestionsAll) * 100);
+        const avgAccuracy = Math.round(
+          (totalCorrectAll / totalQuestionsAll) * 100
+        );
         setAccuracyRate(avgAccuracy);
       }
     } catch (error) {
@@ -150,7 +166,7 @@ export default function ChartAdminScreen() {
     fetchChartStats();
   }, []);
 
-  // GIỮ NGUYÊN I18N, CHỈ THÊM THUỘC TÍNH iconBg CHO THẰNG STATCARD ĂN
+  // GIỮ NGUYÊN I18N, CHỈ THÊM THUỘC TÍNH iconBg CHO STATCARD
   const analyticsStats = [
     {
       id: 1,
@@ -188,13 +204,19 @@ export default function ChartAdminScreen() {
 
   return (
     <ScreenWrapper backgroundColor="#D3E4FE">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-        <Header title={t("chartAdmin_headerTitle")} leftIcon="arrow-back" showBell={true} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        <Header
+          title={t("chartAdmin_headerTitle")}
+          leftIcon="arrow-back"
+          showBell={true}
+        />
+        <View style={styles.headerDivider} />
 
         <View style={styles.body}>
-          {/* ========================================================== */}
           {/* PHẦN 1: 4 THẺ THỐNG KÊ ĐƯỢC TỐI ƯU VỚI COMPONENT STATCARD  */}
-          {/* ========================================================== */}
           {analyticsStats.map((item) => (
             <StatCard key={item.id} item={item} />
           ))}
@@ -202,7 +224,9 @@ export default function ChartAdminScreen() {
           {/* PHẦN 2: TOP COURSE CATEGORIES */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t("chartAdmin_topCoursesTitle")}</Text>
+              <Text style={styles.sectionTitle}>
+                {t("chartAdmin_topCoursesTitle")}
+              </Text>
               <MoreHorizontal color="#6F7F91" size={20} />
             </View>
 
@@ -211,37 +235,48 @@ export default function ChartAdminScreen() {
                 <View style={styles.iconWrapper}>{course.icon}</View>
                 <View style={styles.courseInfo}>
                   <View style={styles.courseTextRow}>
-                    <Text style={styles.courseName}>{course.name}</Text>
+                    {/* BỌC HÀM t() VÀO ĐÂY VÀ DÙNG TUYỆT KỸ defaultValue */}
+                    <Text style={styles.courseName}>
+                      {t(`subjects.${course.name}`, {
+                        defaultValue: course.name,
+                      })}
+                    </Text>
+
                     <Text style={styles.coursePercent}>{course.percent}%</Text>
                   </View>
                   <View style={styles.progressBarBg}>
-                    <View style={[styles.progressBarFill, { width: `${course.percent}%` }]} />
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { width: `${course.percent}%` },
+                      ]}
+                    />
                   </View>
                 </View>
               </View>
             ))}
           </View>
 
-          {/* ========================================================== */}
           {/* PHẦN 3: GỌI DONUT RA ĐÂY CHO GỌN GÀNG MÀ VẪN GIỮ ĐƯỢC I18N */}
-          {/* ========================================================== */}
           <View style={styles.sectionCard}>
-            
-            <AccuracyDonut rate={accuracyRate} labelText={t("chartAdmin_accuracyLabel")} />
+            <AccuracyDonut
+              rate={accuracyRate}
+              labelText={t("chartAdmin_accuracyLabel")}
+            />
 
-            <Text style={styles.retentionTitle}>{t("chartAdmin_accuracyTitle")}</Text>
-            <Text style={styles.retentionDesc}>{t("chartAdmin_accuracyDesc")}</Text>
+            <Text style={styles.retentionTitle}>
+              {t("chartAdmin_accuracyTitle")}
+            </Text>
+            <Text style={styles.retentionDesc}>
+              {t("chartAdmin_accuracyDesc")}
+            </Text>
           </View>
-
         </View>
       </ScrollView>
     </ScreenWrapper>
   );
 }
 
-// ==========================================
-// 3. CSS ĐÃ DỌN SẠCH ĐÁM KHAI BÁO THỪA CỦA MINICARD
-// ==========================================
 const styles = StyleSheet.create({
   body: { paddingHorizontal: 16, paddingTop: 10 },
 
@@ -266,21 +301,74 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   sectionTitle: { fontSize: 16, fontFamily: "Inter-Black", color: "#1A2134" },
 
   courseRow: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
   courseInfo: { flex: 1, marginLeft: 16 },
-  courseTextRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  courseTextRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
   courseName: { fontSize: 14, fontFamily: "Inter-Bold", color: "#1A2134" },
-  coursePercent: { fontSize: 13, fontFamily: "Inter-SemiBold", color: "#6F7F91" },
-  progressBarBg: { height: 6, backgroundColor: "#F3F4F6", borderRadius: 100, width: "100%", overflow: "hidden" },
-  progressBarFill: { height: "100%", backgroundColor: "#084CCB", borderRadius: 100 },
+  coursePercent: {
+    fontSize: 13,
+    fontFamily: "Inter-SemiBold",
+    color: "#6F7F91",
+  },
+  progressBarBg: {
+    height: 6,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 100,
+    width: "100%",
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#084CCB",
+    borderRadius: 100,
+  },
 
-  donutContainer: { alignItems: "center", marginVertical: 10, marginBottom: 24 },
+  donutContainer: {
+    alignItems: "center",
+    marginVertical: 10,
+    marginBottom: 24,
+  },
   donutPercent: { fontSize: 28, fontFamily: "Inter-Black", color: "#1A2134" },
-  donutSubText: { fontSize: 9, fontFamily: "Inter-Bold", color: "#6F7F91", letterSpacing: 1, marginTop: 0 },
+  donutSubText: {
+    fontSize: 9,
+    fontFamily: "Inter-Bold",
+    color: "#6F7F91",
+    letterSpacing: 1,
+    marginTop: 0,
+  },
 
-  retentionTitle: { fontSize: 16, fontFamily: "Inter-Black", color: "#1A2134", textAlign: "center", marginBottom: 8 },
-  retentionDesc: { fontSize: 13, fontFamily: "Inter-Medium", color: "#6F7F91", textAlign: "center", lineHeight: 20, paddingHorizontal: 10 },
+  retentionTitle: {
+    fontSize: 16,
+    fontFamily: "Inter-Black",
+    color: "#1A2134",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  retentionDesc: {
+    fontSize: 13,
+    fontFamily: "Inter-Medium",
+    color: "#6F7F91",
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: 10,
+  },
+  headerDivider: {
+    height: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.08)",
+    marginHorizontal: 15,
+    marginTop: 5,
+    marginBottom: 15,
+  },
 });

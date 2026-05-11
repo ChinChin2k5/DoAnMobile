@@ -70,13 +70,13 @@ export default function CreateExamStep3Screen({ navigation, route }) {
         window.alert(successMsg);
         navigation.reset({
           index: 0,
-          routes: [{ name: 'MainTabs', params: { screen: 'Dashboard' } }]
+          routes: [{ name: 'MainTabsAdmin', params: { screen: 'AdminHome' } }]
         });
       } else {
         Alert.alert('Success', successMsg, [
           { text: 'OK', onPress: () => navigation.reset({
             index: 0,
-            routes: [{ name: 'MainTabs', params: { screen: 'Dashboard' } }]
+            routes: [{ name: 'MainTabsAdmin', params: { screen: 'AdminHome' } }]
           }) }
         ]);
       }

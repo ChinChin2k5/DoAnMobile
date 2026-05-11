@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function CreateClass1Screen({ navigation }) {
   const [className, setClassName] = useState('');
   const [selectedColor, setSelectedColor] = useState('#0050CB');
-  const [selectedLevel, setSelectedLevel] = useState('High School - Year 12');
+  const [selectedLevel, setSelectedLevel] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const colors = ['#0050CB', '#34D399', '#F59E0B', '#F43F5E', '#8B5CF6'];
@@ -52,9 +52,7 @@ export default function CreateClass1Screen({ navigation }) {
           <Ionicons name="arrow-back" size={20} color="#64748B" />
         </TouchableOpacity>
         <Text style={styles.logoText}>Atoza</Text>
-        <View style={styles.profileBorder}>
-          <Image source={{ uri: 'https://i.pravatar.cc/150?u=teacher' }} style={styles.profilePic} />
-        </View>
+        <View style={{ width: 32 }} /> {/* Placeholder for right side */}
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -100,10 +98,16 @@ export default function CreateClass1Screen({ navigation }) {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.dropdownInput}>
-            <Text style={styles.dropdownText}>{selectedLevel}</Text>
-            <Ionicons name="chevron-down" size={20} color="#6B7280" />
-          </TouchableOpacity>
+           <View style={styles.inputGroup}>
+             <Text style={styles.label}>LEVEL</Text>
+             <TextInput 
+               style={styles.input}
+               placeholder="e.g., High School - Year 12"
+               placeholderTextColor="#C2C6D8"
+               value={selectedLevel}
+               onChangeText={setSelectedLevel}
+             />
+           </View>
         </View>
 
         {/* Section 2: Description */}
