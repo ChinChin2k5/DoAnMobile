@@ -1,15 +1,11 @@
 // screens/DashboardScreen.js
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { UserContext } from '../context/UserContext';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
 
 export default function DashboardScreen({ navigation }) {
-  const userContext = useContext(UserContext) || {};
-  const userName = userContext.userName;
-  
   const [userRole, setUserRole] = useState(null);
   const [totalStudents, setTotalStudents] = useState(0);
   const [examsCreated, setExamsCreated] = useState(0);
@@ -17,7 +13,9 @@ export default function DashboardScreen({ navigation }) {
 
   // Fetch data from Firestore for teacher user
   useEffect(() => {
-    if (!userName) {
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
       setLoading(false);
       return;
     }
@@ -25,7 +23,7 @@ export default function DashboardScreen({ navigation }) {
     setLoading(true);
 
     // Query current user to verify teacher role
-    const userQuery = query(collection(db, 'users'), where('name', '==', userName));
+    const userQuery = query(collection(db, 'users'), where('uid', '==', currentUser.uid));
 
     const userUnsubscribe = onSnapshot(userQuery, (snapshot) => {
       if (!snapshot.empty) {
@@ -33,22 +31,21 @@ export default function DashboardScreen({ navigation }) {
         setUserRole(userData.role);
 
         // Only proceed if user is a teacher
-        if (userData.role === 'teacher') {
+        if (userData.role === 'Giáo viên') {
           // Query exams created by this teacher
           const examsQuery = query(
             collection(db, 'exams'),
-            where('creatorName', '==', userName)
+            where('createdBy', '==', currentUser.uid)
           );
 
           const examsUnsubscribe = onSnapshot(examsQuery, (snapshot) => {
             setExamsCreated(snapshot.docs.length);
           });
 
-          // Query students assigned to this teacher
+          // Query all students (role = 'Học sinh')
           const studentsQuery = query(
             collection(db, 'users'),
-            where('role', '==', 'student'),
-            where('teacherName', '==', userName)
+            where('role', '==', 'Học sinh')
           );
 
           const studentsUnsubscribe = onSnapshot(studentsQuery, (snapshot) => {
@@ -71,7 +68,7 @@ export default function DashboardScreen({ navigation }) {
     return () => {
       userUnsubscribe();
     };
-  }, [userName]);
+  }, []);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -94,7 +91,7 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.welcomeSection}>
           <Text style={styles.greetingText}>{getGreeting()}, Giáo viên.</Text>
           
-          <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('Tao_De_Thi_Part1')}>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('CreateExamStep1')}>
             <LinearGradient
               colors={['#0050CB', '#0066FF']}
               start={{ x: 0, y: 0 }}

@@ -14,12 +14,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { db, auth } from '../firebaseConfig';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 
 export default function CreateClass2Screen({ navigation, route }) {
   const [isLoading, setIsLoading] = useState(false);
   const [classCode, setClassCode] = useState('');
   const [classData, setClassData] = useState(null);
+  const [teacherName, setTeacherName] = useState('');
 
   useEffect(() => {
     const initializeClass = async () => {
@@ -27,6 +28,9 @@ export default function CreateClass2Screen({ navigation, route }) {
         // Get class data from route params
         const data = route?.params?.classData;
         setClassData(data);
+        
+        // Fetch teacher name
+        await fetchTeacherName();
         
         // Generate class code
         const code = generateClassCode();
@@ -41,6 +45,29 @@ export default function CreateClass2Screen({ navigation, route }) {
 
     initializeClass();
   }, []);
+
+  const fetchTeacherName = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      // Try to get teacher name from Firestore users collection
+      const q = query(
+        collection(db, 'users'),
+        where('uid', '==', user.uid)
+      );
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        const userData = snapshot.docs[0].data();
+        setTeacherName(userData.fullName || userData.name || user.email || '');
+      } else {
+        setTeacherName(user.displayName || user.email || '');
+      }
+    } catch (error) {
+      console.error('Error fetching teacher name:', error);
+    }
+  };
 
   const generateClassCode = () => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -59,7 +86,7 @@ export default function CreateClass2Screen({ navigation, route }) {
         throw new Error('User not authenticated');
       }
 
-      await addDoc(collection(db, 'classes'), {
+      const docRef = await addDoc(collection(db, 'classes'), {
         className: data?.className || 'Untitled Class',
         themeColor: data?.themeColor || '#0050CB',
         level: data?.level || 'High School - Year 12',
@@ -67,18 +94,22 @@ export default function CreateClass2Screen({ navigation, route }) {
         classCode: code,
         teacherId: user.uid,
         teacherEmail: user.email,
+        teacherName: teacherName || user.displayName || user.email || 'Unknown Teacher',
         createdAt: serverTimestamp(),
         students: [],
         totalStudents: 0,
       });
 
       setIsLoading(false);
+      
+      // Navigate to ClassDashboard after successful creation
+      navigation.navigate('ClassDashboard', { classId: docRef.id });
     } catch (error) {
       setIsLoading(false);
       console.error('Error saving class:', error);
       Alert.alert('Error', 'Could not save class to database');
     }
-  }; 
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -88,9 +119,7 @@ export default function CreateClass2Screen({ navigation, route }) {
           <Ionicons name="arrow-back" size={20} color="#64748B" />
         </TouchableOpacity>
         <Text style={styles.logoText}>Atoza</Text>
-        <View style={styles.profileBorder}>
-          <Image source={{ uri: 'https://i.pravatar.cc/150?u=teacher' }} style={styles.profilePic} />
-        </View>
+        <View style={{ width: 32 }} /> {/* Placeholder for right side */}
       </View>
 
       <View style={styles.contentSection}>
@@ -124,13 +153,13 @@ export default function CreateClass2Screen({ navigation, route }) {
             <ActivityIndicator size="large" color="#0050CB" />
           ) : (
             <>
-              <TouchableOpacity style={{ width: '100%' }} onPress={() => navigation.navigate('Main')}>
+              <TouchableOpacity style={{ width: '100%' }} onPress={() => navigation.navigate('MainTabsAdmin', { screen: 'AdminHome' })}>
                 <LinearGradient colors={['#0050CB', '#0066FF']} style={styles.primaryButton}>
                   <Text style={styles.primaryButtonText}>Go to Class Dashboard</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.secondaryLink} onPress={() => navigation.navigate('Main')}>
+              <TouchableOpacity style={styles.secondaryLink} onPress={() => navigation.navigate('MainTabsAdmin', { screen: 'AdminHome' })}>
                 <Ionicons name="arrow-back" size={16} color="#0050CB" />
                 <Text style={styles.secondaryLinkText}>Quay lại trang chủ</Text>
               </TouchableOpacity>
@@ -148,8 +177,6 @@ const styles = StyleSheet.create({
   topAppBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 12, backgroundColor: 'rgba(255, 255, 255, 0.7)', zIndex: 10 },
   iconButton: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   logoText: { fontWeight: '700', fontSize: 20, color: '#1D4ED8', letterSpacing: -0.5 },
-  profileBorder: { borderWidth: 2, borderColor: '#D3E4FE', borderRadius: 20, padding: 2 },
-  profilePic: { width: 32, height: 32, borderRadius: 16 },
   
   contentSection: { flex: 1, justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 40 },
   headerGroup: { marginBottom: 40, gap: 12 },
