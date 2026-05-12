@@ -22,7 +22,7 @@ Yêu cầu môi trường: Máy tính đã cài đặt Node.js và Git.
 1. Clone repository về máy cục bộ:
    ```bash
    git clone https://github.com/ChinChin2k5/DoAnMobile
-   cd https://github.com/ChinChin2k5/DoAnMobile
+   cd DoAnMobile
 2. Cài đặt các gói thư viện phụ thuộc
    npm install
 ## Hướng Dẫn Chạy Project
