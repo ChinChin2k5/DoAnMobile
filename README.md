@@ -13,7 +13,7 @@ Chúng em xây dựng đề tài này nhằm giúp các bạn học sinh/sinh vi
 
 ## Công Nghệ Sử Dụng
 * **Frontend:** React Native (Expo)
-* **Backend/Database:** Firebase (Firestore, Authentication)
+* **Backend/Database:** Firebase (Firestore, Firebase Storage)
 * **Libraries/Tools:** i18n (Đa ngôn ngữ), Async Storage, react-native-svg, lucide-react-native...
 
 ## Hướng Dẫn Cài Đặt 
