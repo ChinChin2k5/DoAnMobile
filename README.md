@@ -36,9 +36,11 @@ Yêu cầu môi trường: Máy tính đã cài đặt Node.js và Git.
    git clone https://github.com/ChinChin2k5/DoAnMobile
    cd DoAnMobile
 2. Cài đặt các gói thư viện phụ thuộc
+    ```
    npm install
 ## Hướng Dẫn Chạy Project
 1. Khởi Động Server
+   ```
    npx expo start
 Tài Khoản Demo 
 Truy cập quyền Admin: Thưa thầy, để có thể truy cập vào các Screen của Actor Admin, tại màn hình Log In, xin vui lòng nhấn giữ vào Logo Atoza trong khoảng 3-4 giây.
