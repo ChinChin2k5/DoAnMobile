@@ -14,7 +14,7 @@ Chúng em xây dựng đề tài này nhằm giúp các bạn học sinh/sinh vi
 ## Công Nghệ Sử Dụng
 * **Frontend:** React Native (Expo)
 * **Backend/Database:** Firebase (Firestore, Firebase Storage)
-* **Libraries/Tools:** i18n (Đa ngôn ngữ), Async Storage, react-native-svg, lucide-react-native...
+* **Libraries/Tools:** i18n (Đa ngôn ngữ), Async Storage, react-native-svg, lucide-react-native, React Navigation, React Query, React Native Paper, React Native SVG & Chart Kit, Lucide & Vector Icons, xlsx, Expo File System & Image Picker
 
 ## Hướng Dẫn Cài Đặt 
 Yêu cầu môi trường: Máy tính đã cài đặt Node.js và Git.
