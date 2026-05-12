@@ -1,4 +1,4 @@
-# Đồ án: Ứng dụng di động tạo đề thi và đánh giá năng lực Atoza
+# Đồ án: Xây dựng ứng dụng di động tạo đề thi và đánh giá năng lực Atoza
 
 ## Giới thiệu
 Chúng em xây dựng đề tài này nhằm giúp các bạn học sinh/sinh viên (Thí Sinh) có thể dễ dàng tham gia thi để đánh giá năng lực của bản thân. Đồng thời, hệ thống cung cấp công cụ mạnh mẽ giúp Giảng Viên dễ dàng theo dõi Thí Sinh và tạo đề thi một cách trực quan, tự động hóa khâu chấm điểm.
