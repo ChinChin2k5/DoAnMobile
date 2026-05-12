@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 268 notes | Score threshold: >40
+> 35 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,58 +20,23 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **⚠️ GOTCHA: Fixed null crash in Date — avoids unnecessary re-renders in React** — -         ...doc.data() }));
-+         ...doc.data() 
-- 
-+       })
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 262 notes | Score threshold: >40
-+ > 266 notes | Score threshold: 
-- **⚠️ GOTCHA: Added API key auth authentication** — - > 260 notes | Score threshold: >40
-+ > 262 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 229 notes | Score threshold: >40
-+ > 256 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Intellectual** — - # Intellectual Property & Architecture Rules
-+ # Intellectual Proper
-- **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized Intellectual
-+ - gotcha in agent-rules.md
-- -
+- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
 
-## Active: `navigation`
-
-- **what-changed in AppNavigator.js — confirmed 11x**
-- **what-changed in AppNavigator.js**
-- **Updated API endpoint Loading**
-- **Updated API endpoint LoadingScreen**
-- **Replaced dependency Classes_Thi_Sinh**
+Content summary (3
 
 ## Project Standards
 
-- what-changed in AppNavigator.js — confirmed 11x
-- Fixed null crash in Date — avoids unnecessary re-renders in React — confirmed 4x
-- what-changed in shared-context.json — confirmed 3x
-- Optimized Intellectual — confirmed 3x
-- what-changed in shared-context.json — confirmed 4x
-- Added API key auth authentication — confirmed 3x
-- what-changed in shared-context.json — confirmed 8x
-- Optimized Intellectual — confirmed 3x
+- convention in shared-context.json
+- convention in shared-context.json
+- Strengthened types React — improves module reusability
+- Index Firestore queries for performance
+- Use batch writes for multiple document updates
+- Use Suspense and Error Boundaries for async operations
+- Don't prop-drill more than 2 levels — use Context or state management
+- Use useMemo for expensive computations, useCallback for stable references
 
-## Known Fixes
+## Verified Best Practices
 
-- ❌ - - **⚠️ GOTCHA: Fixed null crash in Date — avoids unnecessary re-renders in React** — -         ... → ✅ problem-fix in brainsync_auto.md
-- ❌ -       console.error('[Dashboard] Firestore error:', err.message); → ✅ Fixed null crash in Date — avoids unnecessary re-renders in React
-
-## Recent Decisions
-
-- decision in Dropdown.js
-- decision in CreateClass1Screen.js
-- decision in Dashboard_Thi_Sinh.js
-- decision in Dashboard_Thi_Sinh.js
-
-## Learned Patterns
-
-- Decision: Optimized Intellectual (seen 5x)
-- Avoid: ⚠️ GOTCHA: Optimized Intellectual (seen 2x)
-- Decision: Optimized Score — parallelizes async operations for speed (seen 2x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 

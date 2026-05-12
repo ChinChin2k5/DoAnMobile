@@ -23,6 +23,7 @@ import Chi_Tiet_Dap_An from '../Screens_Duy/Chi_Tiet_Dap_An';
 import Ket_Qua_Dummy from '../Screens_Duy/Ket_Qua_Dummy';
 import Login from '../Screens_Duy/Login';
 import Register from '../Screens_Duy/Register';
+import Classes_Thi_Sinh from '../Screens_Duy/Classes_Thi_Sinh';
 
 // ── Import các Screens dành cho TEACHER / ADMIN từ Screens_Duc ──
 import DashboardScreen from '../Screens_Duc/DashboardScreen';
@@ -44,9 +45,9 @@ import AdminChartScreen from '../src/screens/AdminChartScreen';
 import AdminConfigScreen from '../src/screens/AdminConfigScreen';
 
 // ── Placeholder screens cho các role chưa có màn hình riêng ──
-const ClassesScreen = () => (
-  <View style={styles.placeholder}><Text>Classes Screen</Text></View>
-);
+// const ClassesScreen = () => (
+//   <View style={styles.placeholder}><Text>Classes Screen</Text></View>
+// );
 
 // Component rỗng để gán tạm cho tab Exams - chỉ dùng listeners để redirect
 const EmptyScreen = () => <View />;
@@ -101,7 +102,7 @@ function MainTabNavigator() {
       })}
     >
       <Tab.Screen name="Dashboard" component={Dashboard_Thi_Sinh} />
-      <Tab.Screen name="Classes" component={ClassesScreen} />
+      <Tab.Screen name="Classes" component={Classes_Thi_Sinh} />
       <Tab.Screen name="History" component={Lich_Su_Lam_Bai} />
       <Tab.Screen name="Profile" component={Profile_Thi_Sinh} />
     </Tab.Navigator>

@@ -1,7 +1,7 @@
 
 
 # Project Memory — DoAnMobile
-> 268 notes | Score threshold: >40
+> 35 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,58 +20,23 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **⚠️ GOTCHA: Fixed null crash in Date — avoids unnecessary re-renders in React** — -         ...doc.data() }));
-+         ...doc.data() 
-- 
-+       })
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 262 notes | Score threshold: >40
-+ > 266 notes | Score threshold: 
-- **⚠️ GOTCHA: Added API key auth authentication** — - > 260 notes | Score threshold: >40
-+ > 262 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Score — parallelizes async operations for speed** — - > 229 notes | Score threshold: >40
-+ > 256 notes | Score threshold: 
-- **⚠️ GOTCHA: Optimized Intellectual** — - # Intellectual Property & Architecture Rules
-+ # Intellectual Proper
-- **⚠️ GOTCHA: Optimized GOTCHA** — - - ⚠️ GOTCHA: Optimized Intellectual
-+ - gotcha in agent-rules.md
-- -
+- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
 
-## Active: `navigation`
-
-- **what-changed in AppNavigator.js — confirmed 11x**
-- **what-changed in AppNavigator.js**
-- **Updated API endpoint Loading**
-- **Updated API endpoint LoadingScreen**
-- **Replaced dependency Classes_Thi_Sinh**
+Content summary (3
 
 ## Project Standards
 
-- what-changed in AppNavigator.js — confirmed 11x
-- Fixed null crash in Date — avoids unnecessary re-renders in React — confirmed 4x
-- what-changed in shared-context.json — confirmed 3x
-- Optimized Intellectual — confirmed 3x
-- what-changed in shared-context.json — confirmed 4x
-- Added API key auth authentication — confirmed 3x
-- what-changed in shared-context.json — confirmed 8x
-- Optimized Intellectual — confirmed 3x
+- convention in shared-context.json
+- convention in shared-context.json
+- Strengthened types React — improves module reusability
+- Index Firestore queries for performance
+- Use batch writes for multiple document updates
+- Use Suspense and Error Boundaries for async operations
+- Don't prop-drill more than 2 levels — use Context or state management
+- Use useMemo for expensive computations, useCallback for stable references
 
-## Known Fixes
+## Verified Best Practices
 
-- ❌ - - **⚠️ GOTCHA: Fixed null crash in Date — avoids unnecessary re-renders in React** — -         ... → ✅ problem-fix in brainsync_auto.md
-- ❌ -       console.error('[Dashboard] Firestore error:', err.message); → ✅ Fixed null crash in Date — avoids unnecessary re-renders in React
-
-## Recent Decisions
-
-- decision in Dropdown.js
-- decision in CreateClass1Screen.js
-- decision in Dashboard_Thi_Sinh.js
-- decision in Dashboard_Thi_Sinh.js
-
-## Learned Patterns
-
-- Decision: Optimized Intellectual (seen 5x)
-- Avoid: ⚠️ GOTCHA: Optimized Intellectual (seen 2x)
-- Decision: Optimized Score — parallelizes async operations for speed (seen 2x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 
@@ -312,6 +277,41 @@ Reference these guidelines when:
 - `ui-safe-area-scroll` - Handle safe areas in ScrollViews
 - `ui-scrollview-content-inset` - Use contentInset for headers
 - `ui-menus` - Use native context m...
+(truncated)
+
+
+### 📚 Core Framework Rules: [google-labs-code/react-components]
+# Stitch to React Components
+
+You are a frontend engineer focused on transforming designs into clean React code. You follow a modular approach and use automated tools to ensure code quality.
+
+## Retrieval and networking
+1. **Namespace discovery**: Run `list_tools` to find the Stitch MCP prefix. Use this prefix (e.g., `stitch:`) for all subsequent calls.
+2. **Metadata fetch**: Call `[prefix]:get_screen` to retrieve the design JSON.
+3. **Check for existing designs**: Before downloading, check if `.stitch/designs/{page}.html` and `.stitch/designs/{page}.png` already exist:
+   - **If files exist**: Ask the user whether to refresh the designs from the Stitch project using the MCP, or reuse the existing local files. Only re-download if the user confirms.
+   - **If files do not exist**: Proceed to step 4.
+4. **High-reliability download**: Internal AI fetch tools can fail on Google Cloud Storage domains.
+   - **HTML**: `bash scripts/fetch-stitch.sh "[htmlCode.downloadUrl]" ".stitch/designs/{page}.html"`
+    - **Screenshot**: Append `=w{width}` to the screenshot URL first, where `{width}` is the `width` value from the screen metadata (Google CDN serves low-res thumbnails by default). Then run: `bash scripts/fetch-stitch.sh "[screenshot.downloadUrl]=w{width}" ".stitch/designs/{page}.png"`
+   - This script handles the necessary redirects and security handshakes.
+5. **Visual audit**: Review the downloaded screenshot (`.stitch/designs/{page}.png`) to confirm design intent and layout details.
+
+## Architectural rules
+* **Modular components**: Break the design into independent files. Avoid large, single-file outputs.
+* **Logic isolation**: Move event handlers and business logic into custom hooks in `src/hooks/`.
+* **Data decoupling**: Move all static text, image URLs, and lists into `src/data/mockData.ts`.
+* **Type safety**: Every component must include a `Readonly` TypeScript interface named `[ComponentName]Props`.
+* **Project specific**: Focus on the target project's needs and constraints. Leave Google license headers out of the generated React components.
+* **Style mapping**:
+    * Extract the `tailwind.config` from the HTML `<head>`.
+    * Sync these values with `resources/style-guide.json`.
+    * Use theme-mapped Tailwind classes instead of arbitrary hex codes.
+
+## Execution steps
+1. **Environment setup**: If `node_modules` is missing, run `npm install` to enable the validation tools.
+2. **Data layer**: Create `src/data/mockData.ts` based on the design content.
+3. **...
 (truncated)
 
 
