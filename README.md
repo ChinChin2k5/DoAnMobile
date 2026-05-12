@@ -2,6 +2,18 @@
 
 ## Giới thiệu
 Chúng em xây dựng đề tài này nhằm giúp các bạn học sinh/sinh viên (Thí Sinh) có thể dễ dàng tham gia thi để đánh giá năng lực của bản thân. Đồng thời, hệ thống cung cấp công cụ mạnh mẽ giúp Giảng Viên dễ dàng theo dõi Thí Sinh và tạo đề thi một cách trực quan, tự động hóa khâu chấm điểm.
+<img width="293" height="541" alt="image" src="https://github.com/user-attachments/assets/02c7412b-b530-48a2-8ea5-beefeb1042f0" />
+<img width="308" height="570" alt="image" src="https://github.com/user-attachments/assets/155df47e-c3d4-4248-8285-ef5b871dad11" />
+<img width="308" height="586" alt="image" src="https://github.com/user-attachments/assets/f98c681c-c967-4ca5-a6a4-f0e923f8f93f" />
+<img width="293" height="650" alt="image" src="https://github.com/user-attachments/assets/cf7d4fee-7c65-44e6-adc4-d860c1b63b65" />
+<img width="308" height="559" alt="image" src="https://github.com/user-attachments/assets/be784764-4c7f-4b15-bdc2-15a4ec75d865" />
+<img width="293" height="569" alt="image" src="https://github.com/user-attachments/assets/4a86476c-f9de-4f53-9ca1-fdb9cf75bf5c" />
+
+
+
+
+
+
 
 ## 👥 Danh Sách Thành Viên & Phân Công Nhiệm Vụ
 
