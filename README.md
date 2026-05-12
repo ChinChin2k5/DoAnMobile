@@ -32,3 +32,4 @@ Tài Khoản Demo
 Truy cập quyền Admin: Thưa thầy, để có thể truy cập vào các Screen của Actor Admin, tại màn hình Log In, xin vui lòng nhấn giữ vào Logo Atoza trong khoảng 3-4 giây.
 Mã xác thực (Secret Key): Khi hệ thống yêu cầu, nhập mã: Atoza@AdminSuperKey2026
 ## Link Deploy: https://app-atoza.web.app/
+## Link Drive Video: https://drive.google.com/file/d/1pTmSVQWqinkfZu1zJNFpkDb6Tj0tOHWc/view?usp=drivesdk
