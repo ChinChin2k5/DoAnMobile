@@ -22,7 +22,7 @@ Chúng em xây dựng đề tài này nhằm giúp các bạn học sinh/sinh vi
 | MSSV | Họ và Tên | Nhiệm vụ chính phụ trách |
 | :--- | :--- | :--- |
 | 23810310176 | **Dương Tiến Chiến** | Tạo các Screen cốt lõi: Loading, Onboarding, Admin Dashboard, Admin Config, Admin Chart |
-| 23810310435 | **Nguyễn Đình Duy** | Flow Thí sinh: Đăng nhập/Đăng ký, Học sinh Dashboard, Giao diện làm bài, Lịch sử, Chi tiết đáp án. |
+| 23810310435 | **Nguyễn Đình Duy** | Deploy hạ tầng qua Firebase, Flow Thí sinh: Đăng nhập/Đăng ký (đăng nhập qua Google và Facebook), Học sinh Dashboard, Giao diện làm bài, Lịch sử, Chi tiết đáp án. |
 | 23810310313 | **Lê Công Đức** | Flow Giáo viên: Giáo viên Dashboard, Quản lý học sinh, Tạo lớp học, Tạo đề thi. |
 
 ## Công Nghệ Sử Dụng
